@@ -11,9 +11,10 @@ const app = express()
 const PORT = ENV.PORT
 connectDB()
 
-// Middleware
-app.use(cors())
+// middleware
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json())
+app.use(express.urlencoded({ extended: true })); 
 
 // Rest api Route
 app.use("/api", userRouter)

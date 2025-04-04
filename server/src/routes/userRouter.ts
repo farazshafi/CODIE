@@ -4,7 +4,7 @@ import { ENV } from "../config/env"
 
 const router = Router()
 
-router.post("/users", createUser)
+router.post("/register", createUser) 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)
 })
