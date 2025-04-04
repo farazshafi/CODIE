@@ -38,18 +38,20 @@ const Page = () => {
                     {/* Login Form */}
                     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                         <p className="text-center mb-3">Enter your one-time password.</p>
-                        <div className="flex justify-center">
-                            <InputOTP 
-                                value={otp} // Bind value to state
-                                onChange={(value) => setOtp(value)} // Update state on change
+                        <div className="flex justify-center gap-3">
+                            <InputOTP
+                                value={otp}
+                                onChange={(value) => setOtp(value)}
                                 maxLength={4}
+                                className="flex space-x-3"
                             >
-                                <InputOTPSlot index={0} />
-                                <InputOTPSlot index={1} />
-                                <InputOTPSlot index={2} />
-                                <InputOTPSlot index={3} />
+                                <InputOTPSlot index={0} className="w-12 h-12 text-center border border-green-500 rounded-md" />
+                                <InputOTPSlot index={1} className="w-12 h-12 text-center border border-green-500 rounded-md" />
+                                <InputOTPSlot index={2} className="w-12 h-12 text-center border border-green-500 rounded-md" />
+                                <InputOTPSlot index={3} className="w-12 h-12 text-center border border-green-500 rounded-md" />
                             </InputOTP>
                         </div>
+
                         <div className="text-right">
                             <p className="text-sm text-gray-600 inline">
                                 Remain <span className="mygreen font-medium">30:00</span>

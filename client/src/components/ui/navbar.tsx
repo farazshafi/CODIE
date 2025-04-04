@@ -1,0 +1,132 @@
+"use client";
+import Image from "next/image";
+import React, { useState } from "react";
+import Logo from "../../../public/logo.png";
+import Link from "next/link";
+import { Menu, X, LogOut, User, CreditCard } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+
+const Navbar = () => {
+    const pathname = usePathname();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const isActive = (path: string) => pathname === path;
+
+    return (
+        <nav className="text-white bg-primary px-10 py-5 flex justify-between items-center">
+
+            <div className="flex items-center">
+                <Image src={Logo} alt="logo" className="w-[80px]" />
+                <p className="text-2xl font-semibold mt-2">
+                    COD<span className="text-green-400 font-semibold">IE</span>
+                </p>
+            </div>
+
+
+            <div className="hidden md:flex gap-10">
+                <Link href="/" className={isActive("/") ? "text-green-400 font-bold" : ""}>Home</Link>
+                <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold" : ""}>Discover</Link>
+                <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold" : ""}>Profile</Link>
+                <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold" : ""}>Plan</Link>
+                <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold" : ""}>About</Link>
+            </div>
+
+            <button
+                className="md:hidden text-white"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                {isOpen ? <X size={30} /> : <Menu size={30} />}
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
+                    <Link href="/" className={isActive("/") ? "text-green-400 font-bold" : ""}>Home</Link>
+                    <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold" : ""}>Discover</Link>
+                    <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold" : ""}>Profile</Link>
+                    <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold" : ""}>Plan</Link>
+                    <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold" : ""}>About</Link>
+
+                    <div className="text-black">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full">
+                                    Farazpachu777
+                                    <Avatar className="ml-2">
+                                        <AvatarImage src="https://github.com/shadcn.png" />
+                                        <AvatarFallback>CN</AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem>
+                                        <User />
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <CreditCard />
+                                        <span>Billing</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>
+                                    <LogOut />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+            )}
+
+            {/* Desktop */}
+            <div className="text-black hidden md:flex">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button className="text-black" variant="outline">
+                            Farazpachu777
+                            <Avatar className="ml-2">
+                                <AvatarImage src="https://github.com/shadcn.png" />
+                                <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem>
+                                <User />
+                                <span>Profile</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <CreditCard />
+                                <span>Billing</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                            <LogOut />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </nav>
+    );
+};
+
+export default Navbar;
