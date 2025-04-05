@@ -13,4 +13,10 @@ export class UserService {
     static async fetchUsers() {
         return await UserRepository.getUsers();
     }
+
+    static async findUserByEmail(email: string) {
+        const user = await UserRepository.findByEmail(email)
+        if (!user) throw new HttpError(404, "User not found")
+        return user
+    }
 }

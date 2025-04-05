@@ -1,21 +1,84 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook } from "lucide-react";
+import { Eye, EyeOff, Facebook } from "lucide-react";
 import Image from "next/image";
 import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
+import { useMutationHook } from "@/hooks/useMutationHook";
+import { loginUserApi } from "@/apis/userApi";
+import { toast } from "sonner";
+import { useUserStore } from "@/stores/userStore";
+import { useRouter } from 'next/navigation';
+
 
 const Page = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const router = useRouter()
+    const setUser = useUserStore((state) => state.setUser)
+    const user = useUserStore((state) => state.user)
+
+    const [email, setEmail] = useState("farazpachu777@gmail.com");
+    const [password, setPassword] = useState("Farazpachu@123");
+    const [checkingAuth, setCheckingAuth] = useState(true);
+
+    const [isPasswordHidden, setIsPasswordHidden] = useState(true)
+
+
+
+    const { mutate, isLoading, isSuccess } = useMutationHook(loginUserApi, {
+        onSuccess: (data) => {
+            toast.success(data.message || "User Registred succesfully");
+            console.log("login data: ", data)
+            setUser({
+                name: data.data.name,
+                email: data.data.email,
+                avatar: data.data.avatar,
+                token: data.accessToken
+            })
+            router.push("/")
+        },
+
+        onError: (e) => {
+            console.log("registration error: ", e);
+            const errors = e?.response?.data?.errors;
+            let message = "Registration failed";
+            if (Array.isArray(errors)) {
+                message = errors.map(err => err.message).join("\n");
+            } else if (e?.response?.data?.message) {
+                message = e.response.data.message;
+            }
+
+            toast.error(message);
+        }
+    })
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log("Login attempt with:", { email, password });
-        // Handle login logic here
+        mutate({ email, password })
     };
+
+    const handlePassHidden = () => {
+        setIsPasswordHidden(prev => !prev)
+    }
+
+    useEffect(() => {
+        if (user && user.token) {
+            router.push("/")
+        } else {
+            setCheckingAuth(false)
+        }
+    }, [user])
+
+
+    if (checkingAuth) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
+                <p className="text-white text-lg">Redirecting...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="h-screen w-full bg-[#1f2125] px-6 sm:px-10 md:px-20 lg:px-32 py-10 flex items-center justify-center">
@@ -67,14 +130,25 @@ const Page = () => {
                             className="py-4 border-b border-gray-300"
                             required
                         />
-                        <Input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="py-4 border-b border-gray-300"
-                            required
-                        />
+                        <div className="flex flex-row gap-x-3 items-center">
+                            <Input
+                                type={isPasswordHidden ? "password" : "text"}
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="py-4 border-b border-gray-300"
+                                required
+                            />
+                            {isPasswordHidden ? (
+                                <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
+                                    <Eye />
+                                </div>
+                            ) : (
+                                <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
+                                    <EyeOff />
+                                </div>
+                            )}
+                        </div>
                         <div className="text-right">
                             <p className="text-sm text-gray-600 inline hover:underline">
                                 <Link href={"/reset"}>

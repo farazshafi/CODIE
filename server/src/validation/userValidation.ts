@@ -15,4 +15,10 @@ export const userSchema = z.object({
         .regex(/[@$!%*?&]/, "Password must contain at least one special character (@, $, !, %, *, ?, &)")
 });
 
+export const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(1, "Password is required"),
+})
+
 export type UserInput = z.infer<typeof userSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;

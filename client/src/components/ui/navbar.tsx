@@ -92,10 +92,12 @@ const Navbar = () => {
                                         </Avatar>
                                     </Button>
                                 ) : (
-                                    <Button variant="outline" className="w-full">
-                                        <LogIn />
-                                        Log In
-                                    </Button>
+                                    <Link href={"/login"}>
+                                        <Button variant="outline" className="w-full">
+                                            <LogIn />
+                                            Log In
+                                        </Button>
+                                    </Link>
                                 )}
 
                             </DropdownMenuTrigger>
@@ -140,10 +142,12 @@ const Navbar = () => {
                                 </Avatar>
                             </Button>
                         ) : (
-                            <Button variant="outline" className="w-full">
-                                <LogIn />
-                                Log In
-                            </Button>
+                            <Link href={"/login"}>
+                                <Button variant="outline" className="w-full">
+                                    <LogIn />
+                                    Log In
+                                </Button>
+                            </Link>
                         )}
                     </DropdownMenuTrigger>
                     {user && (

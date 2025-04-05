@@ -7,7 +7,7 @@ import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
 import { registerUserApi } from "@/apis/userApi";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { Facebook } from "lucide-react";
+import { Eye, EyeOff, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { useUserStore } from "@/stores/userStore";
@@ -20,6 +20,8 @@ const Page = () => {
   const [email, setEmail] = useState("farazpachu777@gmail.com");
   const [password, setPassword] = useState("Farazpachu@123");
   const [username, setUsername] = useState("faraz shafi");
+
+  const [isPasswordHidden, setIsPasswordHidden] = useState(true)
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   const { mutate, isLoading, isError, error } = useMutationHook(registerUserApi, {
@@ -34,7 +36,7 @@ const Page = () => {
 
       router.push("/");
     },
-    
+
     onError: (e) => {
       console.log("registration error: ", e);
       const errors = e?.response?.data?.errors;
@@ -49,6 +51,10 @@ const Page = () => {
     }
 
   });
+
+  const handlePassHidden = () => {
+    setIsPasswordHidden(prev => !prev)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,14 +150,26 @@ const Page = () => {
               className="py-4 border-b border-gray-300"
               required
             />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="py-4 border-b border-gray-300"
-              required
-            />
+            <div className="flex flex-row gap-x-3 items-center">
+              <Input
+                type={isPasswordHidden ? "password" : "text"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="py-4 border-b border-gray-300"
+                required
+              />
+              {isPasswordHidden ? (
+                <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
+                  <Eye />
+                </div>
+              ) : (
+                <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
+                  <EyeOff />
+                </div>
+              )}
+            </div>
+
             <Button
               type="submit"
               className="w-full py-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
