@@ -8,7 +8,11 @@ export class UserRepository {
             if (existingUser) return null;
 
             const newUser = await User.create(user)
-            return newUser;
+
+            const userObj = newUser.toObject()
+            delete userObj.password
+
+            return userObj;
         } catch (error) {
             console.error("Database Error (addUser):", error);
             throw new Error("Database error while adding a user");

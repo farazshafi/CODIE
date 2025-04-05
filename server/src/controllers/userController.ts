@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { UserService } from "../services/userServices";
 import { UserInput, userSchema } from "../validation/userValidation";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwtTokenUtil";
 
 
 /**
@@ -13,8 +14,21 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         const validatedUser: UserInput = userSchema.parse(req.body)
 
         const newUser = await UserService.createUser(validatedUser);
-        
-        res.status(201).json({ message: "User created successfully", data: newUser });
+
+        const payload = {email: newUser.email };
+
+        const accessToken = generateAccessToken(payload)
+        const refreshToken = generateRefreshToken(payload)
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days  
+
+        })
+
+        res.status(201).json({ message: "User created successfully", data: newUser, accessToken });
     } catch (error) {
         next(error);
     }
