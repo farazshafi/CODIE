@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import Logo from "../../../public/logo.png";
 import Link from "next/link";
-import { Menu, X, LogOut, User, CreditCard } from "lucide-react";
+import { Menu, X, LogOut, User, CreditCard, LogIn } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,12 +16,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
+import { useUserStore } from "@/stores/userStore";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
+    const user = useUserStore((state) => state.user)
+    const logout = useUserStore((state) => state.logout)
+
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter()
+
+    const handleLogout = () => {
+        setIsLoading(true)
+        logout()
+        router.push("/login")
+        setIsLoading(false)
+    }
 
     const isActive = (path: string) => pathname === path;
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
+                <p className="text-white text-lg">Redirecting...</p>
+            </div>
+        );
+    }
 
     return (
         <nav className="text-white bg-primary px-10 py-5 flex justify-between items-center">
@@ -60,33 +82,46 @@ const Navbar = () => {
                     <div className="text-black">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full">
-                                    Farazpachu777
-                                    <Avatar className="ml-2">
-                                        <AvatarImage src="https://github.com/shadcn.png" />
-                                        <AvatarFallback>CN</AvatarFallback>
-                                    </Avatar>
-                                </Button>
+
+                                {user && user.token ? (
+                                    <Button variant="outline" className="w-full">
+                                        {user.name}
+                                        <Avatar className="ml-2">
+                                            <AvatarImage src="https://github.com/shadcn.png" />
+                                            <AvatarFallback>US</AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                ) : (
+                                    <Button variant="outline" className="w-full">
+                                        <LogIn />
+                                        Log In
+                                    </Button>
+                                )}
+
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem>
-                                        <User />
-                                        <span>Profile</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <CreditCard />
-                                        <span>Billing</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    <LogOut />
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
+                            {user && (
+                                <>
+                                    <DropdownMenuContent className="w-56">
+                                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                        {/* <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem>
+                                                <User />
+                                                <span>Profile</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <CreditCard />
+                                                <span>Billing</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator /> */}
+                                        <DropdownMenuItem onClick={handleLogout}>
+                                            <LogOut />
+                                            <span>Log out</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </>
+                            )}
                         </DropdownMenu>
                     </div>
                 </div>
@@ -96,33 +131,44 @@ const Navbar = () => {
             <div className="text-black hidden md:flex">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button className="text-black" variant="outline">
-                            Farazpachu777
-                            <Avatar className="ml-2">
-                                <AvatarImage src="https://github.com/shadcn.png" />
-                                <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
-                        </Button>
+                        {user && user.token ? (
+                            <Button variant="outline" className="w-full">
+                                {user.name}
+                                <Avatar className="ml-2">
+                                    <AvatarImage src="https://github.com/shadcn.png" />
+                                    <AvatarFallback>US</AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        ) : (
+                            <Button variant="outline" className="w-full">
+                                <LogIn />
+                                Log In
+                            </Button>
+                        )}
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <User />
-                                <span>Profile</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <CreditCard />
-                                <span>Billing</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <LogOut />
-                            <span>Log out</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
+                    {user && (
+                        <>
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {/* <DropdownMenuGroup>
+                                    <DropdownMenuItem>
+                                        <User />
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <CreditCard />
+                                        <span>Billing</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator /> */}
+                                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                                    <LogOut />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </>
+                    )}
                 </DropdownMenu>
             </div>
         </nav>

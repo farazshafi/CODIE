@@ -2,15 +2,18 @@ import { UserInput } from "../validation/userValidation";
 import User, { UserType } from "../models/userModel";
 
 export class UserRepository {
-    static async addUser(user: UserInput): Promise<UserType | null> {
+    static async addUser(user: UserInput) {
         try {
             const existingUser = await this.findByEmail(user.email)
             if (existingUser) return null;
 
             const newUser = await User.create(user)
 
-            const userObj = newUser.toObject()
-            delete userObj.password
+            const userObj = {
+                name: newUser.name,
+                email: newUser.email
+            }
+
 
             return userObj;
         } catch (error) {

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
@@ -9,30 +9,66 @@ import { registerUserApi } from "@/apis/userApi";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { Facebook } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
+import { useUserStore } from "@/stores/userStore";
 
 const Page = () => {
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
+  const user = useUserStore((state) => state.user);
+
   const [email, setEmail] = useState("farazpachu777@gmail.com");
   const [password, setPassword] = useState("Farazpachu@123");
   const [username, setUsername] = useState("faraz shafi");
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const { mutate, isLoading, isError, data, error, isSuccess } =
-    useMutationHook(registerUserApi, {
-      onSuccess: (data) => {
-        toast.success(data.message || "User Registred succesfully")
-      },
-      onError: (e) => {
-        toast.error(e.response.data.message || "Registration failed")
-      },
+  const { mutate, isLoading, isError, error } = useMutationHook(registerUserApi, {
+    onSuccess: (data) => {
+      toast.success(data.message || "User Registred succesfully");
+
+      setUser({
+        email: data.data.email,
+        name: data.data.name,
+        token: data.accessToken
+      });
+
+      router.push("/");
+    },
     
-    });
+    onError: (e) => {
+      console.log("registration error: ", e);
+      const errors = e?.response?.data?.errors;
+      let message = "Registration failed";
+      if (Array.isArray(errors)) {
+        message = errors.map(err => err.message).join("\n");
+      } else if (e?.response?.data?.message) {
+        message = e.response.data.message;
+      }
+
+      toast.error(message);
+    }
+
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     mutate({ email, name: username, password });
   };
 
-  {
-    isError && <p>Error: {error?.message}</p>;
+  useEffect(() => {
+    if (user && user.token) {
+      router.push("/");
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [user]);
+
+  if (checkingAuth) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
+        <p className="text-white text-lg">Redirecting...</p>
+      </div>
+    );
   }
 
   return (
@@ -125,7 +161,7 @@ const Page = () => {
           </form>
 
           <div className="mt-4 text-center text-sm text-gray-600">
-            Alredy have Account ?
+            Already have an account?
             <Link href={"/login"}>
               <p className="mygreen inline ml-2 font-medium hover:underline">
                 Sign in
