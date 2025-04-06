@@ -156,7 +156,7 @@ const Page = () => {
                                 </Link>
                             </p>
                         </div>
-                        <Button type="submit" className="w-full py-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+                        <Button disabled={isLoading} type="submit" className="w-full py-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
                             Login
                         </Button>
                     </form>

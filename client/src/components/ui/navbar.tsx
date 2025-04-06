@@ -57,15 +57,15 @@ const Navbar = () => {
 
 
             <div className="hidden md:flex gap-10">
-                <Link href="/" className={isActive("/") ? "text-green-400 font-bold" : ""}>Home</Link>
-                <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold" : ""}>Discover</Link>
-                <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold" : ""}>Profile</Link>
-                <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold" : ""}>Plan</Link>
-                <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold" : ""}>About</Link>
+                <Link href="/" className={isActive("/") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
+                <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
+                <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
+                <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
+                <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>About</Link>
             </div>
 
             <button
-                className="md:hidden text-white"
+                className="md:hidden cursor-pointer text-white"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {isOpen ? <X size={30} /> : <Menu size={30} />}
@@ -73,18 +73,18 @@ const Navbar = () => {
 
             {isOpen && (
                 <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
-                    <Link href="/" className={isActive("/") ? "text-green-400 font-bold" : ""}>Home</Link>
-                    <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold" : ""}>Discover</Link>
-                    <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold" : ""}>Profile</Link>
-                    <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold" : ""}>Plan</Link>
-                    <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold" : ""}>About</Link>
+                    <Link href="/" className={isActive("/") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
+                    <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
+                    <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
+                    <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
+                    <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>About</Link>
 
                     <div className="text-black">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
 
                                 {user && user.token ? (
-                                    <Button variant="outline" className="w-full">
+                                    <Button variant="outline" className="w-full cursor-pointer">
                                         {user.name}
                                         <Avatar className="ml-2">
                                             <AvatarImage src="https://github.com/shadcn.png" />
@@ -92,7 +92,7 @@ const Navbar = () => {
                                         </Avatar>
                                     </Button>
                                 ) : (
-                                    <Link href={"/login"}>
+                                    <Link className="cursor-pointer" href={"/login"}>
                                         <Button variant="outline" className="w-full">
                                             <LogIn />
                                             Log In
@@ -134,7 +134,7 @@ const Navbar = () => {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         {user && user.token ? (
-                            <Button variant="outline" className="w-full">
+                            <Button variant="outline" className="w-full cursor-pointer">
                                 {user.name}
                                 <Avatar className="ml-2">
                                     <AvatarImage src="https://github.com/shadcn.png" />
@@ -142,8 +142,8 @@ const Navbar = () => {
                                 </Avatar>
                             </Button>
                         ) : (
-                            <Link href={"/login"}>
-                                <Button variant="outline" className="w-full">
+                            <Link className="cursor-pointer" href={"/login"}>
+                                <Button variant="outline" className="w-full cursor-pointer">
                                     <LogIn />
                                     Log In
                                 </Button>

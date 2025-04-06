@@ -11,6 +11,7 @@ import { Eye, EyeOff, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { useUserStore } from "@/stores/userStore";
+import { json } from "stream/consumers";
 
 const Page = () => {
   const router = useRouter();
@@ -26,15 +27,9 @@ const Page = () => {
 
   const { mutate, isLoading, isError, error } = useMutationHook(registerUserApi, {
     onSuccess: (data) => {
-      toast.success(data.message || "User Registred succesfully");
-
-      setUser({
-        email: data.data.email,
-        name: data.data.name,
-        token: data.accessToken
-      });
-
-      router.push("/");
+      toast.info(data.message || "OTP sent to email");
+      localStorage.setItem("tempMail", JSON.stringify(email))
+      router.push("/otp");
     },
 
     onError: (e) => {
@@ -172,6 +167,7 @@ const Page = () => {
 
             <Button
               type="submit"
+              disabled={isLoading}
               className="w-full py-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
             >
               {isLoading ? <p>Loading...</p> : <p>Register</p>}
