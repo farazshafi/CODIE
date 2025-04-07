@@ -15,6 +15,15 @@ export const userSchema = z.object({
         .regex(/[@$!%*?&]/, "Password must contain at least one special character (@, $, !, %, *, ?, &)")
 });
 
+export const googleAuthSchema = z.object({
+    name: z.string().min(4, "Name must be at least 4 characters long"),
+    email: z.string().email("Invalid email format"),
+    isAdmin: z.boolean().default(false),
+    isBlocked: z.boolean().default(false),
+    googleId: z.string().min(1, "Google ID is required"),
+    avatarUrl: z.string().url().optional()
+})
+
 export const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(1, "Password is required"),
@@ -22,3 +31,4 @@ export const loginSchema = z.object({
 
 export type UserInput = z.infer<typeof userSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

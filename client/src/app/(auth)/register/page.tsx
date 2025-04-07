@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
-import { registerUserApi } from "@/apis/userApi";
+import { googleAuthRegisterApi, registerUserApi } from "@/apis/userApi";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { Eye, EyeOff, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { useUserStore } from "@/stores/userStore";
-import { json } from "stream/consumers";
+import { signInWithPopup } from "firebase/auth";
+import { auth, gProvider } from "../../../firebaseSetup";
 
 const Page = () => {
   const router = useRouter();
@@ -47,6 +48,30 @@ const Page = () => {
 
   });
 
+  const { mutate: googleAuthMutate } = useMutationHook(googleAuthRegisterApi, {
+    onSuccess: (data) => {
+      console.log("success data : ", data)
+      toast.success(data.message || "Google Auth Success");
+      setUser({
+        email: data.data.email,
+        name: data.data.name,
+        token: data.accessToken,
+        avatar: data.data.avatar
+      })
+      router.push("/")
+    },
+    onError: (e) => {
+      console.log("Error:", e?.response?.data);
+
+      const message =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        "Something went wrong";
+      toast.error(message);
+    }
+
+  })
+
   const handlePassHidden = () => {
     setIsPasswordHidden(prev => !prev)
   }
@@ -55,6 +80,21 @@ const Page = () => {
     e.preventDefault();
     mutate({ email, name: username, password });
   };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { user } = await signInWithPopup(auth, gProvider);
+      const { displayName, email, uid, photoURL } = user;
+      googleAuthMutate({
+        email,
+        name: displayName,
+        googleId: uid,
+        avatarUrl: photoURL ? photoURL : null,
+      })
+    } catch (error) {
+      console.error("Google Sign In Error: ", error);
+    }
+  }
 
   useEffect(() => {
     if (user && user.token) {
@@ -103,10 +143,11 @@ const Page = () => {
             <p className="text-center text-gray-600 mb-4">
               Other signup options
             </p>
-            <div className="flex flex-col justify-between sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="w-full">
               <Button
+                onClick={handleGoogleSignIn}
                 variant="outline"
-                className="flex w-full sm:w-40 items-center justify-center gap-2 py-4"
+                className="w-full"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -116,13 +157,6 @@ const Page = () => {
                   <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
                 </svg>
                 Google
-              </Button>
-              <Button
-                variant="outline"
-                className="flex w-full sm:w-40 items-center justify-center gap-2 py-4"
-              >
-                <Facebook className="h-5 w-5" />
-                Facebook
               </Button>
             </div>
           </div>

@@ -1,10 +1,13 @@
 import { NextFunction, Request, Response } from "express"
 import { UserService } from "../services/userServices"
-import { LoginInput, loginSchema, UserInput, userSchema } from "../validation/userValidation"
+import { GoogleAuthInput, googleAuthSchema, LoginInput, loginSchema, UserInput, userSchema } from "../validation/userValidation"
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
 import { OtpService } from "../services/otpServices"
 import redis from "../config/redis"
+import { UserRepository } from "../repositories/userRepositories"
+import User from "../models/userModel"
+import { HttpError } from "../utils/HttpError"
 
 
 /**
@@ -124,7 +127,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         const userExist = await UserService.findUserByEmail(credential.email)
 
         if (!userExist) {
-            res.status(401).json({ message: "User exists" })
+            res.status(401).json({ message: "User not exists" })
             return
         }
 
@@ -161,7 +164,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
-
 /**
  * @desc Fetches all users from the database. This function is used as a GraphQL resolver.
  * @access Admin
@@ -176,4 +178,110 @@ export const getUsers = async (_req: Request, res: Response) => {
             res.status(500).json({ message: "Internal Server Error" })
         }
     }
-} 
+}
+
+/**
+ * @desc Google register Auth
+ * @access Public
+ */
+export const googleRegisterAuth = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const validatedUser: GoogleAuthInput = googleAuthSchema.parse(req.body)
+        let user = await UserRepository.findByEmail(validatedUser.email)
+
+        if (user && !user.googleId) {
+            throw new HttpError(409, "An account with this email already exists")
+        }
+        if (!user) {
+            const newUser = await User.create({
+                name: validatedUser.name,
+                email: validatedUser.email,
+                googleId: validatedUser.googleId,
+                avatarUrl: validatedUser.avatarUrl ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcDdrIJuxsoeWIjwPqSfcL9PFqVdc5-F6Urm4CjOcfCMPH752K-36Xj0tjyazZqKWWk8g",
+                isAdmin: validatedUser.isAdmin ?? false,
+                isBlocked: validatedUser.isBlocked ?? false
+            });
+
+            user = newUser;
+        }
+
+
+        const payload = { email: user.email }
+
+        const accessToken = generateAccessToken(payload)
+        const refreshToken = generateRefreshToken(payload)
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+
+        res.status(200).json({
+            message: "Google Auth Success",
+            data: {
+                name: user.name,
+                email: user.email,
+                avatar: user.avatarUrl
+            },
+            accessToken
+        })
+
+    } catch (err) {
+        next(err)
+    }
+}
+
+/**
+ * @desc Google login Auth
+ * @access Public
+ */
+export const googleLoginAuth = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email } = req.body
+
+        if (!email) {
+            res.status(400).json({ message: "Email is required" })
+            return
+        }
+
+        const user = await UserRepository.findByEmail(email)
+
+        if (!user) {
+            res.status(401).json({ message: "User not exists" })
+            return
+        }
+
+        if (user && !user.googleId) {
+            res.status(409).json({ message: "An account with this email already exists" })
+            return
+        }
+
+        const payload = { email: user.email }
+
+        const accessToken = generateAccessToken(payload)
+        const refreshToken = generateRefreshToken(payload)
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+
+        res.status(200).json({
+            message: "Google Auth Success",
+            data: {
+                name: user.name,
+                email: user.email,
+                avatar: user.avatarUrl
+            },
+            accessToken
+        })
+
+    } catch (err) {
+        next(err)
+    }
+}
+

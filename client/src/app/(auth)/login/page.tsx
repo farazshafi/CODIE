@@ -7,10 +7,12 @@ import Image from "next/image";
 import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { loginUserApi } from "@/apis/userApi";
+import { googleAuthLoginApi, loginUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/userStore";
 import { useRouter } from 'next/navigation';
+import { signInWithPopup } from "firebase/auth";
+import { auth, gProvider } from "@/firebaseSetup";
 
 
 const Page = () => {
@@ -23,7 +25,6 @@ const Page = () => {
     const [checkingAuth, setCheckingAuth] = useState(true);
 
     const [isPasswordHidden, setIsPasswordHidden] = useState(true)
-
 
 
     const { mutate, isLoading, isSuccess } = useMutationHook(loginUserApi, {
@@ -42,13 +43,34 @@ const Page = () => {
         onError: (e) => {
             console.log("registration error: ", e);
             const errors = e?.response?.data?.errors;
-            let message = "Registration failed";
+            let message = "Login failed";
             if (Array.isArray(errors)) {
                 message = errors.map(err => err.message).join("\n");
             } else if (e?.response?.data?.message) {
                 message = e.response.data.message;
             }
 
+            toast.error(message);
+        }
+    })
+
+    const { mutate: googleMutate, isLoading: googleLoading } = useMutationHook(googleAuthLoginApi, {
+        onSuccess: (data) => {
+            toast.success(data.message || "Google Auth login Success")
+            setUser({
+                email: data.data.email,
+                name: data.data.name,
+                token: data.accessToken,
+                avatar: data.data.avatar
+            })
+            router.push("/")
+        },
+        onError: (e) => {
+            console.log("Error:", e?.response?.data);
+            const message =
+                e?.response?.data?.message ||
+                e?.response?.data?.error ||
+                "Something went wrong";
             toast.error(message);
         }
     })
@@ -63,6 +85,18 @@ const Page = () => {
         setIsPasswordHidden(prev => !prev)
     }
 
+    const handleGoogleSignIn = async () => {
+        try {
+            const { user } = await signInWithPopup(auth, gProvider)
+            const { email } = user
+
+            googleMutate({ email })
+        } catch (err) {
+            console.log("Google Sign In Error: ", err)
+        }
+    }
+
+
     useEffect(() => {
         if (user && user.token) {
             router.push("/")
@@ -76,6 +110,14 @@ const Page = () => {
         return (
             <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
                 <p className="text-white text-lg">Redirecting...</p>
+            </div>
+        );
+    }
+
+    if (isLoading || googleLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
+                <p className="text-white text-lg">Loading...</p>
             </div>
         );
     }
@@ -106,16 +148,12 @@ const Page = () => {
                     {/* Social Login */}
                     <div className="mt-6">
                         <p className="text-center text-gray-600 mb-4">Other signin options</p>
-                        <div className="flex flex-col justify-between sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                            <Button variant="outline" className="flex w-full sm:w-40 items-center justify-center gap-2 py-4">
+                        <div className="w-full">
+                            <Button onClick={handleGoogleSignIn} variant="outline" className="w-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5">
                                     <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
                                 </svg>
                                 Google
-                            </Button>
-                            <Button variant="outline" className="flex w-full sm:w-40 items-center justify-center gap-2 py-4">
-                                <Facebook className="h-5 w-5" />
-                                Facebook
                             </Button>
                         </div>
                     </div>
