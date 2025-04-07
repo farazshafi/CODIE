@@ -58,7 +58,7 @@ const Page = () => {
         token: data.accessToken,
         avatar: data.data.avatar
       })
-      router.push("/")
+       router.push("/dashboard")
     },
     onError: (e) => {
       console.log("Error:", e?.response?.data);
@@ -98,7 +98,7 @@ const Page = () => {
 
   useEffect(() => {
     if (user && user.token) {
-      router.push("/");
+       router.push("/dashboard");
     } else {
       setCheckingAuth(false);
     }

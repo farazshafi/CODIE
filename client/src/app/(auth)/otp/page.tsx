@@ -33,7 +33,7 @@ const Page = () => {
                 email: data.data.email,
                 token: data.accessToken,
             });
-            router.push("/");
+             router.push("/dashboard");
             localStorage.removeItem("tempMail");
         },
         onError: (err) => {
@@ -79,7 +79,7 @@ const Page = () => {
 
         if (user && user.token) {
             setIsRedirecting(true);
-            router.push("/");
+             router.push("/dashboard");
         }
     }, [user]);
 
