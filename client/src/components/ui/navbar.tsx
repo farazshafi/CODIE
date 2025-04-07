@@ -48,12 +48,14 @@ const Navbar = () => {
     return (
         <nav className="text-white bg-primary px-10 py-5 flex justify-between items-center">
 
-            <div className="flex items-center">
-                <Image src={Logo} alt="logo" className="w-[80px]" />
-                <p className="text-2xl font-semibold mt-2">
-                    COD<span className="text-green-400 font-semibold">IE</span>
-                </p>
-            </div>
+            <Link href="/">
+                <div className="flex items-center cursor-pointer">
+                    <Image src={Logo} alt="logo" className="w-[80px]" />
+                    <p className="text-2xl font-semibold mt-2">
+                        COD<span className="text-green-400 font-semibold">IE</span>
+                    </p>
+                </div>
+            </Link>
 
 
             <div className="hidden md:flex gap-10">

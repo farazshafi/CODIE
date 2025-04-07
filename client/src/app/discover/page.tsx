@@ -1,8 +1,10 @@
-import React from 'react';
-import { Bookmark, CircleUserRound, Clock, Copy, Search, SlidersHorizontal, Star, Tag, Trash2 } from 'lucide-react';
+"use client";
+import React, { useRef } from 'react';
+import { Search, SlidersHorizontal, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Navbar from '@/components/ui/navbar';
 import SnippetCard from '@/components/snippetCard';
+import VariableProximity from '@/components/ui/VariableProximity/VariableProximity';
 
 interface SnippetCardProps {
     title: string;
