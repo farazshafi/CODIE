@@ -134,4 +134,16 @@ body {
   .bg-discover {
     background-color: #22c55e !important; /* Equivalent to Tailwind's bg-green-500 */
   }
+  .bg-tertiary {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  .tertiary {
+    color: rgba(255, 255, 255, 0.05) !important;
+  }
+  .primary {
+    color: #1f2125 !important;
+  }
+  .bg-primary {
+    background-color: #1f2125 !important;
+  }
 }
