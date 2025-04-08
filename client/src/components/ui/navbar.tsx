@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import Logo from "../../../public/logo.png";
 import Link from "next/link";
-import { Menu, X, LogOut, User, CreditCard, LogIn } from "lucide-react";
+import { Menu, X, LogOut, User, CreditCard, LogIn, Banknote } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -111,6 +111,10 @@ const Navbar = () => {
                                                 <User />
                                                 <span>Profile</span>
                                             </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => router.push("/plan")}>
+                                                <Banknote />
+                                                <span>Plan</span>
+                                            </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout}>
@@ -153,6 +157,10 @@ const Navbar = () => {
                                     <DropdownMenuItem onClick={() => router.push("/profile")}>
                                         <User />
                                         <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => router.push("/plan")}>
+                                        <Banknote />
+                                        <span>Plan</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />

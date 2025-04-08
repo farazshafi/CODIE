@@ -26,7 +26,7 @@ const page = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                className="bg-green hover:bg-green-800 text-white px-8 py-6 rounded-xl text-lg"
+                className="bg-green hover:bg-green-800 hover:text-white text-black px-8 py-6 rounded-xl text-lg"
                 asChild
               >
                 <Link href="/register">Get Started Free</Link>
@@ -141,7 +141,7 @@ const page = () => {
               Join thousands of developers who are already using our collaborative platform.
             </p>
             <Button
-              className="bg-white text-green-700 hover:bg-gray-100 px-8 py-6 rounded-xl text-lg inline-flex items-center gap-2"
+              className="bg-green text-black hover:bg-gray-100 px-8 py-6 rounded-xl text-lg inline-flex items-center gap-2"
               asChild
             >
               <Link href="/register">
