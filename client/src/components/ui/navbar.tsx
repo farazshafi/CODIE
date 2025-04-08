@@ -106,19 +106,13 @@ const Navbar = () => {
                             {user && (
                                 <>
                                     <DropdownMenuContent className="w-56">
-                                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                        {/* <DropdownMenuSeparator />
                                         <DropdownMenuGroup>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => router.push("/profile")}>
                                                 <User />
                                                 <span>Profile</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>
-                                                <CreditCard />
-                                                <span>Billing</span>
-                                            </DropdownMenuItem>
                                         </DropdownMenuGroup>
-                                        <DropdownMenuSeparator /> */}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout}>
                                             <LogOut />
                                             <span>Log out</span>
@@ -155,19 +149,13 @@ const Navbar = () => {
                     {user && (
                         <>
                             <DropdownMenuContent className="w-56">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {/* <DropdownMenuGroup>
-                                    <DropdownMenuItem>
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem onClick={() => router.push("/profile")}>
                                         <User />
                                         <span>Profile</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <CreditCard />
-                                        <span>Billing</span>
-                                    </DropdownMenuItem>
                                 </DropdownMenuGroup>
-                                <DropdownMenuSeparator /> */}
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                                     <LogOut />
                                     <span>Log out</span>

@@ -15,8 +15,17 @@ export default function Home() {
 
                     <div className="flex flex-row justify-center gap-10">
                         <SpotlightCard
-                            className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2"
-                            spotlightColor="rgba(27, 240, 124, 0.3)"
+                            className="
+                            cursor-pointer 
+                            custom-spotlight-card 
+                            w-[100px] sm:w-[250px] 
+                            text-white p-2 
+                            transform 
+                            transition-transform 
+                            duration-300 
+                            hover:scale-105
+                          "
+                            spotlightColor="rgba(255, 255, 255, 0.4)"
                         >
                             <div className="flex flex-col items-center justify-center">
                                 <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" />
@@ -25,8 +34,17 @@ export default function Home() {
                         </SpotlightCard>
 
                         <SpotlightCard
-                            className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] bg-white text-black p-2"
-                            spotlightColor="rgba(31, 33, 37, 0.3)"
+                            className="
+                             cursor-pointer 
+                             custom-spotlight-card 
+                             w-[100px] sm:w-[250px] 
+                             text-white p-2 
+                             transform 
+                             transition-transform 
+                             duration-300 
+                             hover:scale-105
+                           "
+                            spotlightColor="rgba(255, 255, 255, 0.4)"
                         >
                             <div className="flex flex-col items-center justify-center">
                                 <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" />
@@ -36,7 +54,16 @@ export default function Home() {
 
                         <Link href={"/discover"}>
                             <SpotlightCard
-                                className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] bg-discover text-white p-2"
+                                className="
+                                 cursor-pointer 
+                                 custom-spotlight-card 
+                                 w-[100px] sm:w-[250px] 
+                                 text-white p-2 
+                                 transform 
+                                 transition-transform 
+                                 duration-300 
+                                 hover:scale-105
+                               "
                                 spotlightColor="rgba(255, 255, 255, 0.4)"
                             >
                                 <div className="flex flex-col items-center justify-center">
