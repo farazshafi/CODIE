@@ -58,7 +58,7 @@ const Page = () => {
         token: data.accessToken,
         avatar: data.data.avatar
       })
-       router.push("/dashboard")
+      router.push("/dashboard")
     },
     onError: (e) => {
       console.log("Error:", e?.response?.data);
@@ -98,7 +98,7 @@ const Page = () => {
 
   useEffect(() => {
     if (user && user.token) {
-       router.push("/dashboard");
+      router.push("/dashboard");
     } else {
       setCheckingAuth(false);
     }
@@ -106,14 +106,14 @@ const Page = () => {
 
   if (checkingAuth) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
+      <div className="w-full h-screen flex items-center justify-center bg-[#1f2123]">
         <p className="text-white text-lg">Redirecting...</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full bg-[#1f2125] px-6 sm:px-10 md:px-20 lg:px-32 py-10 flex items-center justify-center">
+    <div style={{ background: 'linear-gradient(to right bottom, #363940, #000000)' }} className="h-screen w-full px-6 sm:px-10 md:px-20 lg:px-32 py-10 flex items-center justify-center">
       <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between gap-10">
         {/* Left Section */}
         <div className="text-white md:text-left flex flex-col justify-between md:items-start">

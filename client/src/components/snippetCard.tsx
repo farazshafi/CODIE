@@ -10,7 +10,8 @@ const SnippetCard = () => {
     return (
 
         <div className=' rounded-lg p-5 '>
-            <SpotlightCard >
+            <SpotlightCard spotlightColor="rgba(77, 79, 79, 0.3)"
+            >
 
                 {/* header */}
                 <div className='flex flex-row items-center justify-between'>
@@ -40,7 +41,7 @@ const SnippetCard = () => {
                 </div>
                 {/* body */}
                 <div className='mt-5'>
-                    <p className='font-bold  cursor-pointer text-lg'>Prime Numbers in c++</p>
+                    <p className='font-bold cursor-pointer text-lg'>Prime Numbers in c++</p>
                     <div className='text-white  cursor-pointer p-1 rounded-sm bg-primary flex items-center w-fit mt-2 gap-x-3'>
                         <Avatar className="ml-2 text-xs">
                             <AvatarImage src="https://github.com/shadcn.png" />
