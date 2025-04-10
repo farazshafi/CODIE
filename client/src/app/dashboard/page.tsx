@@ -5,6 +5,7 @@ import SpotlightCard from "@/components/ui/SpotlightCard/SpotlightCard";
 import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
+import CreateProjectModal from "./_component/CreateProjectModal";
 
 export default function Home() {
     return (
@@ -14,27 +15,44 @@ export default function Home() {
                 <div className="px-10 py-6">
 
                     <div className="flex flex-row justify-center gap-10">
-                        <SpotlightCard
-                            className="
-                            cursor-pointer 
-                            custom-spotlight-card 
-                            w-[100px] sm:w-[250px] 
-                            text-white p-2 
-                            transform 
-                            transition-transform 
-                            duration-300 
-                            hover:scale-105
-                          "
-                            spotlightColor="rgba(255, 255, 255, 0.4)"
-                        >
-                            <div className="flex flex-col items-center justify-center">
-                                <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" />
-                                <p className="text-center text-xs sm:text-base mt-2">Create Project</p>
-                            </div>
-                        </SpotlightCard>
+                        <CreateProjectModal
+                            title="Create a project"
+                            subtitle="Please enter the details below"
+                            language={true}
+                            onSubmit={(data) => console.log("Project created:", data)}
+                            trigger={
+                                <div>
+                                    <SpotlightCard
+                                        className="
+cursor-pointer 
+custom-spotlight-card 
+w-[100px] sm:w-[250px] 
+text-white p-2 
+transform 
+transition-transform 
+duration-300 
+hover:scale-105
+"
+                                        spotlightColor="rgba(255, 255, 255, 0.4)"
+                                    >
+                                        <div className="flex flex-col items-center justify-center">
+                                            <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" />
+                                            <p className="text-center text-xs sm:text-base mt-2">Create Project</p>
+                                        </div>
+                                    </SpotlightCard>
+                                </div>
+                            }
+                        />
 
-                        <SpotlightCard
-                            className="
+                        <CreateProjectModal
+                            title="Join a room"
+                            subtitle="Enter the room name to join"
+                            language={false}
+                            onSubmit={(data) => console.log("Joining room:", data)}
+                            trigger={
+                                <div >
+                                    <SpotlightCard
+                                        className="
                              cursor-pointer 
                              custom-spotlight-card 
                              w-[100px] sm:w-[250px] 
@@ -43,14 +61,19 @@ export default function Home() {
                              transition-transform 
                              duration-300 
                              hover:scale-105
-                           "
-                            spotlightColor="rgba(255, 255, 255, 0.4)"
-                        >
-                            <div className="flex flex-col items-center justify-center">
-                                <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" />
-                                <p className="text-center text-xs sm:text-base mt-2">Join Room</p>
-                            </div>
-                        </SpotlightCard>
+                            "
+                                        spotlightColor="rgba(255, 255, 255, 0.4)"
+                                    >
+                                        <div className="flex flex-col items-center justify-center">
+                                            <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" />
+                                            <p className="text-center text-xs sm:text-base mt-2">Join Room</p>
+                                        </div>
+                                    </SpotlightCard>
+                                </div >
+                            }
+
+                        />
+
 
                         <Link href={"/discover"}>
                             <SpotlightCard

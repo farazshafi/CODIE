@@ -131,7 +131,13 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
             return
         }
 
+        if (userExist && userExist?.googleId && userExist?.googleId.length > 1) {
+            res.status(409).json({ message: "This account is accociated with Google , Please try to Login with google instead." });
+        }
+
         const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
+
+        console.log("comming data", req.body)
         if (!isPasswordCorrect) {
             res.status(401).json({ message: "Invalid password or email" })
             return
