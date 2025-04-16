@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Menu,
     X,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Logo from "../../../../public/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Slider } from "@/components/ui/slider";
+import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 
 const Header = ({
     onChatToggle,
@@ -25,6 +27,18 @@ const Header = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [collabDropdownOpen, setCollabDropdownOpen] = useState(false);
+    const [textSize, setTextSize] = useState(16);
+    const [textIsOpened, setTextIsOpened] = useState(false)
+
+    const collabRef = useRef(null)
+
+    const { setFontSize } = useCodeEditorStore()
+
+    const setFontChange = (newSize: number) => {
+        const size = Math.min(Math.max(newSize, 12), 24);
+        setFontSize(size);
+        localStorage.setItem("editor-font-size", size.toString());
+    }
 
     const collaborators = [
         {
@@ -47,11 +61,35 @@ const Header = ({
         },
     ];
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (collabRef.current && !collabRef.current.contains(event.target as Node)) {
+                setCollabDropdownOpen(false)
+            }
+        }
+
+        if (collabDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside)
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+
+    }, [collabDropdownOpen])
+
+    useEffect(() => {
+        const storedSize = localStorage.getItem("editor-font-size");
+        if (storedSize) {
+            setTextSize(Number(storedSize));
+        }
+    }, [setFontChange])
+
     return (
         <nav className="text-white bg-primary px-10 py-5 flex justify-between items-center relative">
             {" "}
-            {/* 🔥 added relative */}
-            {/* Logo and Room Info */}
             <div>
                 <Link href="/dashboard">
                     <div className="flex flex-row items-center cursor-pointer">
@@ -131,7 +169,7 @@ const Header = ({
                 </div>
 
                 {/* Collaborators with dropdown */}
-                <div className="relative">
+                <div ref={collabRef} className="relative">
                     <div
                         className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer"
                         onClick={() => setCollabDropdownOpen((prev) => !prev)}
@@ -142,9 +180,8 @@ const Header = ({
                         <div className="absolute top-12 right-0 w-[350px] sm:w-[500px] md:w-[600px] max-w-[90vw] h-[250px] bg-black text-white shadow-md rounded-md z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-full scrollbar-thumb-green-400 scrollbar-track-gray-700 p-4">
                             <div className="p-4 space-y-4">
                                 {collaborators.map((user, index) => (
-                                    <>
+                                    <div key={index}>
                                         <div
-                                            key={index}
                                             className="hover:bg-gray-900 py-2 px-3 rounded-md flex items-center justify-between"
                                         >
                                             <div className="flex items-center gap-3">
@@ -162,7 +199,7 @@ const Header = ({
                                             </div>
                                         </div>
                                         <div className="px-2 py-1"><div className="w-full h-[2px] bg-gray-700"></div></div>
-                                    </>
+                                    </div>
                                 ))}
 
                             </div>
@@ -171,11 +208,26 @@ const Header = ({
 
                 </div>
 
-                <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
+                {/* <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
                     <Palette />
-                </div>
-                <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
+                </div> */}
+                <div onClick={() => setTextIsOpened(prev => !prev)} className={`bg-tertiary p-2 hover:scale-125 rounded-md ${textIsOpened ? "flex flex-col items-center" : ""}`}>
                     <TypeOutline />
+                    {textIsOpened && (
+                        <Slider
+                            defaultValue={[textSize]}
+                            min={12}
+                            max={24}
+                            step={1}
+                            className="
+                            w-[150px] mt-2
+                            [&_.radix-slider-track]:bg-gray-400  // full track color
+                            [&_.radix-slider-range]:bg-green-500 // progress color
+                            [&_[role=slider]]:bg-green-500       // thumb color
+                            [&_[role=slider]]:border-none"
+                            onValueChange={setFontChange}
+                        />
+                    )}
                 </div>
                 <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
                     <MoonStar />
