@@ -22,8 +22,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { THEMES } from "../_constants";
@@ -119,10 +117,15 @@ const Header = ({
                             </span>
                         </p>
                     </div>
-                    <Button className="bg-tertiary hover:bg-slate-500 cursor-pointer">
-                        <LogOut />
-                        Exit
-                    </Button>
+                    <Link
+                        className="hover:bg-red-950 rounded-md hover:transition-opacity hover:duration-300 hover:ease-in-out"
+                        href={"/dashboard"}
+                    >
+                        <Button className="bg-tertiary cursor-pointer ">
+                            <LogOut/>
+                            Exit
+                        </Button>
+                    </Link>
                 </div>
             </div>
             {/* Mobile Menu */}

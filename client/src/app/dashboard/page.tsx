@@ -71,9 +71,7 @@ hover:scale-105
                                     </SpotlightCard>
                                 </div >
                             }
-
                         />
-
 
                         <Link href={"/discover"}>
                             <SpotlightCard
