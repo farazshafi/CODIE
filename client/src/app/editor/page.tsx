@@ -3,18 +3,21 @@ import React, { useEffect, useState } from "react";
 import Split from "react-split";
 import Header from "./_component/Header";
 import { Button } from "@/components/ui/button";
-import { CirclePlay, Copy, Mic, Mic2, MicVocal, Plane, Rocket, RotateCw, Send, SmilePlus } from "lucide-react";
+import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, Mic, RotateCw, Send, SmilePlus } from "lucide-react";
 import EditorPanel from "./_component/EditorPanel";
 import { LANGUAGE_CONFIG } from "./_constants";
-import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
+import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore";
 import { Input } from "@/components/ui/input";
+import RunningCodeSkeleton from "./_component/RunningCodingSkelton";
+import { toast } from "sonner";
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [showCollaborators, setShowCollaborators] = useState(false);
+    const [copyLoading, setCopyLoading] = useState(false)
 
-    const { language, editor } = useCodeEditorStore()
+    const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
 
     // functions
     const handleReset = () => {
@@ -23,6 +26,26 @@ const Page = () => {
         localStorage.removeItem(`editor-code-${language}`);
     }
 
+    const handleRun = async () => {
+        await runCode();
+        const result = getExecutionResult();
+    };
+
+    const handleCopy = () => {
+        if (output) {
+            setCopyLoading(true);
+            setTimeout(() => {
+                setCopyLoading(false);
+            }, 3000);
+            navigator.clipboard.writeText(output).then(() => {
+                toast.success("Copied")
+            }).catch((err) => {
+                console.error("Failed to copy output: ", err);
+            });
+        } else {
+            toast.info("No output to copy")
+        }
+    }
 
     useEffect(() => {
         const handleResize = () => {
@@ -76,8 +99,8 @@ const Page = () => {
                             <div className="bg-slate-700 overflow-auto">
                                 <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
                                     <p>Output</p>
-                                    <Button className="bg-green text-black hover:bg-gray-700 hover:text-white">
-                                        <Copy /> Copy
+                                    <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
+                                        {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
                                     </Button>
                                 </div>
                             </div>
@@ -103,14 +126,14 @@ const Page = () => {
                                     className="flex flex-col h-full w-full"
                                 >
                                     {/* Console */}
-                                    <div className="bg-gray-900 overflow-auto">
+                                    <div className="bg-gray-900 h-full flex flex-col">
                                         <div className="flex flex-row justify-between items-center px-5 py-2 text-white">
                                             <p>Console</p>
                                             <div className="flex gap-x-3">
                                                 <Button onClick={handleReset} className="bg-tertiary text-white hover:bg-gray-700 hover:text-white">
                                                     <RotateCw />
                                                 </Button>
-                                                <Button className="bg-green text-black hover:bg-gray-700 hover:text-white">
+                                                <Button onClick={handleRun} className="bg-green text-black hover:bg-gray-700 hover:text-white">
                                                     <CirclePlay /> Run
                                                 </Button>
                                             </div>
@@ -122,14 +145,51 @@ const Page = () => {
                                     </div>
 
                                     {/* Output */}
-                                    <div className="bg-slate-700 overflow-auto">
+                                    <div className="bg-slate-800 h-screen flex flex-col">
                                         <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
                                             <p>Output</p>
-                                            <Button className="bg-green text-black hover:bg-gray-700 hover:text-white">
-                                                <Copy /> Copy
+                                            <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
+                                                {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
                                             </Button>
                                         </div>
+
+                                        <div className="flex-grow text-white px-4 py-2 flex flex-col">
+                                            <div className="relative flex-grow">
+                                                <div
+                                                    className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] 
+                rounded-xl p-4 h-full overflow-auto font-mono text-sm">
+
+                                                    {isRunning ? (
+                                                        <RunningCodeSkeleton />
+                                                    ) : error ? (
+                                                        <div className="flex items-start gap-3 text-red-400">
+                                                            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" />
+                                                            <div className="space-y-1">
+                                                                <div className="font-medium">Execution Error</div>
+                                                                <pre className="whitespace-pre-wrap text-red-400/80">{error}</pre>
+                                                            </div>
+                                                        </div>
+                                                    ) : output ? (
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2 text-emerald-400 mb-3">
+                                                                <CheckCircle className="w-5 h-5" />
+                                                                <span className="font-medium">Execution Successful</span>
+                                                            </div>
+                                                            <pre className="whitespace-pre-wrap text-gray-300">{output}</pre>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                                                            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-800/50 ring-1 ring-gray-700/50 mb-4">
+                                                                <Clock className="w-6 h-6" />
+                                                            </div>
+                                                            <p className="text-center">Run your code to see the output here...</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+
                                 </Split>
                             ) : (
                                 <div className="bg-gray-800 overflow-hidden h-full flex flex-col">
@@ -139,7 +199,7 @@ const Page = () => {
                                             <Button onClick={handleReset} className="bg-gray-800 text-white hover:bg-gray-700 hover:text-white">
                                                 <RotateCw />
                                             </Button>
-                                            <Button className="bg-green text-black hover:bg-gray-700 hover:text-white">
+                                            <Button onClick={handleRun} className="bg-green text-black hover:bg-gray-700 hover:text-white">
                                                 <CirclePlay /> Run
                                             </Button>
                                         </div>
@@ -185,20 +245,58 @@ const Page = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-slate-800 overflow-auto h-full">
+                                <div className="bg-slate-800 h-screen flex flex-col">
                                     <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
                                         <p>Output</p>
-                                        <Button className="hover:bg-gray-600 text-white bg-primary hover:text-white">
-                                            <Copy /> Copy
+                                        <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
+                                            {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
                                         </Button>
+
+                                    </div>
+
+                                    <div className="flex-grow text-white px-4 py-2 flex flex-col">
+                                        <div className="relative flex-grow">
+                                            <div
+                                                className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] 
+                                            rounded-xl p-4 h-full overflow-auto font-mono text-sm">
+
+                                                {isRunning ? (
+                                                    <RunningCodeSkeleton />
+                                                ) : error ? (
+                                                    <div className="flex items-start gap-3 text-red-400">
+                                                        <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" />
+                                                        <div className="space-y-1">
+                                                            <div className="font-medium">Execution Error</div>
+                                                            <pre className="whitespace-pre-wrap text-red-400/80">{error}</pre>
+                                                        </div>
+                                                    </div>
+                                                ) : output ? (
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-2 text-emerald-400 mb-3">
+                                                            <CheckCircle className="w-5 h-5" />
+                                                            <span className="font-medium">Execution Successful</span>
+                                                        </div>
+                                                        <pre className="whitespace-pre-wrap text-gray-300">{output}</pre>
+                                                    </div>
+                                                ) : (
+                                                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                                                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-800/50 ring-1 ring-gray-700/50 mb-4">
+                                                            <Clock className="w-6 h-6" />
+                                                        </div>
+                                                        <p className="text-center">Run your code to see the output here...</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
                             )}
                         </div>
                     </Split>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

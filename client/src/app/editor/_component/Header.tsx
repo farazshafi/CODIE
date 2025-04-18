@@ -12,11 +12,22 @@ import {
     Palette,
     TypeOutline,
     EllipsisVertical,
+    CircleSmall,
 } from "lucide-react";
 import Logo from "../../../../public/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { THEMES } from "../_constants";
+
 
 const Header = ({
     onChatToggle,
@@ -32,7 +43,7 @@ const Header = ({
 
     const collabRef = useRef(null)
 
-    const { setFontSize } = useCodeEditorStore()
+    const { setFontSize, theme, setTheme } = useCodeEditorStore()
 
     const setFontChange = (newSize: number) => {
         const size = Math.min(Math.max(newSize, 12), 24);
@@ -208,9 +219,24 @@ const Header = ({
 
                 </div>
 
-                {/* <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
-                    <Palette />
-                </div> */}
+                <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="outline-none focus:outline-none">
+                            <Palette />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="mt-5 bg-slate-800 text-white space-y-3 focus:outline-none outline-none">
+                            {THEMES.map((t, i) => (
+                                <DropdownMenuItem disabled={theme === t.id} className="hover:bg-black px-5 hover:text-white" onClick={() => setTheme(t.id)} key={i}>
+                                    {t.label}
+                                    {theme === t.id && (
+                                        <CircleSmall className="text-white" />
+                                    )}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
                 <div onClick={() => setTextIsOpened(prev => !prev)} className={`bg-tertiary p-2 hover:scale-125 rounded-md ${textIsOpened ? "flex flex-col items-center" : ""}`}>
                     <TypeOutline />
                     {textIsOpened && (
