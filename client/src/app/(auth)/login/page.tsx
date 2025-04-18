@@ -15,6 +15,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, gProvider } from "@/firebaseSetup";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import Loading from "@/components/Loading";
+import { loginSchema } from "@/lib/validations/userSchema";
 
 
 const Page = () => {
@@ -22,8 +23,8 @@ const Page = () => {
     const setUser = useUserStore((state) => state.setUser)
     const user = useUserStore((state) => state.user)
 
-    const [email, setEmail] = useState("farazpachu777@gmail.com");
-    const [password, setPassword] = useState("Farazpachu@123");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [checkingAuth, setCheckingAuth] = useState(true);
 
     const [isPasswordHidden, setIsPasswordHidden] = useState(true)
@@ -79,9 +80,22 @@ const Page = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Login attempt with:", { email, password });
-        mutate({ email, password })
+
+        const result = loginSchema.safeParse({
+            email,
+            password
+        });
+
+        if (!result.success) {
+            result.error.errors.forEach(err => {
+                toast.error(err.message);
+            });
+            return;
+        }
+
+        mutate({ email, password });
     };
+
 
     const handlePassHidden = () => {
         setIsPasswordHidden(prev => !prev)
@@ -164,7 +178,6 @@ const Page = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="py-4 border-b border-gray-300"
-                            required
                         />
                         <div className="flex flex-row gap-x-3 items-center">
                             <Input
@@ -173,7 +186,6 @@ const Page = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="py-4 border-b border-gray-300"
-                                required
                             />
                             {isPasswordHidden ? (
                                 <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
