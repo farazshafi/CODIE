@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { useUserStore } from "@/stores/userStore";
 import { signInWithPopup } from "firebase/auth";
-import { auth, gProvider } from "../../../firebaseSetup";
+import { auth, gProvider } from "../../../lib/firebaseSetup";
 import { userSchema } from "@/lib/validations/userSchema";
 import Loading from "@/components/Loading";
 
