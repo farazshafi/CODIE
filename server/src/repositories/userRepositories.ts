@@ -1,5 +1,5 @@
 import { UserInput } from "../validation/userValidation";
-import User, { UserType } from "../models/userModel";
+import User, { UserDocument, UserType } from "../models/userModel";
 
 export class UserRepository {
     static async addUser(user: UserInput) {
@@ -9,13 +9,9 @@ export class UserRepository {
 
             const newUser = await User.create(user)
 
-            const userObj = {
-                name: newUser.name,
-                email: newUser.email
-            }
 
 
-            return userObj;
+            return newUser;
         } catch (error) {
             console.error("Database Error (addUser):", error);
             throw new Error("Database error while adding a user");
@@ -24,7 +20,7 @@ export class UserRepository {
 
     static async getUsers(): Promise<UserType[]> {
         try {
-            return await User.find({ isAdmin: false })
+            return await User.find({ isAdmin: false }) 
         } catch (error) {
             console.error("Database Error (getUsers):", error);
             throw new Error("Database error while fetching users");
@@ -33,7 +29,7 @@ export class UserRepository {
 
     static async findByEmail(email: string): Promise<UserType | null> {
         try {
-            const existingUser = await User.findOne({ email })
+            const existingUser = await User.findOne({ email }) as UserDocument
             return existingUser ? existingUser : null;
         } catch (err) {
             console.error("Database Error (findByEmail):", err);

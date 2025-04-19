@@ -6,8 +6,30 @@ import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import CreateProjectModal from "./_component/CreateProjectModal";
+import { useEffect, useState } from "react";
+import { useUserStore } from "@/stores/userStore";
+import { useRouter } from "next/navigation";
+import Loading from "@/components/Loading";
 
 export default function Home() {
+
+    const user = useUserStore((state) => state.user)
+    const router = useRouter()
+    const [isRedirecting, setIsRedirecting] = useState(false)
+
+    useEffect(() => {
+        setIsRedirecting(true);
+        if (!user || !user.token) {
+            router.push("/login");
+        } else {
+            setIsRedirecting(false);
+        }
+    }, [user])
+
+    if (isRedirecting) {
+        return <Loading fullScreen text="Redirecting to Login page" />
+    }
+
     return (
         <div>
             <Navbar />
@@ -19,7 +41,6 @@ export default function Home() {
                             title="Create a project"
                             subtitle="Please enter the details below"
                             language={true}
-                            onSubmit={(data) => console.log("Project created:", data)}
                             trigger={
                                 <div>
                                     <SpotlightCard
@@ -48,7 +69,6 @@ hover:scale-105
                             title="Join a room"
                             subtitle="Enter the room name to join"
                             language={false}
-                            onSubmit={(data) => console.log("Joining room:", data)}
                             trigger={
                                 <div >
                                     <SpotlightCard

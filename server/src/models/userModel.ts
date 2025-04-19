@@ -1,6 +1,7 @@
 import mongoose, { InferSchemaType } from "mongoose";
 import bcrypt from "bcryptjs";
 
+
 const userSchema = new mongoose.Schema(
     {
         name: {
@@ -52,5 +53,7 @@ userSchema.pre("save", async function (next) {
 });
 
 export type UserType = InferSchemaType<typeof userSchema>;
+export type UserDocument = UserType & { _id: string };
+
 const User = mongoose.model("User", userSchema);
 export default User;

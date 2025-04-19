@@ -5,6 +5,7 @@ import { setupGraphQl } from "./graphql"
 import { ENV } from "./config/env"
 import { errorHandler } from "./middlewares/errorHandler"
 import connectDB from "./db"
+import projectRouter from "./routes/projectRouter"
 
 // initialization
 const app = express()
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rest api Route
 app.use("/api", userRouter)
+app.use("/api/project", projectRouter)
 
 
 setupGraphQl(app)

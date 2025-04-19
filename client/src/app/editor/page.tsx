@@ -1,47 +1,47 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import Split from "react-split";
-import Header from "./_component/Header";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, Mic, RotateCw, Send, SmilePlus } from "lucide-react";
-import EditorPanel from "./_component/EditorPanel";
-import { LANGUAGE_CONFIG } from "./_constants";
-import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore";
-import { Input } from "@/components/ui/input";
-import RunningCodeSkeleton from "./_component/RunningCodingSkelton";
-import { toast } from "sonner";
+"use client"
+import React, { useEffect, useState } from "react"
+import Split from "react-split"
+import Header from "./_component/Header"
+import { Button } from "@/components/ui/button"
+import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, Mic, RotateCw, Send, SmilePlus } from "lucide-react"
+import EditorPanel from "./_component/EditorPanel"
+import { LANGUAGE_CONFIG } from "./_constants"
+import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore"
+import { Input } from "@/components/ui/input"
+import RunningCodeSkeleton from "./_component/RunningCodingSkelton"
+import { toast } from "sonner"
 
 const Page = () => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [showChat, setShowChat] = useState(false);
-    const [showCollaborators, setShowCollaborators] = useState(false);
+    const [isMobile, setIsMobile] = useState(false)
+    const [showChat, setShowChat] = useState(false)
+    const [showCollaborators, setShowCollaborators] = useState(false)
     const [copyLoading, setCopyLoading] = useState(false)
 
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
 
     // functions
     const handleReset = () => {
-        const defaultCode = LANGUAGE_CONFIG[language].defaultCode;
+        const defaultCode = LANGUAGE_CONFIG[language].defaultCode
         if (editor) editor.setValue(defaultCode)
-        localStorage.removeItem(`editor-code-${language}`);
+        localStorage.removeItem(`editor-code-${language}`)
     }
 
     const handleRun = async () => {
-        await runCode();
-        const result = getExecutionResult();
-    };
+        await runCode()
+        const result = getExecutionResult()
+    }
 
     const handleCopy = () => {
         if (output) {
-            setCopyLoading(true);
+            setCopyLoading(true)
             setTimeout(() => {
-                setCopyLoading(false);
-            }, 3000);
+                setCopyLoading(false)
+            }, 3000)
             navigator.clipboard.writeText(output).then(() => {
                 toast.success("Copied")
             }).catch((err) => {
-                console.error("Failed to copy output: ", err);
-            });
+                console.error("Failed to copy output: ", err)
+            })
         } else {
             toast.info("No output to copy")
         }
@@ -49,23 +49,23 @@ const Page = () => {
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
+            setIsMobile(window.innerWidth < 768)
+        }
+        handleResize()
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
 
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Header
                 onChatToggle={() => {
-                    setShowChat((prev) => !prev);
-                    setShowCollaborators(false);
+                    setShowChat((prev) => !prev)
+                    setShowCollaborators(false)
                 }}
                 onCollaboratorsToggle={() => {
-                    setShowCollaborators((prev) => !prev);
-                    setShowChat(false);
+                    setShowCollaborators((prev) => !prev)
+                    setShowChat(false)
                 }}
             />
 
@@ -297,7 +297,7 @@ const Page = () => {
                 )}
             </div>
         </div >
-    );
-};
+    )
+}
 
-export default Page;
+export default Page

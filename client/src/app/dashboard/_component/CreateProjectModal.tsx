@@ -17,17 +17,19 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { useState, ReactNode } from "react"
+import { useState } from "react"
 import { LANGUAGE_CONFIG } from "@/app/editor/_constants"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore"
+import { useMutationHook } from "@/hooks/useMutationHook"
+import { createProjectApi } from "@/apis/projectApi"
+import { toast } from "sonner"
 
 interface CreateProjectModalProps {
-  trigger: ReactNode;
+  trigger: React.ReactNode;
   title?: string;
   subtitle?: string;
   language?: boolean;
-  onSubmit?: (data: { name: string; language?: string; }) => void
 }
 
 export default function CreateProjectModal({
@@ -35,48 +37,46 @@ export default function CreateProjectModal({
   title = "Create New Project",
   subtitle = "Enter project details below.",
   language = true,
-  onSubmit,
 }: CreateProjectModalProps) {
 
   const [projectName, setProjectName] = useState("")
   const [selectedLanguage, setSelectedLanguage] = useState("")
+  const [error, setError] = useState("")
   const { setLanguage } = useCodeEditorStore()
-
   const router = useRouter()
 
-  const [error, setError] = useState("")
+  const { mutate, isLoading } = useMutationHook(createProjectApi, {
+    onError(error) {
+      console.log("error data", error)
+      toast.error(error?.response?.data?.message || "Failed while creating Project")
+    },
+    onSuccess(data) {
+      console.log("succes data", data)
+      router.push("/editor")
+    }
+  })
 
   const handleCreate = () => {
     if (!projectName.trim()) {
       setError("Project name is required.")
-
-      setTimeout(() => {
-        setError("")
-      }, 3000);
+      setTimeout(() => setError(""), 3000)
       return
     }
 
     if (language && !selectedLanguage) {
       setError("Please select a programming language.")
-      setTimeout(() => {
-        setError("")
-      }, 3000);
+      setTimeout(() => setError(""), 3000)
       return
     }
 
-
-    if (onSubmit) {
-      onSubmit({
-        name: projectName.trim(),
-        language: language ? selectedLanguage : undefined,
-      })
-      router.push("/editor")
-    } else {
-      console.log("Creating:", projectName, selectedLanguage)
+    const projectData = {
+      projectName,
+      projectLanguage: selectedLanguage,
+      projectCode: LANGUAGE_CONFIG[selectedLanguage]?.defaultCode
     }
+
+    mutate(projectData)
   }
-
-
 
   return (
     <Dialog>
@@ -114,29 +114,19 @@ export default function CreateProjectModal({
                   {config.label}
                 </SelectItem>
               ))}
-
             </SelectContent>
           </Select>
         )}
 
         {error && <p className="text-red-500">{error}</p>}
 
-
-        {language ? (
-          <Button
-            disabled={!projectName || !selectedLanguage}
-            onClick={handleCreate}
-            className="mt-4 bg-green hover:bg-green-600 text-white"
-          >
-            Create
-          </Button>
-        ) : (
-          <Button
-            className="mt-4 bg-green hover:bg-green-600 text-white"
-          >
-            Join
-          </Button>
-        )}
+        <Button
+          disabled={language ? (!projectName || !selectedLanguage) : !projectName}
+          onClick={handleCreate}
+          className="mt-4 bg-green hover:bg-green-600 text-white"
+        >
+          {language ? "Create" : "Join"}
+        </Button>
       </DialogContent>
     </Dialog>
   )

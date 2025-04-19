@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs"
 import { OtpService } from "../services/otpServices"
 import redis from "../config/redis"
 import { UserRepository } from "../repositories/userRepositories"
-import User from "../models/userModel"
+import User, { UserDocument } from "../models/userModel"
 import { HttpError } from "../utils/HttpError"
 
 
@@ -64,7 +64,8 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 
         await redis.del(redisKey)
 
-        const payload = { email: newUser.email }
+        const payload = { id: newUser._id, email: newUser.email }
+
         const accessToken = generateAccessToken(payload)
         const refreshToken = generateRefreshToken(payload)
 
@@ -77,7 +78,10 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 
         res.status(201).json({
             message: "User registered successfully",
-            data: newUser,
+            data: {
+                name: newUser.name,
+                email: newUser.email
+            },
             accessToken
         })
 
@@ -124,7 +128,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     try {
         const credential: LoginInput = loginSchema.parse(req.body)
 
-        const userExist = await UserService.findUserByEmail(credential.email)
+        const userExist = await UserService.findUserByEmail(credential.email) as UserDocument
 
         if (!userExist) {
             res.status(401).json({ message: "User not exists" })
@@ -137,13 +141,12 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 
         const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 
-        console.log("comming data", req.body)
         if (!isPasswordCorrect) {
             res.status(401).json({ message: "Invalid password or email" })
             return
         }
 
-        const payload = { email: userExist.email }
+        const payload = { id: userExist._id, email: userExist.email }
 
         const accessToken = generateAccessToken(payload)
         const refreshToken = generateRefreshToken(payload)
@@ -193,11 +196,14 @@ export const getUsers = async (_req: Request, res: Response) => {
 export const googleRegisterAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const validatedUser: GoogleAuthInput = googleAuthSchema.parse(req.body)
-        let user = await UserRepository.findByEmail(validatedUser.email)
+        const user = await UserRepository.findByEmail(validatedUser.email) as UserDocument
 
         if (user && !user.googleId) {
             throw new HttpError(409, "An account with this email already exists")
         }
+
+        let myUser;
+
         if (!user) {
             const newUser = await User.create({
                 name: validatedUser.name,
@@ -208,12 +214,11 @@ export const googleRegisterAuth = async (req: Request, res: Response, next: Next
                 isBlocked: validatedUser.isBlocked ?? false
             });
 
-            user = newUser;
+            myUser = newUser;
         }
 
 
-        const payload = { email: user.email }
-
+        const payload = { id: myUser._id, email: myUser.email }
         const accessToken = generateAccessToken(payload)
         const refreshToken = generateRefreshToken(payload)
 
@@ -227,9 +232,9 @@ export const googleRegisterAuth = async (req: Request, res: Response, next: Next
         res.status(200).json({
             message: "Google Auth Success",
             data: {
-                name: user.name,
-                email: user.email,
-                avatar: user.avatarUrl
+                name: myUser.name,
+                email: myUser.email,
+                avatar: myUser.avatarUrl
             },
             accessToken
         })
@@ -252,7 +257,7 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
             return
         }
 
-        const user = await UserRepository.findByEmail(email)
+        const user = await UserRepository.findByEmail(email) as UserDocument
 
         if (!user) {
             res.status(401).json({ message: "User not exists" })
@@ -264,7 +269,7 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
             return
         }
 
-        const payload = { email: user.email }
+        const payload = { id: user._id, email: user.email }
 
         const accessToken = generateAccessToken(payload)
         const refreshToken = generateRefreshToken(payload)
