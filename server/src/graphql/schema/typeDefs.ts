@@ -1,19 +1,18 @@
 import { gql } from "apollo-server-express";
 
 export const typeDefs = gql`
-  type User {
+  type Project {
     id: ID!
-    name: String!
-    email: String!
-    password: String!
-    bio: String
-    avatarUrl: String
-    isBlocked: Boolean
-    isAdmin: Boolean
-
+    projectName: String
+    projectCode: String
+    projectLanguage: String
+    userId: String
+    createdAt: String
+    updatedAt: String
   }
 
   type Query {
-    getUsers: [User]
+    getProjectsByUserId(userId: String!): [Project]
   }
 `;
+

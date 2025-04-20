@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-
+import ApolloWrapper from "../graphql/client/ApolloWrapper";  // <-- import this
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins' // Define a CSS variable
-})
-
+  variable: '--font-poppins'
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,8 +36,10 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster richColors />
+        <ApolloWrapper>
+          {children}
+          <Toaster richColors />
+        </ApolloWrapper>
       </body>
     </html>
   );

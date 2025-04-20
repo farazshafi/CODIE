@@ -29,6 +29,23 @@ class ProjectService {
         }
     }
 
+    async getProjectByUserId(userId: string) {
+        try {
+            if (!userId) {
+                throw new HttpError(400, "User ID is required.");
+            }else{
+                return await projectRepositories.findProjectByUserId(userId)
+            }
+
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+
+            throw new HttpError(500, "Failed to retrieve projects. Please try again.");
+        }
+    }
+
 }
 
 export const projectService = new ProjectService();

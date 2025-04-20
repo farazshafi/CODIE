@@ -30,3 +30,10 @@ export interface ExecutionResult {
     output: string;
     error: string | null;
 }
+
+export interface ProjectCardType {
+    projectName: string;
+    projectLanguage: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

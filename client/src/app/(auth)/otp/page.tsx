@@ -32,6 +32,7 @@ const Page = () => {
                 name: data.data.name,
                 email: data.data.email,
                 token: data.accessToken,
+                id: data.data.id
             });
              router.push("/dashboard");
             localStorage.removeItem("tempMail");

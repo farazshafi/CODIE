@@ -59,7 +59,8 @@ const Page = () => {
         email: data.data.email,
         name: data.data.name,
         token: data.accessToken,
-        avatar: data.data.avatar
+        avatar: data.data.avatar,
+        id: data.data.id
       })
       router.push("/dashboard")
     },

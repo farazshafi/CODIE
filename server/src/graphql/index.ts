@@ -9,5 +9,5 @@ export async function setupGraphQl(app) {
     await server.start()
     server.applyMiddleware({app,path:"/graphql"})
 
-    console.log(`GraphQL ready at http://localhost:${process.env.PORT || 3000}/graphql`);
+    console.log(`GraphQL ready at http://localhost:${process.env.PORT || 3000}/graphql`); // default 5000
 }

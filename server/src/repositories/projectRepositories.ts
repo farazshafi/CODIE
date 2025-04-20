@@ -19,6 +19,10 @@ class ProjectRepositories {
         return await ProjectModel.findById(id)
     }
 
+    async findProjectByUserId(userId:string){
+        return await ProjectModel.find({userId})
+    }
+
 }
 
 export const projectRepositories = new ProjectRepositories()

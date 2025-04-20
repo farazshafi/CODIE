@@ -14,7 +14,7 @@ const PORT = ENV.PORT
 connectDB()
 
 // middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: ["http://localhost:3000", "https://studio.apollographql.com"], credentials: true }));
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 

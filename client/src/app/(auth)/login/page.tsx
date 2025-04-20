@@ -38,7 +38,8 @@ const Page = () => {
                 name: data.data.name,
                 email: data.data.email,
                 avatar: data.data.avatar,
-                token: data.accessToken
+                token: data.accessToken,
+                id: data.data.id
             })
             router.push("/dashboard")
         },
@@ -64,7 +65,9 @@ const Page = () => {
                 email: data.data.email,
                 name: data.data.name,
                 token: data.accessToken,
-                avatar: data.data.avatar
+                avatar: data.data.avatar,
+                id: data.data.id
+
             })
             router.push("/dashboard")
         },

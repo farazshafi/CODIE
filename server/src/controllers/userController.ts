@@ -163,7 +163,8 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
             data: {
                 name: userExist.name,
                 email: userExist.email,
-                avatar: userExist.avatarUrl
+                avatar: userExist.avatarUrl,
+                id: userExist._id
             },
             accessToken
         })
@@ -234,7 +235,9 @@ export const googleRegisterAuth = async (req: Request, res: Response, next: Next
             data: {
                 name: myUser.name,
                 email: myUser.email,
-                avatar: myUser.avatarUrl
+                avatar: myUser.avatarUrl,
+                id: myUser._id
+
             },
             accessToken
         })
@@ -286,7 +289,9 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
             data: {
                 name: user.name,
                 email: user.email,
-                avatar: user.avatarUrl
+                avatar: user.avatarUrl,
+                id: user._id
+
             },
             accessToken
         })

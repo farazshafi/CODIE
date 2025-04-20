@@ -30,6 +30,7 @@ interface CreateProjectModalProps {
   title?: string;
   subtitle?: string;
   language?: boolean;
+  refetchProject?: () => void;
 }
 
 export default function CreateProjectModal({
@@ -37,6 +38,7 @@ export default function CreateProjectModal({
   title = "Create New Project",
   subtitle = "Enter project details below.",
   language = true,
+  refetchProject
 }: CreateProjectModalProps) {
 
   const [projectName, setProjectName] = useState("")
@@ -52,6 +54,9 @@ export default function CreateProjectModal({
     },
     onSuccess(data) {
       router.push(`/editor/${data.data._id}`)
+      if (refetchProject) {
+        refetchProject()
+      }
     }
   })
 
