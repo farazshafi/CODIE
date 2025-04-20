@@ -1,18 +1,44 @@
-import React, { useEffect } from 'react'
-import { Editor } from "@monaco-editor/react"
-import { defineMonacoThemes, LANGUAGE_CONFIG } from '../_constants'
-import { useCodeEditorStore } from '@/stores/useCodeEditorStore';
+import React, { useEffect } from "react";
+import { Editor } from "@monaco-editor/react";
+import { defineMonacoThemes, LANGUAGE_CONFIG } from "../_constants";
+import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
+import debounce from "lodash.debounce"
+import { useMutationHook } from "@/hooks/useMutationHook";
+import { getCodeApi, saveCodeApi } from "@/apis/editorApi";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 const EditorPanel = () => {
+  const params = useParams()
+  const id = params.id
+  const { language, theme, fontSize, editor, setFontSize, setEditor } =
+    useCodeEditorStore();
 
-  const { language, theme, fontSize, editor, setFontSize, setEditor } = useCodeEditorStore();
+  const { mutate } = useMutationHook(saveCodeApi)
 
+  const debouncedSaveCode = debounce((value: string) => {
+    if (value) {
+      console.log("saving...", params.id)
+      mutate({ projectId: params.id, code: value })
+    }
+  }, 3000);
+
+  const fetchCode = async () => {
+    try {
+      const code = await getCodeApi(id as string);
+      if (editor && code.data) {
+        editor.setValue(code.data.projectCode);
+      }
+    } catch (error) {
+      toast.error(error.message || "Errro while getting code!")
+    }
+  };
 
   useEffect(() => {
-    const savedCode = localStorage.getItem(`editor-code-${language}`);
-    const newCode = savedCode || LANGUAGE_CONFIG[language].defaultCode;
-    if (editor) editor.setValue(newCode);
-  }, [language, editor]);
+    if (id && editor) {
+      fetchCode();
+    }
+  }, [id, editor]);
 
   useEffect(() => {
     const savedFontSize = localStorage.getItem("editor-font-size");
@@ -20,18 +46,15 @@ const EditorPanel = () => {
   }, [setFontSize]);
 
   const handleEditorChange = (value: string | undefined) => {
-    if (value) localStorage.setItem(`editor-code-${language}`, value);
+    if (value) {
+      debouncedSaveCode(value);
+    }
   };
 
-  const handleFontSizeChange = (newSize: number) => {
-    const size = Math.min(Math.max(newSize, 12), 24);
-    setFontSize(size);
-    localStorage.setItem("editor-font-size", size.toString());
-  };
 
   return (
-    <div className="relative h-screen ">
-      {/* Editor  */}
+    <div className="relative h-screen">
+      {/* Editor */}
       <div className="relative group rounded-xl overflow-hidden ring-1 ring-white/[0.05]">
         <Editor
           height="570px"
@@ -64,7 +87,7 @@ const EditorPanel = () => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EditorPanel
+export default EditorPanel;

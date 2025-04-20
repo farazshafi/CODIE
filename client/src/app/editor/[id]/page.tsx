@@ -1,15 +1,15 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Split from "react-split"
-import Header from "./_component/Header"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, Mic, RotateCw, Send, SmilePlus } from "lucide-react"
-import EditorPanel from "./_component/EditorPanel"
-import { LANGUAGE_CONFIG } from "./_constants"
 import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore"
 import { Input } from "@/components/ui/input"
-import RunningCodeSkeleton from "./_component/RunningCodingSkelton"
 import { toast } from "sonner"
+import Header from "../_component/Header"
+import EditorPanel from "../_component/EditorPanel"
+import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
+import { LANGUAGE_CONFIG } from "../_constants"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)

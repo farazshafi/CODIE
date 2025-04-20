@@ -9,10 +9,14 @@ class ProjectRepositories {
     async isProjectNameExists(data: { userId: string, projectName: string, language: string }): Promise<boolean> {
         const project = await ProjectModel.findOne({
             userId: data.userId,
-            projectName: { $regex: `^${data.projectName}$`, $options: "i" }, 
+            projectName: { $regex: `^${data.projectName}$`, $options: "i" },
             projectLanguage: data.language
         });
         return !!project;
+    }
+
+    async findProjectById(id: string) {
+        return await ProjectModel.findById(id)
     }
 
 }

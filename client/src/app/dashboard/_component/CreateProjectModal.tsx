@@ -51,8 +51,7 @@ export default function CreateProjectModal({
       toast.error(error?.response?.data?.message || "Failed while creating Project")
     },
     onSuccess(data) {
-      console.log("succes data", data)
-      router.push("/editor")
+      router.push(`/editor/${data.data._id}`)
     }
   })
 
