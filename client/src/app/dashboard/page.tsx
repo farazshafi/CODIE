@@ -85,8 +85,10 @@ export default function Home() {
                             data.getProjectsByUserId.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
                                     key={index}
+                                    refetchProject={refetch}
                                     title={project.projectName}
                                     language={project.projectLanguage}
+                                    id={project.id}
                                     updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
                                 />
                             ))

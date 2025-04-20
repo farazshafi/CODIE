@@ -36,4 +36,5 @@ export interface ProjectCardType {
     projectLanguage: string;
     createdAt: Date;
     updatedAt: Date;
+    id: string;
 }

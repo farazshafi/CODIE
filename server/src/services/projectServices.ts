@@ -33,7 +33,7 @@ class ProjectService {
         try {
             if (!userId) {
                 throw new HttpError(400, "User ID is required.");
-            }else{
+            } else {
                 return await projectRepositories.findProjectByUserId(userId)
             }
 
@@ -43,6 +43,23 @@ class ProjectService {
             }
 
             throw new HttpError(500, "Failed to retrieve projects. Please try again.");
+        }
+    }
+
+    async deleteProject(projectId: string) {
+        try {
+            const isdeleted = await projectRepositories.deleteProject(projectId)
+            if (isdeleted) {
+                return { message: "Project deleted successfully." };
+            } else {
+                throw new HttpError(404, "Project not found or already deleted.");
+            }
+        } catch (error) {
+            console.error("Error deleting project:", error);
+            if (error instanceof HttpError) {
+                throw error;
+            }
+            throw new HttpError(500, "Failed to delete project. Please try again.");
         }
     }
 

@@ -11,3 +11,13 @@ export const createProjectApi = async (userData: { projectName: string, projectL
         throw err;
     }
 }
+
+export const deleteProjectApi = async (projectId:string) => {
+    try {
+        const response = await API.delete(`${API_BASE_URL}/delete_project/${projectId}`);
+        return response.data;
+    } catch (err) {
+        console.log("Error while Creating Project", err);
+        throw err;
+    }
+}

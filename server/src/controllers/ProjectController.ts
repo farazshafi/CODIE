@@ -15,4 +15,15 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
     } catch (err) {
         next(err)
     }
+}
+
+export const deleteProject = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params
+        const result = await projectService.deleteProject(id);
+
+        res.status(200).json(result);
+    } catch (err) {
+        next(err)
+    }
 } 

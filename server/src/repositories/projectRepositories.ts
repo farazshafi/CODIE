@@ -19,8 +19,13 @@ class ProjectRepositories {
         return await ProjectModel.findById(id)
     }
 
-    async findProjectByUserId(userId:string){
-        return await ProjectModel.find({userId})
+    async findProjectByUserId(userId: string) {
+        return await ProjectModel.find({ userId })
+    }
+
+    async deleteProject(projectId: string) {
+        const data = await ProjectModel.findByIdAndDelete(projectId);
+        return !!data
     }
 
 }
