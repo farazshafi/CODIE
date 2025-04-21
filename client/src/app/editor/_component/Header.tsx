@@ -1,3 +1,4 @@
+"use client"
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +14,7 @@ import {
     TypeOutline,
     EllipsisVertical,
     CircleSmall,
+    Handshake,
 } from "lucide-react";
 import Logo from "../../../../public/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +27,10 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { THEMES } from "../_constants";
+import { toast } from "sonner";
+import { useMutationHook } from "@/hooks/useMutationHook";
+import { enableCollabrationApi } from "@/apis/roomApi";
+import { useParams } from "next/navigation";
 
 
 const Header = ({
@@ -38,10 +44,22 @@ const Header = ({
     const [collabDropdownOpen, setCollabDropdownOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
     const [textIsOpened, setTextIsOpened] = useState(false)
+    const [isWantToCollab, setIsWantToCollab] = useState(false)
 
+    const params = useParams()
+    const { id } = params
     const collabRef = useRef(null)
 
     const { setFontSize, theme, setTheme } = useCodeEditorStore()
+    const { mutate } = useMutationHook(enableCollabrationApi, {
+        onSuccess() {
+            setIsWantToCollab(true)
+            toast.message("Enabled collabration!")
+        },
+        onError(error) {
+            toast.error(error?.response?.data?.message || "Something went wrong!");
+        },
+    })
 
     const setFontChange = (newSize: number) => {
         const size = Math.min(Math.max(newSize, 12), 24);
@@ -70,6 +88,10 @@ const Header = ({
         },
     ];
 
+    const handleCollabration = () => {
+        mutate(id)
+    }
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (collabRef.current && !collabRef.current.contains(event.target as Node)) {
@@ -97,9 +119,9 @@ const Header = ({
     }, [setFontChange])
 
     return (
-        <nav className="text-white bg-primary px-10 py-5 flex justify-between items-center relative">
+        <nav className="text-white bg-primary px-10 py-3 flex justify-between items-center relative">
             {" "}
-            <div>
+            <div className="flex flex-row items-center space-x-4">
                 <Link href="/dashboard">
                     <div className="flex flex-row items-center cursor-pointer">
                         <Image src={Logo} alt="logo" className="w-[40px]" />
@@ -108,25 +130,35 @@ const Header = ({
                         </p>
                     </div>
                 </Link>
-                <div className="flex gap-x-3 flex-row mt-2 items-center justify-between sm:justify-normal">
-                    <div className="flex p-3 rounded-md bg-tertiary">
-                        <p>
-                            RoomId:{" "}
-                            <span className="ml-2 px-2 hover:text-green-500 font-bold py-1 bg-white text-black rounded-md">
-                                #43433
-                            </span>
-                        </p>
+                {isWantToCollab ? (
+                    <div className="flex gap-x-3 flex-row mt-2 items-center justify-between sm:justify-normal">
+                        <div className="flex p-3 rounded-md bg-tertiary">
+                            <p>
+                                RoomId:{" "}
+                                <span className="ml-2 px-2 hover:text-green-500 font-bold py-1 bg-white text-black rounded-md">
+                                    #43433
+                                </span>
+                            </p>
+                        </div>
+                        <Link
+                            className="hover:bg-red-950 rounded-md hover:transition-opacity hover:duration-300 hover:ease-in-out"
+                            href={"/dashboard"}
+                        >
+                            <Button className="bg-tertiary cursor-pointer ">
+                                <LogOut />
+                                Exit
+                            </Button>
+                        </Link>
                     </div>
-                    <Link
-                        className="hover:bg-red-950 rounded-md hover:transition-opacity hover:duration-300 hover:ease-in-out"
-                        href={"/dashboard"}
-                    >
-                        <Button className="bg-tertiary cursor-pointer ">
-                            <LogOut/>
-                            Exit
+                ) : (
+                    <>
+                        <Button onClick={handleCollabration}
+                            className="bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer transition-all duration-[2000] ease-in-out hover:bg-gray-700 hover:from-gray-700 hover:to-gray-400">
+                            <Handshake />
+                            Enable Collaboration
                         </Button>
-                    </Link>
-                </div>
+                    </>
+                )}
             </div>
             {/* Mobile Menu */}
             <button
@@ -175,52 +207,55 @@ const Header = ({
             )}
             {/* Desktop Icons */}
             <div className="flex-row gap-x-6 hidden md:flex relative">
-                <div
-                    className="bg-tertiary p-2 hover:scale-125 rounded-md"
-                    onClick={onChatToggle}
-                >
-                    <MessageSquare />
-                </div>
+                {isWantToCollab && (
+                    <>
 
-                {/* Collaborators with dropdown */}
-                <div ref={collabRef} className="relative">
-                    <div
-                        className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer"
-                        onClick={() => setCollabDropdownOpen((prev) => !prev)}
-                    >
-                        <Users />
-                    </div>
-                    {collabDropdownOpen && (
-                        <div className="absolute top-12 right-0 w-[350px] sm:w-[500px] md:w-[600px] max-w-[90vw] h-[250px] bg-black text-white shadow-md rounded-md z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-full scrollbar-thumb-green-400 scrollbar-track-gray-700 p-4">
-                            <div className="p-4 space-y-4">
-                                {collaborators.map((user, index) => (
-                                    <div key={index}>
-                                        <div
-                                            className="hover:bg-gray-900 py-2 px-3 rounded-md flex items-center justify-between"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10 ring-2">
-                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                    <AvatarFallback className="bg-green text-black font-bold text-xl">
-                                                        {user.name.split(" ").map((n) => n[0]).join("")}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <p>{user.name}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 bg-gray-800 p-1 px-2 rounded-md">
-                                                <p className="text-sm">{user.role}</p>
-                                                <EllipsisVertical />
-                                            </div>
-                                        </div>
-                                        <div className="px-2 py-1"><div className="w-full h-[2px] bg-gray-700"></div></div>
-                                    </div>
-                                ))}
-
-                            </div>
+                        <div
+                            className="bg-tertiary p-2 hover:scale-125 rounded-md"
+                            onClick={onChatToggle}
+                        >
+                            <MessageSquare />
                         </div>
-                    )}
 
-                </div>
+                        {/* Collaborators with dropdown */}
+                        <div ref={collabRef} className="relative">
+                            <div
+                                className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer"
+                                onClick={() => setCollabDropdownOpen((prev) => !prev)}
+                            >
+                                <Users />
+                            </div>
+                            {collabDropdownOpen && (
+                                <div className="absolute top-12 right-0 w-[350px] sm:w-[500px] md:w-[600px] max-w-[90vw] h-[250px] bg-black text-white shadow-md rounded-md z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-full scrollbar-thumb-green-400 scrollbar-track-gray-700 p-4">
+                                    <div className="p-4 space-y-4">
+                                        {collaborators.map((user, index) => (
+                                            <div key={index}>
+                                                <div
+                                                    className="hover:bg-gray-900 py-2 px-3 rounded-md flex items-center justify-between"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10 ring-2">
+                                                            <AvatarImage src={user.avatar} alt={user.name} />
+                                                            <AvatarFallback className="bg-green text-black font-bold text-xl">
+                                                                {user.name.split(" ").map((n) => n[0]).join("")}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <p>{user.name}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-gray-800 p-1 px-2 rounded-md">
+                                                        <p className="text-sm">{user.role}</p>
+                                                        <EllipsisVertical />
+                                                    </div>
+                                                </div>
+                                                <div className="px-2 py-1"><div className="w-full h-[2px] bg-gray-700"></div></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
 
                 <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
                     <DropdownMenu>

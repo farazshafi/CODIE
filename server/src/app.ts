@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/errorHandler"
 import connectDB from "./db"
 import projectRouter from "./routes/projectRouter"
 import editorRouter from "./routes/editorRouter"
+import roomRouter from "./routes/roomRouter"
 
 // initialization
 const app = express()
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", userRouter)
 app.use("/api/project", projectRouter)
 app.use("/api/editor", editorRouter)
+app.use("/api/room", roomRouter)
 
 
 setupGraphQl(app)
