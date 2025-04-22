@@ -1,35 +1,32 @@
-import express from "express"
-import cors from "cors"
-import userRouter from "./routes/userRouter"
-import { setupGraphQl } from "./graphql"
-import { ENV } from "./config/env"
-import { errorHandler } from "./middlewares/errorHandler"
-import connectDB from "./db"
-import projectRouter from "./routes/projectRouter"
-import editorRouter from "./routes/editorRouter"
-import roomRouter from "./routes/roomRouter"
+import express from "express";
+import cors from "cors";
+import userRouter from "./routes/userRouter";
+import projectRouter from "./routes/projectRouter";
+import editorRouter from "./routes/editorRouter";
+import roomRouter from "./routes/roomRouter";
+import { setupGraphQl } from "./graphql";
+import { errorHandler } from "./middlewares/errorHandler";
 
-// initialization
-const app = express()
-const PORT = ENV.PORT
-connectDB()
+const app = express();
 
-// middleware
-app.use(cors({ origin: ["http://localhost:3000", "https://studio.apollographql.com"], credentials: true }));
-app.use(express.json())
+// Middlewares
+app.use(cors({
+  origin: ["http://localhost:3000", "https://studio.apollographql.com"],
+  credentials: true
+}));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rest api Route
-app.use("/api", userRouter)
-app.use("/api/project", projectRouter)
-app.use("/api/editor", editorRouter)
-app.use("/api/room", roomRouter)
+// Routes
+app.use("/api", userRouter);
+app.use("/api/project", projectRouter);
+app.use("/api/editor", editorRouter);
+app.use("/api/room", roomRouter);
 
+// GraphQL Setup
+setupGraphQl(app);
 
-setupGraphQl(app)
+// Error Handler
+app.use(errorHandler);
 
-// error handleware
-app.use(errorHandler)
-
-// listen
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+export default app;

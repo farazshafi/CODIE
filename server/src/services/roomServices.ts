@@ -21,10 +21,30 @@ class RoomServices {
 
             return await roomRepositories.createRoom(roomData)
         } catch (err) {
-            console.error("Failed when creating room: ",err)
+            console.error("Failed when creating room: ", err)
             throw new HttpError(500, "Failed to create room")
         }
     }
+
+    async getRoomByProjectId(projectId: string,) {
+        try {
+
+            const existRoom = await roomRepositories.getRoomByProjectId(projectId)
+            if (!existRoom) {
+                throw new HttpError(404, "Room Not Found")
+            }
+
+            return existRoom
+        } catch (err) {
+            if (err instanceof HttpError) {
+                throw err
+            }
+            console.error("Failed when getting room: ", err)
+            throw new HttpError(500, "failed to get room")
+        }
+    }
+
+
 }
 
 export const roomServices = new RoomServices()

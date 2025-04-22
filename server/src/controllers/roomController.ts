@@ -4,7 +4,7 @@ import { roomServices } from "../services/roomServices";
 
 export const createRoom = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        
+
         const { projectId } = req.body
         const ownderId = req?.user?.id
 
@@ -15,11 +15,24 @@ export const createRoom = async (req: Request, res: Response, next: NextFunction
             message: 'Room created successfully',
             data: {
                 roomId: room.roomId,
-                projectId: room.projectId,
-                owner: room.owner,
-                members: room.collaborators,
-                createdAt: room.createdAt
             }
+        });
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getRoomByProjectId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const { projectId } = req.params
+
+        const room = await roomServices.getRoomByProjectId(projectId)
+
+        res.status(201).json({
+            status: 'success',
+            data: room
         });
 
     } catch (error) {
