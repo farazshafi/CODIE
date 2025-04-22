@@ -38,3 +38,12 @@ export interface ProjectCardType {
     updatedAt: Date;
     id: string;
 }
+
+export interface Collaborator {
+    user: {
+        _id: string;
+        name: string;
+    };
+    role: string;
+    _id: string;
+}

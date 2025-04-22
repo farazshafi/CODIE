@@ -75,13 +75,21 @@ export default function Home() {
                         <div className="h-[3px] bg-gray-700 w-full ml-5"></div>
                     </div>
 
+                    {data?.getProjectsByUserId?.length < 1 && (
+                        <div className="px-6 py-3">
+                            <div className="w-full bg-tertiary rounded-md text-center py-10 outline-dashed">
+                                <p className="text-xl text-white">No Projects Found!. Create First Project</p>
+                            </div>
+                        </div>
+                    )} 
+
                     {/* Project Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-5">
                         {loading ? (
                             Array.from({ length: 8 }).map((_, index) => (
                                 <ProjectCardSkeleton key={index} />
                             ))
-                        ) : data?.getProjectsByUserId?.length > 0 ? (
+                        ) : data?.getProjectsByUserId?.length > 0 && (
                             data.getProjectsByUserId.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
                                     key={index}
@@ -92,8 +100,6 @@ export default function Home() {
                                     updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
                                 />
                             ))
-                        ) : (
-                            <p className="text-white col-span-full">No projects found!</p>
                         )}
                     </div>
                 </div>
