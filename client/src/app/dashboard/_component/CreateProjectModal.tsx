@@ -22,8 +22,10 @@ import { LANGUAGE_CONFIG } from "@/app/editor/_constants"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore"
 import { useMutationHook } from "@/hooks/useMutationHook"
-import { createProjectApi } from "@/apis/projectApi"
+import { createProjectApi, getProjectByRoomIdApi } from "@/apis/projectApi"
 import { toast } from "sonner"
+import useSocket from "@/hooks/useSocket"
+import { useUserStore } from "@/stores/userStore"
 
 interface CreateProjectModalProps {
   trigger: React.ReactNode;
@@ -36,16 +38,21 @@ interface CreateProjectModalProps {
 export default function CreateProjectModal({
   trigger,
   title = "Create New Project",
-  subtitle = "Enter project details below.",
+  subtitle = "",
   language = true,
   refetchProject
 }: CreateProjectModalProps) {
 
   const [projectName, setProjectName] = useState("")
+  const [roomId, setRoomId] = useState("")
+  const [projectId, setProjectId] = useState("")
   const [selectedLanguage, setSelectedLanguage] = useState("")
   const [error, setError] = useState("")
   const { setLanguage } = useCodeEditorStore()
   const router = useRouter()
+  const user = useUserStore((state) => state.user)
+  const { socket, isConnected } = useSocket(user?.id);
+
 
   const { mutate, isLoading } = useMutationHook(createProjectApi, {
     onError(error) {
@@ -57,6 +64,15 @@ export default function CreateProjectModal({
       if (refetchProject) {
         refetchProject()
       }
+    }
+  })
+
+  const { mutate: getProjectByRoomId } = useMutationHook(getProjectByRoomIdApi, {
+    onSuccess(data) {
+      setProjectId(data.projectId)
+    },
+    onError() {
+      toast.error("Cannot get project id")
     }
   })
 
@@ -82,10 +98,34 @@ export default function CreateProjectModal({
     mutate(projectData)
   }
 
+  const handleJoin = async () => {
+    if (!user?.id || !roomId || !socket) {
+      toast.error("user or room not found")
+      return
+    }
+
+    // send join request
+    socket.emit("join-request", {
+      roomId: roomId,
+      userId: user.id,
+      userName: user.name
+    });
+
+    socket.on("error", (message) => {
+      toast.error(message)
+      return
+    })
+
+    socket.on("request-sent", (message) => {
+      toast.success(message);
+      return
+    });
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="bg-primary text-white border border-[#1bf07c] backdrop-blur-[2px] bg-white/15">
+      <DialogContent className=" text-white border border-[#1bf07c] backdrop-blur-[2px] bg-white/15">
         <DialogHeader>
           <DialogTitle className="mygreen">{title}</DialogTitle>
           <DialogDescription className="text-gray-400">
@@ -93,12 +133,20 @@ export default function CreateProjectModal({
           </DialogDescription>
         </DialogHeader>
 
-        <Input
-          placeholder="eg: Find Prime number"
+        {language && <Input
+          placeholder={"eg: Find Prime number"}
           className="bg-white text-black"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-        />
+        />}
+
+        {!language && <Input
+          placeholder={"Enter a room ID"}
+          className="bg-white text-black"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+        />}
+
 
         {language && (
           <Select onValueChange={(val) => {
@@ -125,8 +173,8 @@ export default function CreateProjectModal({
         {error && <p className="text-red-500">{error}</p>}
 
         <Button
-          disabled={language ? (!projectName || !selectedLanguage) : !projectName}
-          onClick={handleCreate}
+          disabled={language ? (!projectName || !selectedLanguage) : !roomId}
+          onClick={language ? handleCreate : handleJoin}
           className="mt-4 bg-green hover:bg-green-600 text-white"
         >
           {language ? "Create" : "Join"}

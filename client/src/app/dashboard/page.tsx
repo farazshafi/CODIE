@@ -34,6 +34,7 @@ export default function Home() {
             router.push("/login");
         }
     }, [user, router]);
+    
 
     useEffect(() => {
         if (error) {
@@ -55,7 +56,7 @@ export default function Home() {
                     {/* Action Buttons */}
                     <div className="flex flex-row justify-center gap-10">
                         <CreateProjectModal refetchProject={refetch} title="Create a project" subtitle="Please enter the details below" language={true} trigger={<div> <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Create Project</p> </div> </SpotlightCard> </div>} />
-                        <CreateProjectModal title="Join a room" subtitle="Enter the room name to join" language={false} trigger={<div > <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Join Room</p> </div> </SpotlightCard> </div >} />
+                        <CreateProjectModal title="Join a room" language={false} trigger={<div > <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Join Room</p> </div> </SpotlightCard> </div >} />
                         <Link href="/discover">
                             <SpotlightCard
                                 className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105"

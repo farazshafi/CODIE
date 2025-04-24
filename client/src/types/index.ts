@@ -1,4 +1,5 @@
 import { Monaco } from "@monaco-editor/react";
+import { Type } from "lucide-react";
 
 export interface Theme {
     id: string;
@@ -46,4 +47,20 @@ export interface Collaborator {
     };
     role: string;
     _id: string;
+}
+
+export interface ISendAndReciveRequest {
+    _id: string;
+    roomId: string;
+    reciverId: {
+        _id: string;
+        name: string;
+    };
+    senderId: {
+        _id: string;
+        name: string;
+    };
+    status: "pending" | "accepted" | "rejected";
+    createdAt: Date;
+    updatedAt: Date;
 }

@@ -12,7 +12,17 @@ export const createProjectApi = async (userData: { projectName: string, projectL
     }
 }
 
-export const deleteProjectApi = async (projectId:string) => {
+export const getProjectByRoomIdApi = async (roomId: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/project_by_room_id/${roomId}`);
+        return response.data;
+    } catch (err) {
+        console.log("Error while Creating Project", err);
+        throw err;
+    }
+}
+
+export const deleteProjectApi = async (projectId: string) => {
     try {
         const response = await API.delete(`${API_BASE_URL}/delete_project/${projectId}`);
         return response.data;
