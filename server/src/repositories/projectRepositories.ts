@@ -1,4 +1,5 @@
 import ProjectModel from "../models/projectModel"
+import Room from "../models/roomModel";
 import { CreateProjectType } from "../types/projectType"
 
 class ProjectRepositories {
@@ -23,10 +24,15 @@ class ProjectRepositories {
         return await ProjectModel.find({ userId })
     }
 
+    async findProjectByRoomId(roomId: string) {
+        return (await Room.findOne({ roomId })).projectId
+    }
+
     async deleteProject(projectId: string) {
         const data = await ProjectModel.findByIdAndDelete(projectId);
         return !!data
     }
+
 
 }
 

@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { JoinRequestData } from "../types/roomTypes";
+import { RequestData } from "../types/roomTypes";
 import { roomRepositories } from "../repositories/roomRepositories";
+import { requestService } from "../services/requestServices";
 
 
 
@@ -15,25 +16,36 @@ export default function roomSocket(io: Server, socket: Socket) {
     })
 
     // Step 1: User send join request
-    socket.on("join-request", async (data: JoinRequestData) => {
-        const { roomId, userId, userName } = data
+    socket.on("join-request", async (data: RequestData) => {
+        const { roomId, userId, userName } = data;
 
-        const room = await roomRepositories.findRoomById(roomId)
+        const room = await roomRepositories.findRoomById(roomId);
         if (!room) {
-            return socket.emit("error", "Room not found")
+            return socket.emit("error", "Room not found");
         }
 
-        const ownerSocketId = userSocketMap.get(room.owner.toString())
-        if (ownerSocketId) {
-            io.to(ownerSocketId).emit("approve-request", { roomId, userId, userName })
+        try {
+            await requestService.createRequest({ roomId, senderId: userId })
+
+            const ownerSocketId = userSocketMap.get(room.owner.toString());
+            if (ownerSocketId) {
+                io.to(ownerSocketId).emit("approve-request", { roomId, userId, userName });
+            }
+            socket.emit("request-sent", "Your join request has been sent!");
+        } catch (err) {
+            console.log(err)
+            socket.emit("error", "Failed to send join request.");
         }
-    })
+    });
+
 
     // Step 2: Owner approve the user
-    socket.on("approve-user", async (data: JoinRequestData) => {
+    socket.on("approve-user", async (data: RequestData) => {
         const { roomId, userId } = data
 
         const room = await roomRepositories.addUserToCollabrators(userId, roomId)
+
+        // and update status in request
 
         if (!room) {
             return socket.emit("error", "Room not found, or update failed!")
@@ -41,10 +53,10 @@ export default function roomSocket(io: Server, socket: Socket) {
 
         const approvedUser = userSocketMap.get(userId)
         if (approvedUser) {
-            io.to(approvedUser).emit("join-approved", "Owner approved your request. You can now start collaborating.")
+            io.to(approvedUser).emit("join-approved", { message: `approved your request. You can now start collaborating with.`, roomId })
         }
 
-        io.in(roomId).emit("New collabrator added", room.collaborators)
+        io.in(roomId).emit("New collabrator added")
     })
 
     // Join the room (after approval) 

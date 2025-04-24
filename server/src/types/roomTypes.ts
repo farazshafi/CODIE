@@ -1,6 +1,6 @@
 
 
-export interface JoinRequestData {
+export interface RequestData {
     roomId: string;
     userId: string;
     userName: string;

@@ -17,6 +17,21 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
     }
 }
 
+export const getProjectByRoomId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { roomId } = req.params
+
+        const projectId = await projectService.getProjectByRoomId(String(roomId))
+
+        res.status(201).json({
+            message: "Project id Found",
+            projectId
+        });
+    } catch (err) {
+        next(err)
+    }
+}
+
 export const deleteProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params

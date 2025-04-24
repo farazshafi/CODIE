@@ -7,7 +7,6 @@ class EditorRepositories {
             { projectCode: code },
             { new: true }
         );
-        console.log("updated: ", updatedProject)
         return updatedProject;
     }
 

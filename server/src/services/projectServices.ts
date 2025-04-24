@@ -46,6 +46,27 @@ class ProjectService {
         }
     }
 
+    async getProjectByRoomId(roomId: string) {
+        try {
+            if (!roomId) {
+                throw new HttpError(400, "room ID is required.");
+            } else {
+                const projectId = projectRepositories.findProjectByRoomId(roomId)
+                if (!projectId) {
+                    throw new HttpError(404, "Project not found for that room id")
+                }
+                return projectId
+            }
+
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+
+            throw new HttpError(500, "Failed to retrieve projects. Please try again.");
+        }
+    }
+
     async deleteProject(projectId: string) {
         try {
             const isdeleted = await projectRepositories.deleteProject(projectId)
@@ -62,6 +83,7 @@ class ProjectService {
             throw new HttpError(500, "Failed to delete project. Please try again.");
         }
     }
+
 
 }
 

@@ -6,6 +6,7 @@ import editorRouter from "./routes/editorRouter";
 import roomRouter from "./routes/roomRouter";
 import { setupGraphQl } from "./graphql";
 import { errorHandler } from "./middlewares/errorHandler";
+import requestRouter from "./routes/requestRouter";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/api", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/editor", editorRouter);
 app.use("/api/room", roomRouter);
+app.use("/api/request", requestRouter);
 
 // GraphQL Setup
 setupGraphQl(app);

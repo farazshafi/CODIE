@@ -20,11 +20,18 @@ class RoomRepositories {
             { roomId },
             { $addToSet: { collaborators: { user: userId, role: "viewer" } } },
             { new: true }
-        ).populate("collaborators.user", "name")
+        ).populate([
+            { path: "collaborators.user", select: "name" },
+            { path: "owner", select: "name" }
+        ])
     }
 
     async getRoomByProjectId(projectId: string) {
-        return (await Room.findOne({projectId})).populate("collaborators.user","name")
+        return (await Room.findOne({ projectId })).populate("collaborators.user", "name")
+    }
+
+    async getOwnderByRoomId(roomId: string): Promise<string> {
+        return (await Room.findOne({ roomId })).owner.toString()
     }
 }
 
