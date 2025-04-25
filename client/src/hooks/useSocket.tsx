@@ -1,4 +1,3 @@
-// useSocket.ts
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -10,29 +9,33 @@ export default function useSocket(userId?: string) {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        if (!userId || !socket) return;
+        if (!userId) return;
 
-        socket = io(SOCKET_URL, {
-            transports: ["websocket"],
-            reconnectionAttempts: 3,
-            auth: { token: userId },
-        });
+        if (!socket) {
+            socket = io(SOCKET_URL, {
+                transports: ["websocket"],
+                reconnectionAttempts: 3,
+                auth: { token: userId },
+            });
 
-        socket.on("connect", () => {
-            console.log("Socket connected:", socket.id);
-            setIsConnected(true);
-            socket?.emit("register-user", userId);
-        });
+            socket.on("connect", () => {
+                console.log("Socket connected:", socket?.id);
+                setIsConnected(true);
+                socket?.emit("register-user", userId);
+            });
 
-        socket.on("disconnect", () => {
-            console.log("Socket disconnected");
-            setIsConnected(false);
-        });
+            socket.on("disconnect", () => {
+                console.log("Socket disconnected");
+                setIsConnected(false);
+            });
+        }
 
         return () => {
-            socket?.off();
-            socket?.disconnect();
-            socket = null;
+            if (socket) {
+                socket.off();
+                socket.disconnect();
+                socket = null;
+            }
         };
     }, [userId]);
 
