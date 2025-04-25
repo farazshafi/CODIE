@@ -7,6 +7,7 @@ import roomRouter from "./routes/roomRouter";
 import { setupGraphQl } from "./graphql";
 import { errorHandler } from "./middlewares/errorHandler";
 import requestRouter from "./routes/requestRouter";
+import cookieParser from "cookie-parser"
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors({
   origin: ["http://localhost:3000", "https://studio.apollographql.com"],
   credentials: true
 }));
+app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

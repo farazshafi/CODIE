@@ -14,7 +14,8 @@ API.interceptors.request.use(
             "/verify-otp",
             "/resend-otp",
             "/google-auth-login",
-            "/google-auth-register"
+            "/google-auth-register",
+            "/auth/refresh-token",
         ];
 
         const isPublic = publicRoutes.some(url => config.url?.includes(url));
@@ -39,25 +40,23 @@ API.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
-            const userStorage = localStorage.getItem("user-storage");
-            if (!userStorage) {
-                window.location.href = "/login";
-                return Promise.reject(error);
-            }
-
-            const refreshToken = JSON.parse(userStorage).state.user.refreshToken;
-
             try {
                 const tokenResponse = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/refresh-token`,
-                    { refreshToken }
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh-token`,
+                    {},
+                    { withCredentials: true }
                 );
 
                 const newAccessToken = tokenResponse.data.accessToken;
-                const userData = JSON.parse(userStorage);
-                userData.state.user.token = newAccessToken;
-                localStorage.setItem("user-storage", JSON.stringify(userData));
 
+                const userStorage = localStorage.getItem("user-storage");
+                if (userStorage) {
+                    const userData = JSON.parse(userStorage);
+                    userData.state.user.token = newAccessToken;
+                    localStorage.setItem("user-storage", JSON.stringify(userData));
+                }
+
+                // Retry the original request with new token
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return API(originalRequest);
             } catch (refreshError) {
@@ -70,5 +69,6 @@ API.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export default API;

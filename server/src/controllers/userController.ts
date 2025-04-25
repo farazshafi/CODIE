@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import { UserService } from "../services/userServices"
 import { GoogleAuthInput, googleAuthSchema, LoginInput, loginSchema, UserInput, userSchema } from "../validation/userValidation"
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtTokenUtil"
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
 import { OtpService } from "../services/otpServices"
 import redis from "../config/redis"
@@ -301,3 +301,24 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
     }
 }
 
+
+
+export const refreshAccessToken = (req: Request, res: Response) => {
+    try {
+        const token = req.cookies.refreshToken
+
+        if (!token) {
+            res.status(401).json({ message: "Refresh token missing" });
+            return
+        }
+
+        const decoded = verifyRefreshToken(token);
+        const accessToken = generateAccessToken({ id: decoded.id, email: decoded.email });
+
+        res.status(200).json({ accessToken });
+        return
+    } catch (err) {
+        console.log("error from here....", err)
+        res.status(403).json({ message: "Invalid refresh token" });
+    }
+};
