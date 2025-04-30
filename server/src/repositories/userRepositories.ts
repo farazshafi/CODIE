@@ -1,39 +1,18 @@
-import { UserInput } from "../validation/userValidation";
-import User, { UserDocument, UserType } from "../models/userModel";
+import { Model } from 'mongoose';
+import { IUser } from '../models/userModel';
+import { BaseRepository } from './baseRepository';
+import { IUserRepository } from './interface/IUserRepository';
 
-export class UserRepository {
-    static async addUser(user: UserInput) {
-        try {
-            const existingUser = await this.findByEmail(user.email)
-            if (existingUser) return null;
-
-            const newUser = await User.create(user)
-
-
-
-            return newUser;
-        } catch (error) {
-            console.error("Database Error (addUser):", error);
-            throw new Error("Database error while adding a user");
-        }
+export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
+    constructor(model: Model<IUser>) {
+        super(model);
     }
 
-    static async getUsers(): Promise<UserType[]> {
-        try {
-            return await User.find({ isAdmin: false }) 
-        } catch (error) {
-            console.error("Database Error (getUsers):", error);
-            throw new Error("Database error while fetching users");
-        }
+    async findByEmail(email: string): Promise<IUser | null> {
+        return this.model.findOne({ email });
     }
 
-    static async findByEmail(email: string): Promise<UserType | null> {
-        try {
-            const existingUser = await User.findOne({ email }) as UserDocument
-            return existingUser ? existingUser : null;
-        } catch (err) {
-            console.error("Database Error (findByEmail):", err);
-            throw new Error("Database error while fetching user by email");
-        }
+    async findByGoogleId(googleId: string): Promise<IUser | null> {
+        return this.model.findOne({ googleId });
     }
 }

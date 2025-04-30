@@ -9,6 +9,7 @@ import { resendOtpApi, verifyOtpApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
+import Loading from "@/components/Loading";
 
 const Page = () => {
     const [otp, setOtp] = useState("");
@@ -34,7 +35,7 @@ const Page = () => {
                 token: data.accessToken,
                 id: data.data.id
             });
-             router.push("/dashboard");
+            router.push("/dashboard");
             localStorage.removeItem("tempMail");
         },
         onError: (err) => {
@@ -80,7 +81,7 @@ const Page = () => {
 
         if (user && user.token) {
             setIsRedirecting(true);
-             router.push("/dashboard");
+            router.push("/dashboard");
         }
     }, [user]);
 
@@ -101,7 +102,7 @@ const Page = () => {
         return (
             <div className="h-screen w-full bg-[#1f2125] flex items-center justify-center">
                 <p className="text-white text-lg">
-                    {verifyingOtp ? "Verifying OTP..." : "Redirecting..."}
+                    {verifyingOtp ? <Loading text="Verifying otp" /> : <Loading text="Redirecting..." />}
                 </p>
             </div>
         );

@@ -1,22 +1,46 @@
-import { UserRepository } from "../repositories/userRepositories";
-import { HttpError } from "../utils/HttpError";
-import { UserInput } from "../validation/userValidation";
+import { IUserRepository } from '../repositories/interface/IUserRepository';
+import { HttpError } from '../utils/HttpError';
+import { UserInput, GoogleAuthInput } from '../validation/userValidation';
 
 export class UserService {
+    constructor(private readonly userRepository: IUserRepository) {}
 
-    static async createUser(user: UserInput) {
-        const existingUser = await UserRepository.findByEmail(user.email)
-        if (existingUser) throw new HttpError(409, "User Already Exist")
-        return await UserRepository.addUser(user);
+    async createUser(data: UserInput) {
+        const existingUser = await this.userRepository.findByEmail(data.email);
+        if (existingUser) {
+            throw new HttpError(409, "User already exists");
+        }
+
+        return this.userRepository.create({
+            ...data,
+            password: data.password
+        });
     }
 
-    static async fetchUsers() {
-        return await UserRepository.getUsers();
+    async findUserByEmail(email: string) {
+        return this.userRepository.findByEmail(email);
     }
 
-    static async findUserByEmail(email: string) {
-        const user = await UserRepository.findByEmail(email)
-        if (!user) return null
-        return user
+    async handleGoogleAuth(data: GoogleAuthInput) {
+        let user = await this.userRepository.findByGoogleId(data.googleId);
+        
+        if (!user) {
+            // Check if email exists but not with google auth
+            user = await this.userRepository.findByEmail(data.email);
+            if (user && !user.googleId) {
+                throw new HttpError(409, "Email already registered with password");
+            }
+
+            user = await this.userRepository.create({
+                name: data.name,
+                email: data.email,
+                googleId: data.googleId,
+                avatarUrl: data.avatarUrl,
+                isAdmin: data.isAdmin ?? false,
+                isBlocked: data.isBlocked ?? false
+            });
+        }
+
+        return user;
     }
 }

@@ -1,8 +1,24 @@
-import mongoose, { InferSchemaType } from "mongoose";
+import mongoose, { InferSchemaType, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface IUserBase {
+    name: string;
+    email: string;
+    password?: string;
+    isAdmin: boolean;
+    isBlocked: boolean;
+    googleId?: string;
+    avatarUrl: string;
+    bio?: string;
+}
 
-const userSchema = new mongoose.Schema(
+export interface IUser extends IUserBase, Document {
+    comparePassword(candidatePassword: string): Promise<boolean>
+    isModified(field: string): boolean;
+}
+
+
+const userSchema: Schema = new mongoose.Schema(
     {
         name: {
             type: String,
@@ -15,7 +31,7 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: function () {
+            required: function (this: IUser) {
                 return !this.googleId;
             },
         },
@@ -43,17 +59,21 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) {
-        next();
+// password hashing middleware
+userSchema.pre<IUser>("save", async function (next) {
+    if (!this.isModified("password") || !this.password) {
+        return next();
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
-export type UserType = InferSchemaType<typeof userSchema>;
-export type UserDocument = UserType & { _id: string };
+// Password comparison method
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+    if (!this.password) return false;
+    return bcrypt.compare(candidatePassword, this.password);
+};
 
-const User = mongoose.model("User", userSchema);
-export default User;
+export const UserModel = mongoose.model<IUser>('User', userSchema);
+export default UserModel;

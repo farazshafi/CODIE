@@ -23,7 +23,7 @@ export default function Home() {
     const [isRedirecting, setIsRedirecting] = useState(false);
 
     const userId = user?.id;
-
+    
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
         variables: { userId },
     });
@@ -34,7 +34,7 @@ export default function Home() {
             router.push("/login");
         }
     }, [user, router]);
-    
+
 
     useEffect(() => {
         if (error) {
@@ -82,7 +82,7 @@ export default function Home() {
                                 <p className="text-xl text-white">No Projects Found!. Create First Project</p>
                             </div>
                         </div>
-                    )} 
+                    )}
 
                     {/* Project Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-5">

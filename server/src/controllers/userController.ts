@@ -1,25 +1,18 @@
 import { NextFunction, Request, Response } from "express"
-import { UserService } from "../services/userServices"
-import { GoogleAuthInput, googleAuthSchema, LoginInput, loginSchema, UserInput, userSchema } from "../validation/userValidation"
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
-import bcrypt from "bcryptjs"
+import { GoogleAuthInput, LoginInput, UserInput } from "../validation/userValidation"
+import { userService } from "../container"
 import { OtpService } from "../services/otpServices"
 import redis from "../config/redis"
-import { UserRepository } from "../repositories/userRepositories"
-import User, { UserDocument } from "../models/userModel"
-import { HttpError } from "../utils/HttpError"
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
+import bcrypt from "bcryptjs"
+import { IUser } from "../models/userModel"
 
 
-/**
- * @route   POST /api/register
- * @desc    send otp to email and save user data in redis
- * @access  Public
- */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const validatedUser: UserInput = userSchema.parse(req.body)
+        const validatedUser: UserInput = req.body
+        const userExist = await userService.findUserByEmail(validatedUser.email)
 
-        const userExist = await UserService.findUserByEmail(validatedUser.email)
         if (userExist) {
             res.status(400).json({ message: "User already exists" })
             return
@@ -39,11 +32,6 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     }
 }
 
-/**
- * @route   POST /api/verify-otp
- * @desc    verify otp and create user in db
- * @access  Public
- */
 export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, otp } = req.body
@@ -60,7 +48,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 
         const userData: UserInput = JSON.parse(userDataStr)
 
-        const newUser = await UserService.createUser(userData)
+        const newUser = await userService.createUser(userData)
 
         await redis.del(redisKey)
 
@@ -80,22 +68,16 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
             message: "User registered successfully",
             data: {
                 name: newUser.name,
-                email: newUser.email
+                email: newUser.email,
+                id: newUser._id
             },
             accessToken
         })
-
     } catch (error) {
         next(error)
     }
 }
 
-
-/**
- * @route   POST /api/resend-otp
- * @desc    Resend OTP to the user's email
- * @access  Public
- */
 export const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body
@@ -118,17 +100,11 @@ export const resendOtp = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
-
-/**
- * @route   POST /api/login
- * @desc    login a user
- * @access  Public
- */
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const credential: LoginInput = loginSchema.parse(req.body)
+        const credential: LoginInput = req.body
 
-        const userExist = await UserService.findUserByEmail(credential.email) as UserDocument
+        const userExist = await userService.findUserByEmail(credential.email)
 
         if (!userExist) {
             res.status(401).json({ message: "User not exists" })
@@ -155,7 +131,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days  
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         })
 
         res.status(200).json({
@@ -174,39 +150,20 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
-/**
- * @desc Fetches all users from the database. This function is used as a GraphQL resolver.
- * @access Admin
- * @throws {Error} If there is a database error
- */
-export const getUsers = async (_req: Request, res: Response) => {
-    try {
-        const users = await UserService.fetchUsers()
-        res.status(200).json({ data: users })
-    } catch (error) {
-        if (error instanceof Error) {
-            res.status(500).json({ message: "Internal Server Error" })
-        }
-    }
-}
-
-/**
- * @desc Google register Auth
- * @access Public
- */
 export const googleRegisterAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const validatedUser: GoogleAuthInput = googleAuthSchema.parse(req.body)
-        const user = await UserRepository.findByEmail(validatedUser.email) as UserDocument
+        const validatedUser: GoogleAuthInput = req.body
+        const user = await userService.findUserByEmail(validatedUser.email)
 
         if (user && !user.googleId) {
-            throw new HttpError(409, "An account with this email already exists")
+            res.status(409).json({ message: "An account with this email already exists" })
+            return
         }
 
-        let myUser;
+        let myUser: IUser;
 
         if (!user) {
-            const newUser = await User.create({
+            const newUser = await userService.createUser({
                 name: validatedUser.name,
                 email: validatedUser.email,
                 googleId: validatedUser.googleId,
@@ -247,10 +204,6 @@ export const googleRegisterAuth = async (req: Request, res: Response, next: Next
     }
 }
 
-/**
- * @desc Google login Auth
- * @access Public
- */
 export const googleLoginAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body
@@ -260,7 +213,7 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
             return
         }
 
-        const user = await UserRepository.findByEmail(email) as UserDocument
+        const user = await userService.findUserByEmail(email)
 
         if (!user) {
             res.status(401).json({ message: "User not exists" })
@@ -300,8 +253,6 @@ export const googleLoginAuth = async (req: Request, res: Response, next: NextFun
         next(err)
     }
 }
-
-
 
 export const refreshAccessToken = (req: Request, res: Response) => {
     try {
