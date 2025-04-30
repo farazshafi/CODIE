@@ -33,7 +33,6 @@ export default function roomSocket(io: Server, socket: Socket) {
 
         try {
             const request = await requestService.createRequest({ roomId, senderId: userId });
-            console.log("req id : ", request);
             const ownerSocketId = userSocketMap.get(room.owner.toString());
             if (ownerSocketId) {
                 io.to(ownerSocketId).emit("approve-request", { roomId, userId, userName, reqId: request._id });

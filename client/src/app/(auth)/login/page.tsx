@@ -33,7 +33,6 @@ const Page = () => {
     const { mutate, isLoading, isSuccess } = useMutationHook(loginUserApi, {
         onSuccess: (data) => {
             toast.success(data.message || "User Registred succesfully");
-            console.log("login data: ", data)
             setUser({
                 name: data.data.name,
                 email: data.data.email,
@@ -45,7 +44,6 @@ const Page = () => {
         },
 
         onError: (e) => {
-            console.log("registration error: ", e);
             const errors = e?.response?.data?.errors;
             let message = "Login failed";
             if (Array.isArray(errors)) {

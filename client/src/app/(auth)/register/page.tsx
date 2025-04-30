@@ -53,7 +53,6 @@ const Page = () => {
 
   const { mutate: googleAuthMutate } = useMutationHook(googleAuthRegisterApi, {
     onSuccess: (data) => {
-      console.log("success data : ", data)
       toast.success(data.message || "Google Auth Success");
       setUser({
         email: data.data.email,

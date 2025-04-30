@@ -28,7 +28,6 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
         try {
             const data = await deleteProjectApi(id)
             if (data.message) {
-                console.log("Deleted project data:", data);
                 toast.success("Project deleted successfully");
                 refetchProject();
             } else {

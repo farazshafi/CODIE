@@ -66,9 +66,6 @@ const Header = ({
     })
     const { mutate: getRoomByProjectId } = useMutationHook(getRoomByProjectIdApi, {
         onSuccess(res) {
-            console.log("room details: ", res.data)
-            console.log("room id : ", res.data.roomId)
-            console.log("coolaborators: ", res.data.collaborators)
             setRoomId(res.data.roomId)
             setCollaborators(res.data.collaborators)
             setIsWantToCollab(true)

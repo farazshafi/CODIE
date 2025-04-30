@@ -18,7 +18,6 @@ const EditorPanel = () => {
 
   const debouncedSaveCode = debounce((value: string) => {
     if (value) {
-      console.log("saving...", params.id)
       mutate({ projectId: params.id, code: value })
     }
   }, 3000);

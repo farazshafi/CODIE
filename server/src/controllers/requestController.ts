@@ -23,8 +23,6 @@ export const getAllRecivedRequest = async (req: Request, res: Response, next: Ne
         const { id } = req.params
 
         const data = await requestService.getAllRecivedRequest(id)
-        console.log("recived datas: ", data)
-
         res.status(201).json(data);
     } catch (err) {
         next(err)

@@ -19,13 +19,11 @@ export default function useSocket(userId?: string) {
             });
 
             socket.on("connect", () => {
-                console.log("Socket connected:", socket?.id);
                 setIsConnected(true);
                 socket?.emit("register-user", userId);
             });
 
             socket.on("disconnect", () => {
-                console.log("Socket disconnected");
                 setIsConnected(false);
             });
         }
