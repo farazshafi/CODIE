@@ -4,9 +4,9 @@ import { defineMonacoThemes, LANGUAGE_CONFIG } from "../_constants";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import debounce from "lodash.debounce"
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { getCodeApi, saveCodeApi } from "@/apis/editorApi";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { getCodeApi, saveCodeApi } from "@/apis/projectApi";
 
 const EditorPanel = () => {
   const params = useParams()

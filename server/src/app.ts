@@ -23,7 +23,6 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api", userRouter);
 app.use("/api/project", projectRouter);
-app.use("/api/editor", editorRouter);
 app.use("/api/room", roomRouter);
 app.use("/api/request", requestRouter);
 
