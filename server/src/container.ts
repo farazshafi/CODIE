@@ -1,5 +1,6 @@
 // src/container.ts
 import { ProjectController } from './controllers/ProjectController';
+import { UserController } from './controllers/userController';
 import ProjectModel from './models/projectModel';
 import UserModel from './models/userModel';
 import { ProjectRepository } from './repositories/projectRepositories';
@@ -18,3 +19,4 @@ export const userService = new UserService(userRepository)
 // Set up controller
 
 export const projectController = new ProjectController(projectService)
+export const userController = new UserController(userService)

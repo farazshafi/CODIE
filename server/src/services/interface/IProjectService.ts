@@ -1,4 +1,3 @@
-// Assuming this is your Mongoose model
 
 import { IProject } from "../../models/projectModel";
 import { CreateProjectType } from "../../types/projectType";
