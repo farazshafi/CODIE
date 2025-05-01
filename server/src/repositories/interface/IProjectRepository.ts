@@ -9,5 +9,5 @@ export interface IProjectRepository extends IBaseRepository<IProject> {
     }): Promise<boolean>;
     findProjectByUserId(userId: string): Promise<IProject[]>;
     findProjectByRoomId(roomId: string): Promise<string | null>;
-    updateCode(project: IProject, code: string): Promise<IProject | null>
+    updateCode(project: IProject, code: string): Promise<IProject>
 }

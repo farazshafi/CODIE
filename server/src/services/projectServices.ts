@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 import { IProjectRepository } from '../repositories/interface/IProjectRepository';
 import { CreateProjectType } from '../types/projectType';
 import { HttpError } from '../utils/HttpError';
+import { IProjectService } from './interface/IProjectService';
+import { IProject } from '../models/projectModel';
 
-export class ProjectService {
+export class ProjectService implements IProjectService {
     constructor(private readonly projectRepository: IProjectRepository) { }
 
-    async createProject(data: CreateProjectType) {
+    async createProject(data: CreateProjectType): Promise<IProject> {
         try {
             const isExist = await this.projectRepository.isProjectNameExists({
                 userId: data.userId,
@@ -24,20 +26,20 @@ export class ProjectService {
             });
         } catch (error) {
             if (error instanceof HttpError) {
-                throw error
+                throw error;
             }
             throw new HttpError(400, "Project name already exists for this language.");
         }
     }
 
-    async getProjectsByUserId(userId: string) {
+    async getProjectsByUserId(userId: string): Promise<IProject[]> {
         if (!userId) {
             throw new HttpError(400, "User ID is required.");
         }
         return this.projectRepository.findProjectByUserId(userId);
     }
 
-    async getProjectById(id: string) {
+    async getProjectById(id: string): Promise<IProject> {
         const project = await this.projectRepository.findById(id);
         if (!project) {
             throw new HttpError(404, "Project not found");
@@ -45,41 +47,40 @@ export class ProjectService {
         return project;
     }
 
-    async getAllProjects() {
+    async getAllProjects(): Promise<IProject[]> {
         return this.projectRepository.findAll();
     }
 
-    async getProjectByRoomId(roomId: string) {
+    async getProjectByRoomId(roomId: string): Promise<string> {
         if (!roomId) {
             throw new HttpError(400, "Room ID is required.");
         }
 
-        const projectId = await this.projectRepository.findProjectByRoomId(roomId);
-        if (!projectId) {
+        const project = await this.projectRepository.findProjectByRoomId(roomId);
+        if (!project) {
             throw new HttpError(404, "Project not found for that room id");
         }
-        return projectId;
+        return project;
     }
 
-    async saveCode(id: string, updatedCode: string) {
+    async saveCode(id: string, updatedCode: string): Promise<IProject> {
         try {
-            const project = await this.projectRepository.findById(id)
+            const project = await this.projectRepository.findById(id);
             if (project) {
-                return await this.projectRepository.updateCode(project, updatedCode)
+                return await this.projectRepository.updateCode(project, updatedCode);
             } else {
                 throw new HttpError(404, "Project not found");
             }
         } catch (err) {
-            console.log("Error saving code", err)
+            console.log("Error saving code", err);
             if (err instanceof HttpError) {
                 throw err;
             }
-
             throw new HttpError(500, "Failed to save code. Please try again.");
         }
     }
 
-    async deleteProject(projectId: string) {
+    async deleteProject(projectId: string): Promise<{ message: string }> {
         const isDeleted = await this.projectRepository.delete(projectId);
         if (!isDeleted) {
             throw new HttpError(404, "Project not found or already deleted.");
@@ -87,20 +88,19 @@ export class ProjectService {
         return { message: "Project deleted successfully." };
     }
 
-    async getSavedCode(id: string) {
+    async getSavedCode(id: string): Promise<IProject> {
         try {
-            const project = await this.projectRepository.findById(id)
+            const project = await this.projectRepository.findById(id);
             if (project) {
-                return project
+                return project;
             } else {
-                throw new HttpError(404, "Project not found")
+                throw new HttpError(404, "Project not found");
             }
         } catch (err) {
-            console.log("Error saving code", err)
+            console.log("Error saving code", err);
             if (err instanceof HttpError) {
                 throw err;
             }
-
             throw new HttpError(500, "Failed to save code. Please try again.");
         }
     }

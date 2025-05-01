@@ -31,7 +31,7 @@ export class ProjectRepository extends BaseRepository<IProject> implements IProj
         return room?.projectId?.toString() || null;
     }
 
-    async updateCode(project: IProject, code: string): Promise<IProject | null> {
+    async updateCode(project: IProject, code: string): Promise<IProject> {
         return this.model.findByIdAndUpdate(project._id as string, { projectCode: code })
     }
 }
