@@ -1,30 +1,29 @@
 import { Request, Response, NextFunction } from "express";
-import { requestService } from "../services/requestServices";
+import { IRequestService } from "../services/interface/IRequestService";
 
 
-export const getAllSendedReq = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { id } = req.params
+export class RequestController {
+    constructor(private readonly requestService: IRequestService) { }
 
-        const data = await requestService.getAllSendedRequest(id)
-
-
-        res.status(201).json({
-            data
-        });
-    } catch (err) {
-        next(err)
+    getAllSendedReq = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params
+            const data = await this.requestService.getAllSendedRequest(id)
+            res.status(201).json({
+                data
+            });
+        } catch (err) {
+            next(err)
+        }
     }
-}
 
-
-export const getAllRecivedRequest = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { id } = req.params
-
-        const data = await requestService.getAllRecivedRequest(id)
-        res.status(201).json(data);
-    } catch (err) {
-        next(err)
+    getAllRecivedRequest = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params
+            const data = await this.requestService.getAllRecivedRequest(id)
+            res.status(201).json(data);
+        } catch (err) {
+            next(err)
+        }
     }
 }

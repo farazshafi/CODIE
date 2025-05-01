@@ -1,11 +1,13 @@
-import { send } from "process";
-import { requestRepo } from "../repositories/requestRepositories";
 import { roomRepositories } from "../repositories/roomRepositories";
 import { HttpError } from "../utils/HttpError";
+import { IRequestRepository } from "../repositories/interface/IRequestRepository";
+import { IRequest } from "../models/requestModel";
+import { IRequestService } from "./interface/IRequestService";
 
-class RequestService {
+export class RequestService implements IRequestService{
+    constructor(private readonly requestRepository: IRequestRepository) { }
 
-    async createRequest(data: { roomId, senderId }) {
+    async createRequest(data: { roomId:string, senderId:string }):Promise<IRequest> {
         try {
             const { roomId, senderId } = data
 
@@ -14,7 +16,7 @@ class RequestService {
                 throw new HttpError(404, "Room Not Found when creating request")
             }
 
-            return await requestRepo.makeRequest({ roomId, senderId, reciverId })
+            return await this.requestRepository.makeRequest({ roomId, senderId, reciverId })
 
         } catch (err) {
             if (err instanceof HttpError) {
@@ -24,9 +26,9 @@ class RequestService {
         }
     }
 
-    async getAllSendedRequest(id: string) {
+    async getAllSendedRequest(id: string): Promise<IRequest[]> {
         try {
-            const data = await requestRepo.getAllSendedRequest(id)
+            const data = await this.requestRepository.getAllSendedRequest(id)
             if (!data) {
                 throw new HttpError(404, "No request Founded")
             }
@@ -40,9 +42,9 @@ class RequestService {
         }
     }
 
-    async getAllRecivedRequest(userId: string) {
+    async getAllRecivedRequest(userId: string) : Promise<IRequest[]>{
         try {
-            const data = await requestRepo.getRecivedRequest(userId)
+            const data = await this.requestRepository.getRecivedRequest(userId)
             if (!data) {
                 throw new HttpError(404, "No request Founded")
             }
@@ -56,10 +58,10 @@ class RequestService {
         }
     }
 
-    async getRequestedUser(reqId: string, type: "sender" | "reciver") {
+    async getRequestedUser(reqId: string, type: "sender" | "reciver"): Promise<string> {
         try {
-            const request = await requestRepo.getRequestById(reqId)
-            
+            const request = await this.requestRepository.getRequestById(reqId)
+
             if (!request) {
                 throw new HttpError(404, "Request not found");
             }
@@ -76,8 +78,4 @@ class RequestService {
         }
     }
 
-
-
 }
-
-export const requestService = new RequestService()
