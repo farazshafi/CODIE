@@ -10,6 +10,7 @@ import { OtpRepository } from './repositories/otpRepositories';
 import { ProjectRepository } from './repositories/projectRepositories';
 import { RequestRepositories } from './repositories/requestRepositories';
 import { UserRepository } from './repositories/userRepositories';
+import { MailService } from './services/mailServices';
 import { OtpService } from './services/otpServices';
 import { ProjectService } from './services/projectServices';
 import { RequestService } from './services/requestServices';
@@ -25,7 +26,8 @@ export const otpRepository = new OtpRepository(OtpModel)
 export const projectService = new ProjectService(projectRepository);
 export const userService = new UserService(userRepository)
 export const requestService = new RequestService(requestRepository)
-export const otpService = new OtpService(otpRepository)
+export const mailService = new MailService()
+export const otpService = new OtpService(otpRepository, mailService)
 
 // Set up controller
 export const projectController = new ProjectController(projectService)

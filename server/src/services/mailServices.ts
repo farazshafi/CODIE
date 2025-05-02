@@ -1,19 +1,19 @@
 import { ENV } from "../config/env";
 import { transporter } from "../config/mailConfig";
 import { HttpError } from "../utils/HttpError";
+import { IMailService } from "./interface/IMailService";
 
-export class MailService {
+export class MailService implements IMailService {
 
-    static async sendMail(to: string, otp: string) {
+    async sendMail(to: string, otp: string): Promise<void> {
         try {
-
             const info = await transporter.sendMail({
                 from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
                 to: to,
                 subject: "Your OTP for Codie Online Collabrative Editor",
                 html: `<p>Your OTP is: <b>${otp}</b></p>`,
             });
-            
+
             console.log("Message sent: %s", info.messageId);
         } catch (error) {
             console.error("Error sending email: ", error);
