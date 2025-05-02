@@ -1,26 +1,34 @@
-import otpModel from "../models/otpModel"
+import { Model } from "mongoose"
+import otpModel, { IOtp } from "../models/otpModel"
+import { BaseRepository } from "./baseRepository"
+import { IOtpRepository } from "./interface/IOtpRepository"
 
-export class OtpRepository {
-    static async saveOtp({ email, otpHash, expiresAt, verified }: {
+export class OtpRepository extends BaseRepository<IOtp> implements IOtpRepository {
+
+    constructor(model: Model<IOtp>) {
+        super(model)
+    }
+
+    async saveOtp({ email, otpHash, expiresAt, verified }: {
         email: string
         otpHash: string
         expiresAt: Date
         verified: boolean
-    }) {
+    }): Promise<void> {
         await otpModel.deleteMany({ email })
 
         const newOtp = new otpModel({ email, otpHash, expiresAt, verified });
         await newOtp.save();
     }
 
-    static async findValidOtp(email: string) {
+    async findValidOtp(email: string): Promise<IOtp> {
         return await otpModel.findOne({
             email,
             verified: false,
         }).sort({ createdAt: -1 });
     }
 
-    static async markOtpAsVerified(email: string) {
-        return await otpModel.updateOne({ email }, { $set: { verified: true } })
+    async markOtpAsVerified(email: string): Promise<void> {
+        await otpModel.updateOne({ email }, { $set: { verified: true } })
     }
 }

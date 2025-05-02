@@ -1,15 +1,18 @@
 import { NextFunction, Request, Response } from "express"
 import { GoogleAuthInput, LoginInput, UserInput } from "../validation/userValidation"
 import { userService } from "../container"
-import { OtpService } from "../services/otpServices"
 import redis from "../config/redis"
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
 import { IUser } from "../models/userModel"
 import { IUserService } from "../services/interface/IUserService"
+import { IOtpService } from "../services/interface/IOtpServices"
 
 export class UserController {
-    constructor(private readonly userService: IUserService) { }
+    constructor(
+        private readonly userService: IUserService,
+        private readonly otpService: IOtpService
+    ) { }
 
     createUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -21,7 +24,7 @@ export class UserController {
                 return
             }
 
-            await OtpService.generateAndSendOtp(validatedUser.email)
+            await this.otpService.generateAndSendOtp(validatedUser.email)
 
             const redisKey = `pendingUser:${validatedUser.email}`
             await redis.set(redisKey, JSON.stringify(validatedUser), 'EX', 300)
@@ -39,7 +42,7 @@ export class UserController {
         try {
             const { email, otp } = req.body
 
-            await OtpService.verifyOtp(email, otp)
+            await this.otpService.verifyOtp(email, otp)
 
             const redisKey = `pendingUser:${email}`
             const userDataStr = await redis.get(redisKey)
@@ -93,7 +96,7 @@ export class UserController {
                 return
             }
 
-            await OtpService.generateAndSendOtp(email)
+            await this.otpService.generateAndSendOtp(email)
 
             res.status(200).json({
                 message: "OTP resent to email. Please verify to complete registration."
