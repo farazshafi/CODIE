@@ -1,10 +1,14 @@
-import { roomRepositories } from "../repositories/roomRepositories"
+import { IRoom } from "../models/roomModel"
+import { IRoomRepository } from "../repositories/interface/IRoomRepository"
 import { CreateRoomType } from "../types/roomType"
 import { generateRoomId } from "../utils/generateRoomId"
 import { HttpError } from "../utils/HttpError"
+import { IRoomService } from "./interface/IRoomService"
 
-class RoomServices {
-    async createRoom(projectId: string, ownerId: string) {
+export class RoomServices implements IRoomService {
+    constructor(private readonly roomRepository: IRoomRepository) { }
+
+    async createRoom(projectId: string, ownerId: string): Promise<IRoom> {
         try {
             let roomId = generateRoomId()
             const roomData: CreateRoomType = {
@@ -12,24 +16,23 @@ class RoomServices {
                 ownerId,
                 roomId
             }
-            let existRoom = await roomRepositories.findRoomById(roomId)
+            let existRoom = await this.roomRepository.findRoomById(roomId)
 
             while (existRoom) {
                 roomId = generateRoomId();
-                existRoom = await roomRepositories.findRoomById(roomId);
+                existRoom = await this.roomRepository.findRoomById(roomId);
             }
 
-            return await roomRepositories.createRoom(roomData)
+            return await this.roomRepository.createRoom(roomData)
         } catch (err) {
             console.error("Failed when creating room: ", err)
             throw new HttpError(500, "Failed to create room")
         }
     }
 
-    async getRoomByProjectId(projectId: string,) {
+    async getRoomByProjectId(projectId: string): Promise<IRoom> {
         try {
-
-            const existRoom = await roomRepositories.getRoomByProjectId(projectId)
+            const existRoom = await this.roomRepository.getRoomByProjectId(projectId)
             if (!existRoom) {
                 throw new HttpError(404, "Room Not Found")
             }
@@ -43,8 +46,6 @@ class RoomServices {
             throw new HttpError(500, "failed to get room")
         }
     }
-
-
+    
 }
 
-export const roomServices = new RoomServices()

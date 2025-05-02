@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import userRouter from "./routes/userRouter";
 import projectRouter from "./routes/projectRouter";
-import editorRouter from "./routes/editorRouter";
 import roomRouter from "./routes/roomRouter";
 import { setupGraphQl } from "./graphql";
 import { errorHandler } from "./middlewares/errorHandler";

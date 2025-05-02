@@ -10,4 +10,5 @@ export const ENV = {
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
   EMAIL_USER: process.env.EMAIL_USER as string,
   EMAIL_PASS: process.env.EMAIL_PASS as string,
+  CLIENT_URL: process.env.CLIENT_URL as string,
 };

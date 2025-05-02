@@ -1,0 +1,7 @@
+import { IRoom } from "../../models/roomModel";
+
+
+export interface IRoomService {
+    createRoom(projectId: string, ownerId: string): Promise<IRoom>;
+    getRoomByProjectId(projectId: string): Promise<IRoom>;
+}

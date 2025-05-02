@@ -1,8 +1,15 @@
-import Room from "../models/roomModel"
+import { Model } from "mongoose"
+import Room, { IRoom } from "../models/roomModel"
 import { CreateRoomType } from "../types/roomType"
+import { BaseRepository } from "./baseRepository"
+import { IRoomRepository } from "./interface/IRoomRepository"
 
-class RoomRepositories {
-    async createRoom({ roomId, projectId, ownerId }: CreateRoomType) {
+export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepository {
+    constructor(model: Model<IRoom>) {
+        super(model)
+    }
+
+    async createRoom({ roomId, projectId, ownerId }: CreateRoomType): Promise<IRoom> {
         return await Room.create({
             roomId,
             projectId,
@@ -11,11 +18,11 @@ class RoomRepositories {
         })
     }
 
-    async findRoomById(roomId: string) {
+    async findRoomById(roomId: string): Promise<IRoom> {
         return await Room.findOne({ roomId }).populate("collaborators.user")
     }
 
-    async addUserToCollabrators(userId: string, roomId: string) {
+    async addUserToCollabrators(userId: string, roomId: string): Promise<IRoom> {
         return await Room.findOneAndUpdate(
             { roomId },
             { $addToSet: { collaborators: { user: userId, role: "viewer" } } },
@@ -26,7 +33,7 @@ class RoomRepositories {
         ])
     }
 
-    async getRoomByProjectId(projectId: string) {
+    async getRoomByProjectId(projectId: string): Promise<IRoom> {
         return (await Room.findOne({ projectId })).populate("collaborators.user", "name")
     }
 
@@ -34,5 +41,3 @@ class RoomRepositories {
         return (await Room.findOne({ roomId })).owner.toString()
     }
 }
-
-export const roomRepositories = new RoomRepositories()
