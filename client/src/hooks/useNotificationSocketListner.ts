@@ -13,8 +13,20 @@ export default function useNotificationSocketListner(socket: Socket | null) {
             toast.warning(data.message)
         }
 
+        const handleApproveRequest = (data: {
+            roomId: string,
+            userId: string,
+            userName: string,
+            reqId: string,
+        }) => {
+            toast.success(`New join request received from ${data.userName} to join Room: ${data.roomId}`)
+        }
+
         socket.off("join-approved", handleJoinApprove)
         socket.on("join-approved", handleJoinApprove)
+
+        socket.off("approve-request", handleApproveRequest)
+        socket.on("approve-request", handleApproveRequest)
 
         socket.off("join-rejected", handleJoinReject)
         socket.on("join-rejected", handleJoinReject)
@@ -22,6 +34,7 @@ export default function useNotificationSocketListner(socket: Socket | null) {
         return () => {
             socket.off("join-approved", handleJoinApprove)
             socket.off("join-rejected", handleJoinApprove)
+            socket.off("approve-request", handleApproveRequest)
         }
 
     }, [socket])

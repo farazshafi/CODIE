@@ -6,7 +6,7 @@ const redis = new Redis({
     retryStrategy: (times) => Math.min(times * 50, 2000)
 });
 
-redis.on("connect",()=> console.log("Redis connected"))
-redis.on("error",(err)=> console.log("Redis Error: ",err))
+redis.on("connect", () => console.log("Redis connected".green))
+redis.on("error", (err) => console.log("Redis Error: ".red, err))
 
 export default redis

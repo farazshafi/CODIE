@@ -3,33 +3,31 @@ import { Server } from 'socket.io';
 import app from './app';
 import { ENV } from './config/env';
 import connectDB from './db';
-import socketMain from './sockets';
+import { setupSocket } from './sockets/socketServer';
 
 const PORT = ENV.PORT;
 
 const startServer = async () => {
     try {
-        await connectDB(); 
+        await connectDB();
 
         const server = http.createServer(app);
-
         const io = new Server(server, {
             cors: {
-                origin: "http://localhost:3000",
-                methods: ["GET", "POST"],
-                credentials: true
+                origin: "*",
+                methods: ["GET", "POST"]
             }
         });
 
-        socketMain(io);
+        setupSocket(io);
 
         server.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
+            console.log(`Server running on http://localhost:${PORT}`.green);
         });
 
     } catch (error) {
-        console.error("MongoDB connection failed:", error);
-        process.exit(1); 
+        console.error("MongoDB connection failed:".red, error);
+        process.exit(1);
     }
 };
 

@@ -31,7 +31,7 @@ export const roomRepository = new RoomRepositories(RoomModel)
 // Set up services
 export const projectService = new ProjectService(projectRepository);
 export const userService = new UserService(userRepository)
-export const requestService = new RequestService(requestRepository)
+export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()
 export const otpService = new OtpService(otpRepository, mailService)
 export const roomService = new RoomServices(roomRepository)

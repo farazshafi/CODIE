@@ -1,20 +1,23 @@
-import { roomRepositories } from "../repositories/roomRepositories";
 import { HttpError } from "../utils/HttpError";
 import { IRequestRepository } from "../repositories/interface/IRequestRepository";
 import { IRequest } from "../models/requestModel";
 import { IRequestService } from "./interface/IRequestService";
+import { IRoomRepository } from "../repositories/interface/IRoomRepository";
 
-export class RequestService implements IRequestService{
-    constructor(private readonly requestRepository: IRequestRepository) { }
+export class RequestService implements IRequestService {
+    constructor(
+        private readonly requestRepository: IRequestRepository,
+        private readonly roomRepositories: IRoomRepository
+    ) { }
 
-    async createRequest(data: { roomId:string, senderId:string }):Promise<IRequest> {
+    async createRequest(data: { roomId: string, senderId: string }): Promise<IRequest> {
         try {
             const { roomId, senderId } = data
-
-            const reciverId = await roomRepositories.getOwnderByRoomId(roomId)
+            const reciverId = await this.roomRepositories.getOwnderByRoomId(roomId)
             if (!reciverId) {
                 throw new HttpError(404, "Room Not Found when creating request")
             }
+
 
             return await this.requestRepository.makeRequest({ roomId, senderId, reciverId })
 
@@ -42,7 +45,7 @@ export class RequestService implements IRequestService{
         }
     }
 
-    async getAllRecivedRequest(userId: string) : Promise<IRequest[]>{
+    async getAllRecivedRequest(userId: string): Promise<IRequest[]> {
         try {
             const data = await this.requestRepository.getRecivedRequest(userId)
             if (!data) {

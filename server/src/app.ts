@@ -7,6 +7,8 @@ import { setupGraphQl } from "./graphql";
 import { errorHandler } from "./middlewares/errorHandler";
 import requestRouter from "./routes/requestRouter";
 import cookieParser from "cookie-parser"
+import colors from 'colors';
+
 
 const app = express();
 
@@ -17,7 +19,8 @@ app.use(cors({
 }));
 app.use(cookieParser())
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }))
+colors.enable()
 
 // Routes
 app.use("/api", userRouter);
