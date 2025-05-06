@@ -7,11 +7,14 @@ import bcrypt from "bcryptjs"
 import { IUser } from "../models/userModel"
 import { IUserService } from "../services/interface/IUserService"
 import { IOtpService } from "../services/interface/IOtpServices"
+import crypto from "crypto"
+import { IMailService } from "../services/interface/IMailService"
 
 export class UserController {
     constructor(
         private readonly userService: IUserService,
-        private readonly otpService: IOtpService
+        private readonly otpService: IOtpService,
+        private readonly mailService: IMailService,
     ) { }
 
     createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -101,6 +104,38 @@ export class UserController {
             res.status(200).json({
                 message: "OTP resent to email. Please verify to complete registration."
             })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    resetLink = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { email } = req.body
+
+            const user = await this.userService.findUserByEmail(email)
+            if (!user) {
+                res.status(404).json({ message: "User Not Found!" })
+                return
+            }
+            if (user.googleId) {
+                res.status(400).json({ message: "Password reset is not available for Google accounts." })
+                return
+            }
+
+            const resetToken = crypto.randomBytes(32).toString("hex")
+
+            const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+            await this.userService.savePasswordResetToken(email, hashedToken, new Date(Date.now() + 3600000)); // 1h
+
+            const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`
+
+            await this.mailService.sendResetLink(email, resetLink)
+
+
+            res.status(200).json({
+                message: "Password reset link sent to your email."
+            });
         } catch (error) {
             next(error)
         }
@@ -277,6 +312,30 @@ export class UserController {
         } catch (err) {
             console.log("error from here....", err)
             res.status(403).json({ message: "Invalid refresh token" });
+        }
+    }
+
+    setNewPassword = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { email, password, token } = req.body
+            console.log("data comming", email, password, token)
+
+            const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
+
+            const resetEntry = await this.userService.findResetToken(hashedToken, email)
+
+            if (!resetEntry || Number(resetEntry.expireAt) < Date.now()) {
+                res.status(400).json({ message: "Invalid or expired token." });
+                return
+            }
+
+            await this.userService.updateUserPassword(email, password)
+
+            await this.userService.deleteResetToken(email)
+
+            res.status(200).json({ message: "Password has been reset successfully." });
+        } catch (err) {
+            next(err)
         }
     }
 

@@ -1,3 +1,4 @@
+import ResetLinkModel, { IResetLink } from '../models/resetLinkModel';
 import { IUser } from '../models/userModel';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
 import { HttpError } from '../utils/HttpError';
@@ -45,4 +46,40 @@ export class UserService implements IUserService {
 
         return user;
     }
+
+    async savePasswordResetToken(email: string, hashedToken: string, expireDate: Date): Promise<IResetLink> {
+        try {
+            return await ResetLinkModel.create({
+                email,
+                tokenHash: hashedToken,
+                expiresAt: expireDate
+            });
+        } catch (error) {
+            console.log("Failed to save password reset token", error)
+            throw new HttpError(500, "Failed to save password reset token")
+        }
+    }
+
+    async findResetToken(tokenHash: string, email: string): Promise<IResetLink> {
+        try {
+            return await ResetLinkModel.findOne({ tokenHash, email });
+        } catch (err) {
+            console.log("Errro while getting token", err)
+            throw new HttpError(404, "Reset Token Not Found")
+        }
+    }
+
+    async updateUserPassword(email: string, password: string): Promise<void> {
+        try {
+            await this.userRepository.findByEmailAndUpdate(email, { password })
+        } catch (error) {
+            console.log("Error while updating password", error)
+            throw new HttpError(500, "Error while updating Password!")
+        }
+    }
+
+    async deleteResetToken(email: string): Promise<void> {
+        await ResetLinkModel.deleteOne({ email })
+    }
+
 }

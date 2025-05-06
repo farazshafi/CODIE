@@ -19,6 +19,26 @@ export const verifyOtpApi = async (userData: { email: string, otp: string }) => 
     }
 }
 
+export const getResetLinkApi = async (userData: { email: string }) => {
+    try {
+        const response = await API.post("/reset-link", userData); 
+        return response.data;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
+export const setNewPasswordApi = async (userData: { email: string, token: string, password: string }) => {
+    try {
+        const response = await API.post("/set-new-password", userData); 
+        return response.data;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
 export const resendOtpApi = async (userData: { email: string }) => {
     try {
         const response = await API.post("/resend-otp", userData);

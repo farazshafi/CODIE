@@ -29,6 +29,21 @@ export const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
 })
 
+export const emailSchema = z.object({
+    email: z.string().email()
+})
+
+export const setNewPasswordSchema = z.object({
+    email: z.string().email(),
+    token: z.string(),
+    password: z.string()
+        .min(8, "Password must be at least 8 characters long")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number")
+        .regex(/[@$!%*?&]/, "Password must contain at least one special character (@, $, !, %, *, ?, &)")
+})
+
 export type UserInput = z.infer<typeof userSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

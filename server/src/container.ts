@@ -38,6 +38,6 @@ export const roomService = new RoomServices(roomRepository)
 
 // Set up controller
 export const projectController = new ProjectController(projectService)
-export const userController = new UserController(userService, otpService)
+export const userController = new UserController(userService, otpService, mailService)
 export const requestController = new RequestController(requestService)
 export const roomController = new RoomController(roomService)

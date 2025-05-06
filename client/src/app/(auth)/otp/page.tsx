@@ -21,7 +21,7 @@ const Page = () => {
     const setUser = useUserStore((state) => state.setUser);
     const user = useUserStore((state) => state.user);
 
-    const email = JSON.parse(localStorage.getItem("tempMail") || "null");
+    const email = localStorage.getItem("tempMail") || "null"
 
     const {
         mutate: verifyOtp,
@@ -60,9 +60,9 @@ const Page = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) {
-            return;
+            return
         }
-        verifyOtp({ email, otp });
+        verifyOtp({ email, otp })   
     };
 
     const handleResendOtp = () => {
