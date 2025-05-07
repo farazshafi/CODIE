@@ -6,13 +6,19 @@ import { IRoomSocketService } from './interface/IRoomSocketService';
 import { IRequestService } from '../../services/interface/IRequestService';
 import { IRequestRepository } from '../../repositories/interface/IRequestRepository';
 import { ApproveRequestData, ApproveUserResult, RejectUserResult } from '../../types/socketType';
+import { IUserRepository } from '../../repositories/interface/IUserRepository';
+import { IMailService } from '../../services/interface/IMailService';
+import { IProjectRepository } from '../../repositories/interface/IProjectRepository';
 
 export class RoomSocketService implements IRoomSocketService {
     constructor(
         private readonly roomRepository: IRoomRepository,
         private readonly requestService: IRequestService,
         private readonly requestRepository: IRequestRepository,
-        private readonly userSocketRepository: IUserSocketRepository
+        private readonly userSocketRepository: IUserSocketRepository,
+        private readonly userRepository: IUserRepository,
+        private readonly mailService: IMailService,
+        private readonly projectRepository: IProjectRepository
     ) { }
 
     async handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string } | { error: string }> {
@@ -34,8 +40,15 @@ export class RoomSocketService implements IRoomSocketService {
             senderId: userId
         });
 
-        const ownerSocketId = this.userSocketRepository.getSocketId(room.owner.toString());
+        const ownderId = room.owner.toString()
+        const getOwnderDetails = await this.userRepository.findById(ownderId)
 
+        const sender = (await this.userRepository.findById(userId)).email
+        const projectName = (await this.projectRepository.findById((room.projectId).toString())).projectName
+        await this.mailService.sendJoinRequest(getOwnderDetails.email, sender, projectName)
+
+
+        const ownerSocketId = this.userSocketRepository.getSocketId(room.owner.toString());
         return {
             requestId: request._id as string,
             ownerSocketId
@@ -81,7 +94,7 @@ export class RoomSocketService implements IRoomSocketService {
         };
     }
 
-    async handleRejectUser(data: {requestId:string}): Promise<RejectUserResult> {
+    async handleRejectUser(data: { requestId: string }): Promise<RejectUserResult> {
 
         const request = await this.requestRepository.getRequestById(data.requestId);
         const requestedUser = request.senderId.toString();

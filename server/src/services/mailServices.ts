@@ -39,5 +39,25 @@ export class MailService implements IMailService {
         }
     }
 
+    async sendJoinRequest(to: string, requesterEmail: string, projectName: string): Promise<void> {
+        try {
+            const info = await transporter.sendMail({
+                from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
+                to: to,
+                subject: "New Collaboration Request on Codie Online Collaborative Editor",
+                html: `<h1>Collaboration Request</h1>
+                       <p>A ${requesterEmail} has requested to collaborate on the project: <b>${projectName}</b>.</p>
+                       <p>Requester Email: <b>${requesterEmail}</b></p>
+                       <p>Please review the request and take the necessary action.</p>
+                    <p>For more details, visit: <a href="http://localhost:3000/dashboard">Check Notifications</a></p>,`
+            });
+
+            console.log("Notification sent: %s", info.messageId);
+        } catch (error) {
+            console.error("Error sending notification email: ", error);
+            throw new HttpError(401, "Failed to send collaboration request notification");
+        }
+    }
+
 
 }

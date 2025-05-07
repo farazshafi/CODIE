@@ -54,12 +54,14 @@ const Navbar = () => {
         if (!socket) return
 
         socket.emit("approve-user", { requestId, roomId })
+        getAllRecReq(user?.id)
     }
 
     const handleRejectRequest = (requestId: string) => {
         if (!socket) return
 
         socket.emit("reject-user", { requestId })
+        getAllRecReq(user?.id)
     }
 
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {

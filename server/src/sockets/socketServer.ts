@@ -2,7 +2,7 @@
 import { Server } from 'socket.io';
 import { RoomSocketController } from './controllers/RoomSocketController';
 import { RoomSocketService } from './services/RoomSocketService';
-import { requestRepository, requestService, roomRepository } from '../container';
+import { mailService, projectRepository, requestRepository, requestService, roomRepository, userRepository } from '../container';
 import { UserSocketRepository } from './repositories/UserSocketRepository';
 
 export function setupSocket(io: Server) {
@@ -25,7 +25,10 @@ export function setupSocket(io: Server) {
         roomRepository,
         requestService,
         requestRepository,
-        userSocketRepository
+        userSocketRepository,
+        userRepository,
+        mailService,
+        projectRepository
     );
 
     const roomSocketController = new RoomSocketController(io, roomSocketService, userSocketRepository);
