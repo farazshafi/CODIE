@@ -21,7 +21,7 @@ export const verifyOtpApi = async (userData: { email: string, otp: string }) => 
 
 export const getResetLinkApi = async (userData: { email: string }) => {
     try {
-        const response = await API.post("/reset-link", userData); 
+        const response = await API.post("/reset-link", userData);
         return response.data;
     } catch (err) {
         console.log(err);
@@ -31,7 +31,7 @@ export const getResetLinkApi = async (userData: { email: string }) => {
 
 export const setNewPasswordApi = async (userData: { email: string, token: string, password: string }) => {
     try {
-        const response = await API.post("/set-new-password", userData); 
+        const response = await API.post("/set-new-password", userData);
         return response.data;
     } catch (err) {
         console.log(err);
@@ -62,6 +62,16 @@ export const googleAuthRegisterApi = async (userData: { email: string, name: str
 export const googleAuthLoginApi = async (userData: { email: string }) => {
     try {
         const response = await API.post("/google-auth-login", userData);
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}
+
+export const searchUsersApi = async (data: { email: string, userId: string }) => {
+    try {
+        const response = await API.post("/search-users", data);
         return response.data;
     } catch (err) {
         console.log("api error", err);

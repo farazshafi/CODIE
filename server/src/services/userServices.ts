@@ -1,9 +1,11 @@
+import { optional } from 'zod';
 import ResetLinkModel, { IResetLink } from '../models/resetLinkModel';
 import { IUser } from '../models/userModel';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
 import { HttpError } from '../utils/HttpError';
 import { UserInput, GoogleAuthInput } from '../validation/userValidation';
 import { IUserService } from './interface/IUserService';
+import { ObjectId } from 'mongodb';
 
 export class UserService implements IUserService {
     constructor(private readonly userRepository: IUserRepository) { }
@@ -80,6 +82,15 @@ export class UserService implements IUserService {
 
     async deleteResetToken(email: string): Promise<void> {
         await ResetLinkModel.deleteOne({ email })
+    }
+
+    async searchAllUsers(email: string, userId: string): Promise<IUser[]> {
+        try {
+            return await this.userRepository.find({ email: { "$regex": email, "$options": "i" }, isAdmin: false, _id: { "$ne": new ObjectId(userId) } });
+        } catch (error) {
+            console.log("Failed to get all users", error)
+            throw new HttpError(500, "Filed to get all users")
+        }
     }
 
 }

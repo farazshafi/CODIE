@@ -15,7 +15,7 @@ router.post("/set-new-password", validate(setNewPasswordSchema), userController.
 router.post("/google-auth-register", validate(googleAuthSchema), userController.googleRegisterAuth);
 router.post("/google-auth-login", userController.googleLoginAuth);
 router.post("/auth/refresh-token", userController.refreshAccessToken)
-
+router.post("/search-users", userController.searchUsers)
 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)

@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, FilterQuery } from 'mongoose';
 
 interface ModelUpdateOptions {
     new?: boolean;
@@ -13,4 +13,6 @@ export interface IBaseRepository<T extends Document> {
     findById(id: string): Promise<T | null>;
     findAll(): Promise<T[]>;
     findByIdAndUpdate(id: string, update: Partial<T>, options?: ModelUpdateOptions): Promise<T | null>;
+    find(filter: FilterQuery<T>): Promise<T[]>;
+    findOne(filter: FilterQuery<T>): Promise<T | null>;
 }

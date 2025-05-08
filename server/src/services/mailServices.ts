@@ -59,5 +59,23 @@ export class MailService implements IMailService {
         }
     }
 
+    async sendInvitation(to: string, invitationFrom: string): Promise<void> {
+        try {
+            await transporter.sendMail({
+                from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
+                to: to,
+                subject: "Invitation to Contribute on Codie Online Collaborative Editor",
+                html: `<h1>You're Invited!</h1>
+                       <p>${invitationFrom} has invited you to contribute to their project on Codie Online Collaborative Editor.</p>
+                       <p>To accept the invitation and start collaborating, please visit the following link:</p>
+                       <p><a href="http://localhost:3000/dashboard">Accept Invitation</a></p>
+                       <p>If you did not expect this invitation, you can safely ignore this email.</p>`
+            });
+
+        } catch (error) {
+            console.error("Error sending notification email: ", error);
+            throw new HttpError(401, "Failed to send collaboration request notification");
+        }
+    }
 
 }

@@ -10,5 +10,6 @@ export interface IUserService {
     savePasswordResetToken(email: string, hashedToken: string, expireDate: Date): Promise<IResetLink>;
     findResetToken(tokenHash: string, email: string): Promise<IResetLink>;
     updateUserPassword(email: string, password: string): Promise<void>;
-    deleteResetToken(email: string): Promise<void>
+    deleteResetToken(email: string): Promise<void>;
+    searchAllUsers(input: string,userId:string): Promise<IUser[]>;
 }

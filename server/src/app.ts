@@ -8,6 +8,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import requestRouter from "./routes/requestRouter";
 import cookieParser from "cookie-parser"
 import colors from 'colors';
+import invitationRouter from "./routes/invitationRouter";
 
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/room", roomRouter);
 app.use("/api/request", requestRouter);
+app.use("/api/invitation", invitationRouter);
 
 // GraphQL Setup
 setupGraphQl(app);

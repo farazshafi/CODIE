@@ -339,4 +339,17 @@ export class UserController {
         }
     }
 
+    searchUsers = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { email, userId } = req.body
+
+            const allUsers = await this.userService.searchAllUsers(email, userId)
+            const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
+            res.status(200).json(userEmails);
+
+        } catch (err) {
+            next(err)
+        }
+    }
+
 }
