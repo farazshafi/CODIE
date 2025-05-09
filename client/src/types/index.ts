@@ -44,6 +44,7 @@ export interface Collaborator {
     user: {
         _id: string;
         name: string;
+        email: string;
     };
     role: string;
     _id: string;

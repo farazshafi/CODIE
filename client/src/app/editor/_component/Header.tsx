@@ -12,10 +12,10 @@ import {
     MoonStar,
     Palette,
     TypeOutline,
-    EllipsisVertical,
     CircleSmall,
     Handshake,
     UserRoundPlus,
+
 } from "lucide-react";
 import Logo from "../../../../public/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,13 +30,14 @@ import {
 import { THEMES } from "../_constants";
 import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { enableCollabrationApi, getRoomByProjectIdApi } from "@/apis/roomApi";
+import { enableCollabrationApi, getRoomByProjectIdApi, updateCollabratorRoleApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
 import { Collaborator } from "@/types";
 import { Input } from "@/components/ui/input";
 import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
 import { createInvitationApi } from "@/apis/invitationApi";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 
 
 type SearchResultUser = {
@@ -53,7 +54,6 @@ const Header = ({
     onCollaboratorsToggle: () => void;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [collabDropdownOpen, setCollabDropdownOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
     const [textIsOpened, setTextIsOpened] = useState(false)
     const [isWantToCollab, setIsWantToCollab] = useState(false)
@@ -64,15 +64,14 @@ const Header = ({
     const [userResult, setUserResult] = useState([])
     const [invitedUserId, setInvitedUserId] = React.useState<string | null>(null)
 
-
     const user = useUserStore((state) => state.user)
 
     const params = useParams()
     const { id } = params
-    const collabRef = useRef(null)
 
     const { setFontSize, theme, setTheme } = useCodeEditorStore()
 
+    // mutations
     const { mutate } = useMutationHook(enableCollabrationApi, {
         onSuccess(res) {
             setIsWantToCollab(true)
@@ -116,6 +115,16 @@ const Header = ({
         },
     })
 
+    const { mutate: updateRole, isLoading: updateRoleLoading } = useMutationHook(updateCollabratorRoleApi, {
+        onError(error) {
+            toast.error(error.response.data.message || "Error occured while updating role")
+        },
+        onSuccess(data) {
+            getRoomByProjectId(id)
+            toast.success(data.message || "Updated Role")
+        },
+    })
+
     const setFontChange = (newSize: number) => {
         const size = Math.min(Math.max(newSize, 12), 24);
         setFontSize(size);
@@ -142,28 +151,14 @@ const Header = ({
         createInvitation({ roomId, senderId: user?.id, reciverId: id })
     }
 
+    const handleUpdateRole = (userId: string, role: string) => {
+        console.log(`user: ${userId}, role : ${role}`)
+        updateRole({ userId, role, roomId })
+    }
+
     useEffect(() => {
         getRoomByProjectId(id)
     }, [isWantToCollab])
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (collabRef.current && !collabRef.current.contains(event.target as Node)) {
-                setCollabDropdownOpen(false)
-            }
-        }
-
-        if (collabDropdownOpen) {
-            document.addEventListener("mousedown", handleClickOutside)
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-
-    }, [collabDropdownOpen])
 
     useEffect(() => {
         const storedSize = localStorage.getItem("editor-font-size");
@@ -287,43 +282,73 @@ const Header = ({
                             <MessageSquare />
                         </div>
 
-                        {/* Collaborators with dropdown */}
-                        <div ref={collabRef} className="relative">
-                            <div
-                                className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer"
-                                onClick={() => setCollabDropdownOpen((prev) => !prev)}
-                            >
-                                <Users />
-                            </div>
-                            {collabDropdownOpen && (
-                                <div className="absolute top-12 right-0 w-[350px] sm:w-[500px] md:w-[600px] max-w-[90vw] h-[250px] bg-black text-white shadow-md rounded-md z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-full scrollbar-thumb-green-400 scrollbar-track-gray-700 p-4">
-                                    <div className="p-4 space-y-4">
-                                        {collaborators.map((item, index) => (
-                                            <div key={index}>
-                                                <div
-                                                    className="hover:bg-gray-900 py-2 px-3 rounded-md flex items-center justify-between"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-10 w-10 ring-2">
-                                                            <AvatarImage alt={item.user.name} />
-                                                            <AvatarFallback className="bg-green text-black font-bold text-xl">
-                                                                {item.user.name.split(" ").map((n) => n[0]).join("")}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <p>{item.user.name}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 bg-gray-800 p-1 px-2 rounded-md">
-                                                        <p className="text-sm">{item.role}</p>
-                                                        <EllipsisVertical />
-                                                    </div>
-                                                </div>
-                                                <div className="px-2 py-1"><div className="w-full h-[2px] bg-gray-700"></div></div>
-                                            </div>
-                                        ))}
-                                    </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <div className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer">
+                                    <Users />
                                 </div>
-                            )}
-                        </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[400px]">
+                                <DropdownMenuLabel>
+                                    <div className="text-center py-2 font-bold">
+                                        <p>Collabrators</p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {collaborators.map((item, index) => (
+                                    <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
+                                        <div className="flex items-center justify-between w-full">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage alt={item.user.name} />
+                                                    <AvatarFallback className="bg-green-400 text-black font-bold text-sm">
+                                                        {item.user.name.split(" ").map((n) => n[0]).join("")}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-medium">{item.user.name}</p>
+                                                    <p className="text-xs text-gray-500">{item.user.email}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-2 py-1 rounded-md text-xs ${item.role === "editor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                                                    }`}>
+                                                    {item.role}
+                                                </span>
+                                                {user?.id !== item.user._id && (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
+                                                                Change Role
+                                                            </div>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="bg-white">
+                                                            <DropdownMenuItem
+                                                                disabled={item.role === "editor" || updateRoleLoading}
+                                                                onClick={() => handleUpdateRole(item.user._id, "editor")}
+                                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
+                                                                className="hover:bg-slate-100 text-sm"
+                                                            >
+                                                                {updateRoleLoading ? "Updating..." : "Make Editor"}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                disabled={item.role === "viewer" || updateRoleLoading}
+                                                                onClick={() => handleUpdateRole(item.user._id, "viewer")}
+                                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
+                                                                className="hover:bg-slate-100 text-sm"
+                                                            >
+                                                                Make Viewer
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuSeparator />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </>
                 )}
 
@@ -369,74 +394,76 @@ const Header = ({
                 </div>
             </div>
 
-            {showInvitationModal && (
-                <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-96 text-black">
-                        <h2 className="text-xl font-semibold mb-4">Invite Collaborator</h2>
-                        <Input
-                            type="text"
-                            placeholder="Search for email"
-                            value={searchEmail}
-                            onChange={(e) => setSearchEmail(e.target.value)}
-                        />
+            {
+                showInvitationModal && (
+                    <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-96 text-black">
+                            <h2 className="text-xl font-semibold mb-4">Invite Collaborator</h2>
+                            <Input
+                                type="text"
+                                placeholder="Search for email"
+                                value={searchEmail}
+                                onChange={(e) => setSearchEmail(e.target.value)}
+                            />
 
-                        {!searchUserLoading ? (
-                            <div className="mt-4 space-y-2">
-                                {userResult.length > 0 && userResult.map((user: SearchResultUser, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage alt={user.name} />
-                                                <AvatarFallback className="bg-green text-black font-bold text-sm">
-                                                    {user.name.split(" ").map((n) => n[0]).join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <p>{user.name}</p>
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            className="text-sm"
-                                            disabled={invitedUserId === user.id ? invitationLoading : false}
-                                            onClick={() => handleSendingInvitation(user.id)}
+                            {!searchUserLoading ? (
+                                <div className="mt-4 space-y-2">
+                                    {userResult.length > 0 && userResult.map((user: SearchResultUser, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2"
                                         >
-                                            {invitedUserId === user.id && invitationLoading ? (
-                                                <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-black rounded-full"></div>
-                                            ) : (
-                                                "Invite"
-                                            )}
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="mt-4 space-y-2">
-                                {[...Array(3)].map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2 animate-pulse"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 bg-gray-300 rounded-full" />
-                                            <div className="h-4 w-24 bg-gray-300 rounded" />
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage alt={user.name} />
+                                                    <AvatarFallback className="bg-green text-black font-bold text-sm">
+                                                        {user.name.split(" ").map((n) => n[0]).join("")}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <p>{user.name}</p>
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                className="text-sm"
+                                                disabled={invitedUserId === user.id ? invitationLoading : false}
+                                                onClick={() => handleSendingInvitation(user.id)}
+                                            >
+                                                {invitedUserId === user.id && invitationLoading ? (
+                                                    <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-black rounded-full"></div>
+                                                ) : (
+                                                    "Invite"
+                                                )}
+                                            </Button>
                                         </div>
-                                        <div className="h-6 w-16 bg-gray-300 rounded" />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="mt-4 space-y-2">
+                                    {[...Array(3)].map((_, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2 animate-pulse"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 bg-gray-300 rounded-full" />
+                                                <div className="h-4 w-24 bg-gray-300 rounded" />
+                                            </div>
+                                            <div className="h-6 w-16 bg-gray-300 rounded" />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                        <div className="flex justify-end mt-4 gap-2">
-                            <Button variant="outline" onClick={() => setShowInvitationModal(false)}>
-                                Close
-                            </Button>
+                            <div className="flex justify-end mt-4 gap-2">
+                                <Button variant="outline" onClick={() => setShowInvitationModal(false)}>
+                                    Close
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </nav>
+                )
+            }
+        </nav >
     );
 };
 

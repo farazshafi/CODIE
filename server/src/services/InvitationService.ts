@@ -22,10 +22,9 @@ export class InvitationService implements IInvitationService {
                 roomId,
             }
 
-            // find is there any existing invitaion for same room
             const isExist = await this.isInvitaionExist(reciverId, roomId)
             if (isExist) {
-                throw new HttpError(400, "An invitation for this room already exists for the receiver.");
+                throw new HttpError(400, "Already sended Invitation.");
             }
 
             const reciverMail = (await this.userRepository.findById(reciverId)).email

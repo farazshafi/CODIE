@@ -46,6 +46,23 @@ export class RoomServices implements IRoomService {
             throw new HttpError(500, "failed to get room")
         }
     }
-    
+
+    async updateCollabratorRole(roomId: string, userId: string, role: "viewer" | "editor"): Promise<IRoom> {
+        try {
+            const room = await this.roomRepository.findOne({ roomId })
+            if (!room) {
+                throw new HttpError(404, "Room Not Found!")
+            }
+
+            return this.roomRepository.findRoomAndUpdateRole(roomId, role, userId)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log("Error while updating role", error)
+            throw new HttpError(500, "Error while updating role")
+        }
+    }
+
 }
 

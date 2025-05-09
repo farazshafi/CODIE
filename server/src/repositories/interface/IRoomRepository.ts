@@ -8,5 +8,6 @@ export interface IRoomRepository extends IBaseRepository<IRoom> {
     findRoomById(roomId: string): Promise<IRoom>;
     addUserToCollabrators(userId: string, roomId: string): Promise<IRoom>;
     getRoomByProjectId(projectId: string): Promise<IRoom>;
-    getOwnderByRoomId(roomId: string): Promise<string>
+    getOwnderByRoomId(roomId: string): Promise<string>;
+    findRoomAndUpdateRole(roomId: string, role: "viewer" | "editor", userId: string): Promise<IRoom>
 }

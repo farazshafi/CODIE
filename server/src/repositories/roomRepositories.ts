@@ -34,10 +34,18 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
-        return (await Room.findOne({ projectId })).populate("collaborators.user", "name")
+        return (await Room.findOne({ projectId })).populate("collaborators.user", "name email")
     }
 
     async getOwnderByRoomId(roomId: string): Promise<string> {
         return (await Room.findOne({ roomId })).owner.toString()
+    }
+
+    async findRoomAndUpdateRole(roomId: string, role: "viewer" | "editor", userId: string): Promise<IRoom> {
+        return await Room.findOneAndUpdate(
+            { roomId, "collaborators.user": userId },
+            { $set: { "collaborators.$.role": role } },
+            { new: true }
+        )
     }
 }

@@ -21,3 +21,13 @@ export const getRoomByProjectIdApi = async (projectId: string) => {
         throw error
     }
 }
+
+export const updateCollabratorRoleApi = async (data: { roomId: string, userId: string, role: "viewer" | "editor" }) => {
+    try {
+        const response = await API.post(`${API_BASE_URL}/update_role`, data)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}

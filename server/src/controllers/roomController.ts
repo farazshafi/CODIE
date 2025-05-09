@@ -36,4 +36,21 @@ export class RoomController {
             next(error)
         }
     }
+
+    updateRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { roomId, userId, role } = req.body
+
+            await this.roomService.updateCollabratorRole(roomId, userId, role)
+
+            res.status(201).json({
+                status: 'success',
+                message: "successfully updated role"
+            });
+        } catch (error) {
+            next(error)
+        }
+    }
+
+
 }
