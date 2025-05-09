@@ -1,4 +1,7 @@
+import mongoose from "mongoose"
+import { IProject } from "../models/projectModel"
 import { IRoom } from "../models/roomModel"
+import { IProjectRepository } from "../repositories/interface/IProjectRepository"
 import { IRoomRepository } from "../repositories/interface/IRoomRepository"
 import { CreateRoomType } from "../types/roomType"
 import { generateRoomId } from "../utils/generateRoomId"
@@ -6,7 +9,10 @@ import { HttpError } from "../utils/HttpError"
 import { IRoomService } from "./interface/IRoomService"
 
 export class RoomServices implements IRoomService {
-    constructor(private readonly roomRepository: IRoomRepository) { }
+    constructor(
+        private readonly roomRepository: IRoomRepository,
+        private readonly projectRepository: IProjectRepository
+    ) { }
 
     async createRoom(projectId: string, ownerId: string): Promise<IRoom> {
         try {
@@ -64,5 +70,18 @@ export class RoomServices implements IRoomService {
         }
     }
 
+    async getContributedProjectsByUserId(userId: string): Promise<IProject[]> {
+        try {
+            const rooms = await this.roomRepository.find({ 
+                "collaborators.user": new mongoose.Types.ObjectId(userId),
+                owner: { $ne: new mongoose.Types.ObjectId(userId) }
+            });
+            const projectIds = rooms.map(room => room.projectId.toString());
+            return await this.projectRepository.getProjectByIds(projectIds)
+        } catch (error) {
+            console.log("Occured whiel getting contributed projects", error)
+            throw new HttpError(500, "Occured whiel getting contributed projects") 
+        }
+    }
 }
 

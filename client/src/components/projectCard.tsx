@@ -43,7 +43,7 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
         <div className="rounded-b-lg mt-5 text-white w-full transform transition-transform duration-300 hover:scale-105">
             <Image
                 src={"https://undsgn.com/wp-content/uploads/2018/02/image009.jpg"}
-                className="rounded-t-lg w-full h-[150px] sm:h-[180px] object-cover"
+                className="rounded-t-lg w-full h-[120px] sm:h-[100px] object-cover"
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -54,8 +54,8 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
             />
             <div className="flex items-center justify-between w-full px-3 py-2 rounded-b-lg bg-black">
                 <div className="flex flex-col">
-                    <p>{title}</p>
-                    <p className="mygreen mt-2 text-sm">{language}</p>
+                    <p className='text-sm font-bold'>{title}</p>
+                    <p className="mygreen mt-2 text-xs">{language}</p>
                 </div>
                 <div className="flex flex-col items-end">
                     <DropdownMenu>
@@ -77,7 +77,7 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <p className="text-sm mt-2 text-gray-400">Edited: {updatedAt}</p>
+                    <p className="text-xs mt-2 text-gray-400">Edited: {updatedAt}</p>
                 </div>
             </div>
         </div>

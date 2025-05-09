@@ -39,7 +39,7 @@ export const userService = new UserService(userRepository)
 export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()
 export const otpService = new OtpService(otpRepository, mailService)
-export const roomService = new RoomServices(roomRepository)
+export const roomService = new RoomServices(roomRepository, projectRepository)
 export const invitationService = new InvitationService(invitationRepository, mailService, userRepository)
 
 // Set up controller

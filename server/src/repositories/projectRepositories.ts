@@ -34,4 +34,10 @@ export class ProjectRepository extends BaseRepository<IProject> implements IProj
     async updateCode(project: IProject, code: string): Promise<IProject> {
         return this.model.findByIdAndUpdate(project._id as string, { projectCode: code })
     }
+
+    async getProjectByIds(ids: string[]): Promise<IProject[]> {
+        console.log("data base accessing".bgYellow)
+        return await this.model.find({ _id: { "$in": ids } });
+    }
+
 }

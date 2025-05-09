@@ -11,10 +11,11 @@ import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
 import { useQuery } from "@apollo/client";
-import { GET_PROJECTS_BY_USER_ID } from "@/graphql/queries/projectQueries";
+import { GET_CONTRIBUTED_PROJECTS_BY_USER_ID, GET_PROJECTS_BY_USER_ID } from "@/graphql/queries/projectQueries";
 import { ProjectCardType } from "@/types";
 import { toast } from "sonner";
 import ProjectCardSkeleton from "./_component/ProjectCardSkelton";
+import SectionTitle from "./_component/SectionTitle";
 
 export default function Home() {
 
@@ -23,8 +24,12 @@ export default function Home() {
     const [isRedirecting, setIsRedirecting] = useState(false);
 
     const userId = user?.id;
-    
+
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
+        variables: { userId },
+    });
+
+    const { data: contributedProjects, loading: contributedLoading, error: contributeError, refetch: refetchContributedProject } = useQuery(GET_CONTRIBUTED_PROJECTS_BY_USER_ID, {
         variables: { userId },
     });
 
@@ -37,11 +42,11 @@ export default function Home() {
 
 
     useEffect(() => {
-        if (error) {
+        if (error || contributeError) {
             console.error("Error fetching projects:", error);
             toast.error("Failed to load projects. Please try again later.");
         }
-    }, [error]);
+    }, [error, contributeError]);
 
     if (isRedirecting) {
         return <Loading fullScreen text="Redirecting to Login page" />;
@@ -70,11 +75,7 @@ export default function Home() {
                         </Link>
                     </div>
 
-                    {/* Section Title */}
-                    <div className="flex flex-row mt-10 items-center">
-                        <p className="text-white text-lg">Recent</p>
-                        <div className="h-[3px] bg-gray-700 w-full ml-5"></div>
-                    </div>
+                    <SectionTitle title="My Projects" tagColor="bg-black" />
 
                     {data?.getProjectsByUserId?.length < 1 && (
                         <div className="px-6 py-3">
@@ -85,7 +86,7 @@ export default function Home() {
                     )}
 
                     {/* Project Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-5">
                         {loading ? (
                             Array.from({ length: 8 }).map((_, index) => (
                                 <ProjectCardSkeleton key={index} />
@@ -103,6 +104,35 @@ export default function Home() {
                             ))
                         )}
                     </div>
+
+                    <SectionTitle title="Contributed proejcts" tagColor="bg-white" />
+
+                    {contributedProjects?.getContributedProjectsByUserId?.length < 1 && (
+                        <div className="text-center mx-3 mt-5">
+                            <p className="text-lg text-white outline-dashed px-4 py-2">You Never did Contribution to any project!</p>
+                        </div>
+                    )}
+
+                    {/* contributed Projects */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-5">
+                        {contributedLoading ? (
+                            Array.from({ length: 8 }).map((_, index) => (
+                                <ProjectCardSkeleton key={index} />
+                            ))
+                        ) : contributedProjects?.getContributedProjectsByUserId?.length > 0 && (
+                            contributedProjects.getContributedProjectsByUserId.map((project: ProjectCardType, index: number) => (
+                                <ProjectCard
+                                    key={index}
+                                    refetchProject={refetchContributedProject}
+                                    title={project.projectName}
+                                    language={project.projectLanguage}
+                                    id={project.id}
+                                    updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
+                                />
+                            ))
+                        )}
+                    </div>
+
                 </div>
             </PageTransitionWrapper>
         </div>

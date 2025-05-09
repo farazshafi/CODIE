@@ -12,7 +12,8 @@ export const typeDefs = gql`
   }
 
   type Query {
-    getProjectsByUserId(userId: String!): [Project]
+    getProjectsByUserId(userId: String!): [Project],
+    getContributedProjectsByUserId(userId: String!): [Project]
   }
 `;
 
