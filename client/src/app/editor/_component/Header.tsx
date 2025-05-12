@@ -38,13 +38,20 @@ import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
 import { createInvitationApi } from "@/apis/invitationApi";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
+import useSocket from "@/hooks/useSocket";
 
 
 type SearchResultUser = {
     name: string;
     email: string;
-    id: string
-}
+    id: string;
+};
+
+type Collaborator = {
+    user: SearchResultUser;
+    role: string;
+    _id: string;
+};
 
 const Header = ({
     onChatToggle,
@@ -63,8 +70,11 @@ const Header = ({
     const [searchEmail, setSearchEmail] = useState("")
     const [userResult, setUserResult] = useState([])
     const [invitedUserId, setInvitedUserId] = React.useState<string | null>(null)
-
+    const [ownerId, setOwnerId] = useState("")
+    let reciverId: string | null = null
     const user = useUserStore((state) => state.user)
+    const { socket, isConnected } = useSocket(user?.id);
+
 
     const params = useParams()
     const { id } = params
@@ -88,6 +98,7 @@ const Header = ({
             setRoomId(res.data.roomId)
             setCollaborators(res.data.collaborators)
             setIsWantToCollab(true)
+            setOwnerId(res.data.owner)
         },
         onError(error) {
             setIsWantToCollab(false)
@@ -107,6 +118,9 @@ const Header = ({
         onSuccess(data) {
             toast.success(data.message || "Invitation sended")
             setInvitedUserId(null)
+            if (socket) {
+                socket.emit("send-invitation", { reciverId })
+            }
         },
         onError(error) {
             console.log(error)
@@ -148,7 +162,9 @@ const Header = ({
     const handleSendingInvitation = (id: string) => {
         if (!user?.id) return
         setInvitedUserId(id)
+        reciverId = id
         createInvitation({ roomId, senderId: user?.id, reciverId: id })
+
     }
 
     const handleUpdateRole = (userId: string, role: string) => {
@@ -315,7 +331,7 @@ const Header = ({
                                                     }`}>
                                                     {item.role}
                                                 </span>
-                                                {user?.id !== item.user._id && (
+                                                {ownerId === user?.id && item.role !== "owner" && (
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">

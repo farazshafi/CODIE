@@ -5,10 +5,11 @@ import { IUserSocketRepository } from '../repositories/interface/IUserSocketRepo
 import { IRoomSocketService } from './interface/IRoomSocketService';
 import { IRequestService } from '../../services/interface/IRequestService';
 import { IRequestRepository } from '../../repositories/interface/IRequestRepository';
-import { ApproveRequestData, ApproveUserResult, RejectUserResult } from '../../types/socketType';
+import { ApproveInvitationResult, ApproveRequestData, ApproveUserResult, RejectUserResult } from '../../types/socketType';
 import { IUserRepository } from '../../repositories/interface/IUserRepository';
 import { IMailService } from '../../services/interface/IMailService';
 import { IProjectRepository } from '../../repositories/interface/IProjectRepository';
+import { IInvitationRepository } from '../../repositories/interface/IInvitationRepository';
 
 export class RoomSocketService implements IRoomSocketService {
     constructor(
@@ -18,7 +19,8 @@ export class RoomSocketService implements IRoomSocketService {
         private readonly userSocketRepository: IUserSocketRepository,
         private readonly userRepository: IUserRepository,
         private readonly mailService: IMailService,
-        private readonly projectRepository: IProjectRepository
+        private readonly projectRepository: IProjectRepository,
+        private readonly invitationRepository: IInvitationRepository,
     ) { }
 
     async handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string } | { error: string }> {
@@ -112,6 +114,48 @@ export class RoomSocketService implements IRoomSocketService {
         return {
             success: true,
             rejectedUserId: requestedUser,
+        };
+    }
+
+    async handleApproveInvitation(data: { invitationId: string; roomId: string; }): Promise<ApproveInvitationResult> {
+        const invitation = await this.invitationRepository.findById(data.invitationId)
+        const senderId = invitation.senderId.toString()
+        const reciverId = invitation.reciverId.toString()
+
+        const reciverName = (await this.userRepository.findById(reciverId)).name
+
+        const updatedRoom = await this.invitationRepository.updateStatus(invitation._id as string, "accepted")
+
+        if (!updatedRoom) {
+            return { success: false, error: "Failed to update room." };
+        }
+
+        return {
+            success: true,
+            senderId,
+            roomId: invitation.roomId,
+            reciverName,
+        };
+    }
+
+    async handleRejectInvitation(data: { invitationId: string; }): Promise<ApproveInvitationResult> {
+        const invitation = await this.invitationRepository.findById(data.invitationId)
+        const senderId = invitation.senderId.toString()
+        const reciverId = invitation.reciverId.toString()
+
+        const reciverName = (await this.userRepository.findById(reciverId)).name
+
+        const updatedRoom = await this.invitationRepository.updateStatus(invitation._id as string, "rejected")
+
+        if (!updatedRoom) {
+            return { success: false, error: "Failed to update room." };
+        }
+
+        return {
+            success: true,
+            senderId,
+            roomId: invitation.roomId,
+            reciverName,
         };
     }
 }

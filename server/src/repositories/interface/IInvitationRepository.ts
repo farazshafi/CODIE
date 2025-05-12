@@ -4,4 +4,6 @@ import { IBaseRepository } from "./IBaseRepository";
 
 export interface IInvitationRepository extends IBaseRepository<IInvitation> {
     updateStatus(invitationId: string, status: "pending" | "accepted" | "rejected"): Promise<IInvitation>;
+    getAllRecivedInvitations(id: string): Promise<IInvitation[]>;
+
 }

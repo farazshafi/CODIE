@@ -318,7 +318,6 @@ export class UserController {
     setNewPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password, token } = req.body
-            console.log("data comming", email, password, token)
 
             const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
 

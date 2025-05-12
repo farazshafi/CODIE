@@ -22,6 +22,7 @@ import { useMutationHook } from "@/hooks/useMutationHook";
 import { getAllRecivedRequestApi, getAllSendedRequestApi } from "@/apis/requestApi";
 import useNotificationSocketListner from "@/hooks/useNotificationSocketListner";
 import useSocket from "@/hooks/useSocket";
+import { getRecivedInvitationsApi } from "@/apis/invitationApi";
 
 const Navbar = () => {
     const user = useUserStore((state) => state.user);
@@ -37,6 +38,7 @@ const Navbar = () => {
     const [notificationOpen, setNotificationOpen] = useState(false);
     const [sendedData, setSendedData] = useState([])
     const [recivedData, setRecivedData] = useState([])
+    const [recivedInvitation, setRecivedInvitation] = useState([])
     const [profileOpen, setProfileOpen] = useState(false);
     const { socket, isConnected } = useSocket(user?.id);
     useNotificationSocketListner(socket)
@@ -64,6 +66,19 @@ const Navbar = () => {
         getAllRecReq(user?.id)
     }
 
+    const handleApproveInvitation = (invitationId: string, roomId: string) => {
+        if (!socket) return
+        socket.emit("approve-invitation", { invitationId, roomId })
+        getRecInvitations(user?.id)
+    }
+
+    const handleRejectInvitation = (invitationId: string) => {
+        if (!socket) return
+
+        socket.emit("reject-invitation", { invitationId })
+        getRecInvitations(user?.id)
+    }
+
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {
         onSuccess(res) {
             setSendedData(res.data)
@@ -74,12 +89,18 @@ const Navbar = () => {
             setRecivedData(res)
         },
     })
+    const { mutate: getRecInvitations } = useMutationHook(getRecivedInvitationsApi, {
+        onSuccess(data) {
+            setRecivedInvitation(data)
+        },
+    })
 
     // useEffects
     useEffect(() => {
         if (user?.id) {
             getAllSndReq(user?.id)
             getAllRecReq(user?.id)
+            getRecInvitations(user?.id)
         }
     }, [user?.id])
 
@@ -210,14 +231,39 @@ const Navbar = () => {
                             </TabsContent>
 
                             <TabsContent className="space-y-3.5" value="received">
-                                {recivedData.length > 0 ? recivedData.map((item: any) => (
-                                    <DropdownMenuItem key={item._id}>
-                                        <p className="text-sm"> <span className="mygreen font-bold">{item?.senderId?.name}</span> Requested to join in room: <span className="font-bold mygreen">{item.roomId}</span></p>
-                                        <Button onClick={() => handleApproveRequest(item._id, item.roomId)}><CircleCheckBig color="white" /></Button>
-                                        <Button onClick={() => handleRejectRequest(item._id)} variant={"destructive"}><CircleX color="white" /></Button>
-                                    </DropdownMenuItem>
-                                )) : <p className="text-center text-sm text-gray-500">No Request</p>}
+                                {recivedData.length > 0 ? (
+                                    recivedData.map((item: any) => (
+                                        <DropdownMenuItem key={item._id}>
+                                            <p className="text-sm">
+                                                <span className="mygreen font-bold">{item?.senderId?.name}</span> Requested to join in room: <span className="font-bold mygreen">{item.roomId}</span>
+                                            </p>
+                                            <Button onClick={() => handleApproveRequest(item._id, item.roomId)}>
+                                                <CircleCheckBig color="white" />
+                                            </Button>
+                                            <Button onClick={() => handleRejectRequest(item._id)} variant="destructive">
+                                                <CircleX color="white" />
+                                            </Button>
+                                        </DropdownMenuItem>
+                                    ))
+                                ) : recivedInvitation.length > 0 ? (
+                                    recivedInvitation.map((item: any) => (
+                                        <DropdownMenuItem key={item._id}>
+                                            <p className="text-sm">
+                                                <span className="mygreen font-bold">{item?.senderId?.name}</span> Invited you to join in room: <span className="font-bold mygreen">{item.roomId}</span>
+                                            </p>
+                                            <Button onClick={() => handleApproveInvitation(item._id, item.roomId)}>
+                                                <CircleCheckBig color="white" />
+                                            </Button>
+                                            <Button onClick={() => handleRejectInvitation(item._id)} variant="destructive">
+                                                <CircleX color="white" />
+                                            </Button>
+                                        </DropdownMenuItem>
+                                    ))
+                                ) : (
+                                    <p className="text-center text-sm text-gray-500">No Request and Invitations</p>
+                                )}
                             </TabsContent>
+
                         </Tabs>
                     </DropdownMenuContent>
                 </DropdownMenu>

@@ -2,7 +2,7 @@
 import { Server } from 'socket.io';
 import { RoomSocketController } from './controllers/RoomSocketController';
 import { RoomSocketService } from './services/RoomSocketService';
-import { mailService, projectRepository, requestRepository, requestService, roomRepository, userRepository } from '../container';
+import { invitationRepository, mailService, projectRepository, requestRepository, requestService, roomRepository, userRepository } from '../container';
 import { UserSocketRepository } from './repositories/UserSocketRepository';
 
 export function setupSocket(io: Server) {
@@ -28,7 +28,8 @@ export function setupSocket(io: Server) {
         userSocketRepository,
         userRepository,
         mailService,
-        projectRepository
+        projectRepository,
+        invitationRepository,
     );
 
     const roomSocketController = new RoomSocketController(io, roomSocketService, userSocketRepository);
@@ -37,5 +38,8 @@ export function setupSocket(io: Server) {
         roomSocketController.handleJoinRequest(socket);
         roomSocketController.handleApproveUser(socket);
         roomSocketController.handleRejectUser(socket);
+        roomSocketController.handleApproveInvitation(socket)
+        roomSocketController.handleRejectInvitation(socket)
+        roomSocketController.sendInvitation(socket)
     });
 }

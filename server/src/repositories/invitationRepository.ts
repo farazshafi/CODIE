@@ -14,4 +14,8 @@ export class InvitationRepository extends BaseRepository<IInvitation> implements
         return this.model.findByIdAndUpdate(invitationId, { status }, { new: true })
     }
 
+    async getAllRecivedInvitations(id: string): Promise<IInvitation[]> {
+        return await this.model.find({ reciverId: id, status: "pending" }, "senderId roomId").populate("senderId", "name");
+    }
+
 }

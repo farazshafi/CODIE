@@ -31,10 +31,23 @@ export default function useNotificationSocketListner(socket: Socket | null) {
         socket.off("join-rejected", handleJoinReject)
         socket.on("join-rejected", handleJoinReject)
 
+        socket.off("join-invitation-approved", handleJoinApprove)
+        socket.on("join-invitation-approved", handleJoinApprove)
+
+        socket.off("join-invitation-rejected", handleJoinReject)
+        socket.on("join-invitation-rejected", handleJoinReject)
+
+        socket.off("recive-invitation", handleJoinApprove)
+        socket.on("recive-invitation", handleJoinApprove)
+
+
         return () => {
             socket.off("join-approved", handleJoinApprove)
             socket.off("join-rejected", handleJoinApprove)
             socket.off("approve-request", handleApproveRequest)
+            socket.off("join-invitation-approved", handleJoinApprove)
+            socket.off("join-invitation-rejected", handleJoinReject)
+            socket.off("recive-invitation", handleJoinApprove)
         }
 
     }, [socket])

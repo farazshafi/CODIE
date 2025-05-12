@@ -36,7 +36,6 @@ export class ProjectRepository extends BaseRepository<IProject> implements IProj
     }
 
     async getProjectByIds(ids: string[]): Promise<IProject[]> {
-        console.log("data base accessing".bgYellow)
         return await this.model.find({ _id: { "$in": ids } });
     }
 

@@ -97,4 +97,81 @@ export class RoomSocketController {
             }
         });
     }
+
+    handleApproveInvitation(socket: Socket) {
+        socket.on("approve-invitation", async (data: { invitationId: string, roomId: string }) => {
+            try {
+                const userId = this.userSocketRepository.getUserId(socket.id);
+                if (!userId) throw new Error("Unauthorized");
+
+                const result = await this.roomSocketService.handleApproveInvitation(data)
+
+                if (result.error) {
+                    return socket.emit("error", result.error);
+                }
+
+                if (result.senderId) {
+                    const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
+                    if (userSocketId && result.reciverName) {
+                        this.io.to(userSocketId).emit("join-invitation-approved", {
+                            message: `${result.reciverName} has accepted Invitation`,
+                            roomId: result.roomId
+                        });
+                    }
+                }
+
+            } catch (err) {
+                console.log("Error whiel approving user", err)
+                socket.emit("error", "Approval failed");
+            }
+        });
+    }
+
+    handleRejectInvitation(socket: Socket) {
+        socket.on("reject-invitation", async (data: { invitationId: string, roomId: string }) => {
+            try {
+                const userId = this.userSocketRepository.getUserId(socket.id);
+                if (!userId) throw new Error("Unauthorized");
+
+                const result = await this.roomSocketService.handleRejectInvitation(data)
+
+                if (result.error) {
+                    return socket.emit("error", result.error);
+                }
+
+                if (result.senderId) {
+                    const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
+                    if (userSocketId && result.reciverName) {
+                        this.io.to(userSocketId).emit("join-invitation-rejected", {
+                            message: `${result.reciverName} has rejected Invitation`,
+                            roomId: result.roomId
+                        });
+                    }
+                }
+
+            } catch (err) {
+                console.log("Error whiel approving user", err)
+                socket.emit("error", "Approval failed");
+            }
+        });
+    }
+
+    sendInvitation(socket: Socket) {
+        socket.on("send-invitation", async (data: { reciverId: string }) => {
+            try {
+                const userSocketId = this.userSocketRepository.getSocketId(data.reciverId);
+                if (userSocketId) {
+                    this.io.to(userSocketId).emit("recive-invitation", {
+                        message: ` recived Invitation`,
+                    });
+                }
+
+
+            } catch (err) {
+                console.log("Error whiel approving user", err)
+                socket.emit("error", "Approval failed");
+            }
+        })
+    }
+
 }

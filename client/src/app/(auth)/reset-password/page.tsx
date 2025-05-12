@@ -37,7 +37,6 @@ const Page = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Login attempt with:", { confirmPassword, password });
 
         if (password !== confirmPassword) {
             toast.error("Passwords do not match!");
@@ -49,8 +48,6 @@ const Page = () => {
             token: token,
             password
         });
-
-        console.log("result ", result)
 
         if (!result.success) {
             result.error.errors.forEach(err => {

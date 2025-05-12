@@ -47,4 +47,14 @@ export class InvitationService implements IInvitationService {
         const isExist = await this.invitationRepository.findOne({ reciverId: new mongoose.Types.ObjectId(reciverId), roomId });
         return !!isExist;
     }
+
+    async getAllRecivedInvitationByUserId(userId: string): Promise<IInvitation[]> {
+        try {
+            const data = await this.invitationRepository.getAllRecivedInvitations(userId)
+            return data
+        } catch (error) {
+            console.log("Cannot get Recived Invitations", error)
+            throw new HttpError(500, "Cannot get Recived Invitations")
+        }
+    }
 }

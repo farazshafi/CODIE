@@ -11,10 +11,21 @@ export class InvitationController {
         try {
             const { senderId, reciverId, roomId } = req.body
 
-            const invitation = await this.invitationService.createInvitation(senderId, reciverId, roomId)
+            await this.invitationService.createInvitation(senderId, reciverId, roomId)
 
             res.status(201).json({ message: "Invitation created successfully" })
+        } catch (error) {
+            next(error)
+        }
+    }
 
+    getRecivedInvitation = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { userId } = req.params
+
+            const recivedInvitation = await this.invitationService.getAllRecivedInvitationByUserId(userId)
+
+            res.status(201).json(recivedInvitation)
         } catch (error) {
             next(error)
         }

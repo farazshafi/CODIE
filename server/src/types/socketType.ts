@@ -17,3 +17,10 @@ export interface RejectUserResult {
     rejectedUserId?: string;
     roomId?: string;
 }
+export interface ApproveInvitationResult {
+    success: boolean;
+    error?: string;
+    senderId?: string;
+    roomId?: string;
+    reciverName?:string;
+}
