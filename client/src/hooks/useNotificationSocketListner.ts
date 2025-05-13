@@ -2,16 +2,19 @@ import { useEffect } from "react";
 import { Socket } from "socket.io-client";
 import { toast } from "sonner";
 
-export default function useNotificationSocketListner(socket: Socket | null) {
+export default function useNotificationSocketListner(socket: Socket | null, onNotificationReceived: () => void) {
     useEffect(() => {
-        if (!socket) return
+        if (!socket) return;
 
         const handleJoinApprove = (data: { message: string, roomId: string }) => {
-            toast.success(data.message)
-        }
+            toast.success(data.message);
+            onNotificationReceived();
+        };
+        
         const handleJoinReject = (data: { message: string }) => {
-            toast.warning(data.message)
-        }
+            toast.warning(data.message);
+            onNotificationReceived();
+        };
 
         const handleApproveRequest = (data: {
             roomId: string,
@@ -19,36 +22,54 @@ export default function useNotificationSocketListner(socket: Socket | null) {
             userName: string,
             reqId: string,
         }) => {
-            toast.success(`New join request received from ${data.userName} to join Room: ${data.roomId}`)
-        }
+            toast.success(`New join request received from ${data.userName} to join Room: ${data.roomId}`);
+            onNotificationReceived();
+        };
 
-        socket.off("join-approved", handleJoinApprove)
-        socket.on("join-approved", handleJoinApprove)
+        const handleReceiveInvitation = (data: any) => {
+            toast.success(data.message || "You received an invitation");
+            onNotificationReceived();
+        };
 
-        socket.off("approve-request", handleApproveRequest)
-        socket.on("approve-request", handleApproveRequest)
+        const handleRequestSent = (message: string) => {
+            toast.success(message || "Request sent successfully");
+            onNotificationReceived();
+        };
 
-        socket.off("join-rejected", handleJoinReject)
-        socket.on("join-rejected", handleJoinReject)
+        const handleInvitationSent = (data: { message: string }) => {
+            toast.success(data.message || "Invitation sent successfully");
+            onNotificationReceived();
+        };
 
-        socket.off("join-invitation-approved", handleJoinApprove)
-        socket.on("join-invitation-approved", handleJoinApprove)
+        // Generic notification received event handler
+        const handleNotificationReceived = (data: any) => {
+            onNotificationReceived();
+        };
 
-        socket.off("join-invitation-rejected", handleJoinReject)
-        socket.on("join-invitation-rejected", handleJoinReject)
-
-        socket.off("recive-invitation", handleJoinApprove)
-        socket.on("recive-invitation", handleJoinApprove)
-
+        // Listen for all notification events
+        socket.off("join-approved").on("join-approved", handleJoinApprove);
+        socket.off("approve-request").on("approve-request", handleApproveRequest);
+        socket.off("join-rejected").on("join-rejected", handleJoinReject);
+        socket.off("join-invitation-approved").on("join-invitation-approved", handleJoinApprove);
+        socket.off("join-invitation-rejected").on("join-invitation-rejected", handleJoinReject);
+        socket.off("recive-invitation").on("recive-invitation", handleReceiveInvitation);
+        socket.off("request-sent").on("request-sent", handleRequestSent);
+        socket.off("invitation-sent").on("invitation-sent", handleInvitationSent);
+        
+        // Generic notification update event
+        socket.off("notification-received").on("notification-received", handleNotificationReceived);
 
         return () => {
-            socket.off("join-approved", handleJoinApprove)
-            socket.off("join-rejected", handleJoinApprove)
-            socket.off("approve-request", handleApproveRequest)
-            socket.off("join-invitation-approved", handleJoinApprove)
-            socket.off("join-invitation-rejected", handleJoinReject)
-            socket.off("recive-invitation", handleJoinApprove)
-        }
-
-    }, [socket])
+            // Clean up all event listeners when component unmounts
+            socket.off("join-approved", handleJoinApprove);
+            socket.off("join-rejected", handleJoinReject);
+            socket.off("approve-request", handleApproveRequest);
+            socket.off("join-invitation-approved", handleJoinApprove);
+            socket.off("join-invitation-rejected", handleJoinReject);
+            socket.off("recive-invitation", handleReceiveInvitation);
+            socket.off("request-sent", handleRequestSent);
+            socket.off("invitation-sent", handleInvitationSent);
+            socket.off("notification-received", handleNotificationReceived);
+        };
+    }, [socket, onNotificationReceived]);
 }

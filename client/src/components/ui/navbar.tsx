@@ -30,19 +30,26 @@ const Navbar = () => {
     const router = useRouter();
     const isActive = (path: string) => pathname === path;
 
-
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [notificationCount, setNotificationCount] = useState(0);
     const [notificationOpen, setNotificationOpen] = useState(false);
-    const [sendedData, setSendedData] = useState([])
-    const [recivedData, setRecivedData] = useState([])
-    const [recivedInvitation, setRecivedInvitation] = useState([])
-    const [profileOpen, setProfileOpen] = useState(false);
+    const [sendedData, setSendedData] = useState([]);
+    const [recivedData, setRecivedData] = useState([]);
+    const [recivedInvitation, setRecivedInvitation] = useState([]);
+    const [hasNewNotifications, setHasNewNotifications] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
     const { socket, isConnected } = useSocket(user?.id);
-    useNotificationSocketListner(socket)
 
+    const updateNotificationData = () => {
+        if (user?.id) {
+            getAllSndReq(user.id);
+            getAllRecReq(user.id);
+            getRecInvitations(user.id);
+        }
+    };
+
+    useNotificationSocketListner(socket, updateNotificationData);
 
     //functions
     const handleLogout = () => {
@@ -53,58 +60,84 @@ const Navbar = () => {
     };
 
     const handleApproveRequest = (requestId: string, roomId: string) => {
-        if (!socket) return
+        if (!socket) return;
 
-        socket.emit("approve-user", { requestId, roomId })
-        getAllRecReq(user?.id)
-    }
+        socket.emit("approve-user", { requestId, roomId });
+        updateNotificationData();
+    };
 
     const handleRejectRequest = (requestId: string) => {
-        if (!socket) return
+        if (!socket) return;
 
-        socket.emit("reject-user", { requestId })
-        getAllRecReq(user?.id)
-    }
+        socket.emit("reject-user", { requestId });
+        updateNotificationData();
+    };
 
     const handleApproveInvitation = (invitationId: string, roomId: string) => {
-        if (!socket) return
-        socket.emit("approve-invitation", { invitationId, roomId })
-        getRecInvitations(user?.id)
-    }
+        if (!socket) return;
+        socket.emit("approve-invitation", { invitationId, roomId });
+        updateNotificationData();
+    };
 
     const handleRejectInvitation = (invitationId: string) => {
-        if (!socket) return
+        if (!socket) return;
 
-        socket.emit("reject-invitation", { invitationId })
-        getRecInvitations(user?.id)
-    }
+        socket.emit("reject-invitation", { invitationId });
+        updateNotificationData();
+    };
+
+    const handleNotificationOpen = () => {
+        setNotificationOpen(!notificationOpen);
+        if (!notificationOpen) {
+            setHasNewNotifications(false);
+        }
+    };
 
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {
         onSuccess(res) {
-            setSendedData(res.data)
+            setSendedData(res.data);
+            updateNotificationCount();
         },
-    })
+    });
+    
     const { mutate: getAllRecReq } = useMutationHook(getAllRecivedRequestApi, {
         onSuccess(res) {
             setRecivedData(res)
+            updateNotificationCount();
         },
-    })
+    });
+    
     const { mutate: getRecInvitations } = useMutationHook(getRecivedInvitationsApi, {
         onSuccess(data) {
-            setRecivedInvitation(data)
+            setRecivedInvitation(data);
+            updateNotificationCount();
         },
-    })
+    });
+
+    // Function to update notification count
+    const updateNotificationCount = () => {
+        const totalCount = sendedData.length + recivedData.length + recivedInvitation.length;
+        setNotificationCount(totalCount);
+    };
 
     // useEffects
     useEffect(() => {
         if (user?.id) {
-            getAllSndReq(user?.id)
-            getAllRecReq(user?.id)
-            getRecInvitations(user?.id)
+            updateNotificationData();
         }
-    }, [user?.id])
+    }, [user?.id]);
 
+    // Update notification count whenever the data changes
+    useEffect(() => {
+        updateNotificationCount();
+    }, [sendedData, recivedData, recivedInvitation]);
 
+    // Open notification dropdown when there's a new notification
+    useEffect(() => {
+        if (notificationCount > 0) {
+            setHasNewNotifications(true);
+        }
+    }, [notificationCount]);
 
     if (isLoading) {
         return (
@@ -126,7 +159,7 @@ const Navbar = () => {
             </Link>
 
             <div className="hidden md:flex gap-10">
-                <Link href="/dashboard" className={isActive("/") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
+                <Link href="/dashboard" className={isActive("/dashboard") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
                 <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
                 <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
                 <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
@@ -142,7 +175,7 @@ const Navbar = () => {
 
             {isOpen && (
                 <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
-                    <Link href="/dashboard" className={isActive("/") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
+                    <Link href="/dashboard" className={isActive("/dashboard") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
                     <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
                     <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
                     <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
@@ -203,12 +236,12 @@ const Navbar = () => {
                         <div className="relative">
                             <Bell
                                 size={30}
-                                className="text-white cursor-pointer"
-                                onClick={() => setNotificationOpen(!notificationOpen)}
+                                className={`text-white cursor-pointer ${hasNewNotifications ? 'animate-pulse' : ''}`}
+                                onClick={handleNotificationOpen}
                             />
-                            {sendedData.length > 0 || recivedData.length > 0 && (
-                                <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                                    {sendedData.length + recivedData.length}
+                            {notificationCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                                    {notificationCount}
                                 </span>
                             )}
                         </div>
@@ -233,37 +266,40 @@ const Navbar = () => {
                             <TabsContent className="space-y-3.5" value="received">
                                 {recivedData.length > 0 ? (
                                     recivedData.map((item: any) => (
-                                        <DropdownMenuItem key={item._id}>
-                                            <p className="text-sm">
+                                        <DropdownMenuItem key={item._id} className="flex flex-col items-start">
+                                            <p className="text-sm mb-2">
                                                 <span className="mygreen font-bold">{item?.senderId?.name}</span> Requested to join in room: <span className="font-bold mygreen">{item.roomId}</span>
                                             </p>
-                                            <Button onClick={() => handleApproveRequest(item._id, item.roomId)}>
-                                                <CircleCheckBig color="white" />
-                                            </Button>
-                                            <Button onClick={() => handleRejectRequest(item._id)} variant="destructive">
-                                                <CircleX color="white" />
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => handleApproveRequest(item._id, item.roomId)} className="px-2 py-1 h-8">
+                                                    <CircleCheckBig size={16} color="white" className="mr-1" /> Accept
+                                                </Button>
+                                                <Button onClick={() => handleRejectRequest(item._id)} variant="destructive" className="px-2 py-1 h-8">
+                                                    <CircleX size={16} color="white" className="mr-1" /> Reject
+                                                </Button>
+                                            </div>
                                         </DropdownMenuItem>
                                     ))
                                 ) : recivedInvitation.length > 0 ? (
                                     recivedInvitation.map((item: any) => (
-                                        <DropdownMenuItem key={item._id}>
-                                            <p className="text-sm">
+                                        <DropdownMenuItem key={item._id} className="flex flex-col items-start">
+                                            <p className="text-sm mb-2">
                                                 <span className="mygreen font-bold">{item?.senderId?.name}</span> Invited you to join in room: <span className="font-bold mygreen">{item.roomId}</span>
                                             </p>
-                                            <Button onClick={() => handleApproveInvitation(item._id, item.roomId)}>
-                                                <CircleCheckBig color="white" />
-                                            </Button>
-                                            <Button onClick={() => handleRejectInvitation(item._id)} variant="destructive">
-                                                <CircleX color="white" />
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => handleApproveInvitation(item._id, item.roomId)} className="px-2 py-1 h-8">
+                                                    <CircleCheckBig size={16} color="white" className="mr-1" /> Accept
+                                                </Button>
+                                                <Button onClick={() => handleRejectInvitation(item._id)} variant="destructive" className="px-2 py-1 h-8">
+                                                    <CircleX size={16} color="white" className="mr-1" /> Reject
+                                                </Button>
+                                            </div>
                                         </DropdownMenuItem>
                                     ))
                                 ) : (
                                     <p className="text-center text-sm text-gray-500">No Request and Invitations</p>
                                 )}
                             </TabsContent>
-
                         </Tabs>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -289,8 +325,6 @@ const Navbar = () => {
                         )}
                     </DropdownMenuTrigger>
 
-
-
                     {user && (
                         <DropdownMenuContent className="w-56">
                             <DropdownMenuGroup>
@@ -311,7 +345,6 @@ const Navbar = () => {
                         </DropdownMenuContent>
                     )}
                 </DropdownMenu>
-
             </div>
         </nav>
     );

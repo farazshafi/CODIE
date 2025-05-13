@@ -22,14 +22,29 @@ export class RoomSocketController {
                 }
 
                 if (result.ownerSocketId) {
+                    // Send notification to room owner
                     this.io.to(result.ownerSocketId).emit("approve-request", {
                         roomId: data.roomId,
                         userId: data.userId,
                         userName: data.userName,
                         reqId: result.requestId
                     });
+                    
+                    // Emit notification update event
+                    this.io.to(result.ownerSocketId).emit("notification-received", {
+                        type: "request",
+                        action: "received"
+                    });
                 }
+                
+                // Notify requester that request was sent
                 socket.emit("request-sent", "Your join request has been sent!");
+                
+                // Update sender's notifications too
+                socket.emit("notification-received", {
+                    type: "request",
+                    action: "sent"
+                });
             } catch (err) {
                 console.log(err)
                 socket.emit("error", "Failed to send join request.");
@@ -55,15 +70,28 @@ export class RoomSocketController {
                 if (result.approvedUserId) {
                     const userSocketId = this.userSocketRepository.getSocketId(result.approvedUserId);
                     if (userSocketId) {
+                        // Notify user their request was approved
                         this.io.to(userSocketId).emit("join-approved", {
                             message: "Request accepted",
                             roomId: result.roomId
                         });
+                        
+                        // Update notifications for the approved user
+                        this.io.to(userSocketId).emit("notification-received", {
+                            type: "request",
+                            action: "approved"
+                        });
                     }
+                    
+                    // Update notifications for the approver
+                    socket.emit("notification-received", {
+                        type: "request",
+                        action: "processed"
+                    });
                 }
 
             } catch (err) {
-                console.log("Error whiel approving user", err)
+                console.log("Error while approving user", err)
                 socket.emit("error", "Approval failed");
             }
         });
@@ -84,16 +112,29 @@ export class RoomSocketController {
                 if (result.rejectedUserId) {
                     const userSocketId = this.userSocketRepository.getSocketId(result.rejectedUserId);
                     if (userSocketId) {
-                        this.io.to(userSocketId).emit("join-approved", {
+                        // Notify user their request was rejected
+                        this.io.to(userSocketId).emit("join-rejected", {
                             message: "Request Rejected",
                             roomId: result.roomId
                         });
+                        
+                        // Update notifications for the rejected user
+                        this.io.to(userSocketId).emit("notification-received", {
+                            type: "request",
+                            action: "rejected"
+                        });
                     }
+                    
+                    // Update notifications for the rejecter
+                    socket.emit("notification-received", {
+                        type: "request",
+                        action: "processed"
+                    });
                 }
 
             } catch (err) {
-                console.log("Error whiel approving user", err)
-                socket.emit("error", "Approval failed");
+                console.log("Error while rejecting user", err)
+                socket.emit("error", "Rejection failed");
             }
         });
     }
@@ -113,15 +154,28 @@ export class RoomSocketController {
                 if (result.senderId) {
                     const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
                     if (userSocketId && result.reciverName) {
+                        // Notify sender that invitation was accepted
                         this.io.to(userSocketId).emit("join-invitation-approved", {
                             message: `${result.reciverName} has accepted Invitation`,
                             roomId: result.roomId
                         });
+                        
+                        // Update notifications for the invitation sender
+                        this.io.to(userSocketId).emit("notification-received", {
+                            type: "invitation",
+                            action: "accepted"
+                        });
                     }
+                    
+                    // Update notifications for the accepter
+                    socket.emit("notification-received", {
+                        type: "invitation",
+                        action: "processed"
+                    });
                 }
 
             } catch (err) {
-                console.log("Error whiel approving user", err)
+                console.log("Error while approving invitation", err)
                 socket.emit("error", "Approval failed");
             }
         });
@@ -142,36 +196,71 @@ export class RoomSocketController {
                 if (result.senderId) {
                     const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
                     if (userSocketId && result.reciverName) {
+                        // Notify sender that invitation was rejected
                         this.io.to(userSocketId).emit("join-invitation-rejected", {
                             message: `${result.reciverName} has rejected Invitation`,
                             roomId: result.roomId
                         });
+                        
+                        // Update notifications for the invitation sender
+                        this.io.to(userSocketId).emit("notification-received", {
+                            type: "invitation",
+                            action: "rejected"
+                        });
                     }
+                    
+                    // Update notifications for the rejecter
+                    socket.emit("notification-received", {
+                        type: "invitation",
+                        action: "processed"
+                    });
                 }
 
             } catch (err) {
-                console.log("Error whiel approving user", err)
-                socket.emit("error", "Approval failed");
+                console.log("Error while rejecting invitation", err)
+                socket.emit("error", "Rejection failed");
             }
         });
     }
 
     sendInvitation(socket: Socket) {
-        socket.on("send-invitation", async (data: { reciverId: string }) => {
+        socket.on("send-invitation", async (data: { reciverId: string, roomId: string, senderName: string }) => {
             try {
+                const userId = this.userSocketRepository.getUserId(socket.id);
+                if (!userId) throw new Error("Unauthorized");
+                
                 const userSocketId = this.userSocketRepository.getSocketId(data.reciverId);
                 if (userSocketId) {
+                    // Notify receiver about the invitation
                     this.io.to(userSocketId).emit("recive-invitation", {
-                        message: ` recived Invitation`,
+                        message: `You received an invitation from ${data.senderName} to join room: ${data.roomId}`,
+                        roomId: data.roomId,
+                        senderId: userId
+                    });
+                    
+                    // Update notifications for invitation receiver
+                    this.io.to(userSocketId).emit("notification-received", {
+                        type: "invitation",
+                        action: "received"
                     });
                 }
-
+                
+                // Notify sender that invitation was sent
+                socket.emit("invitation-sent", {
+                    message: "Invitation sent successfully",
+                    receiverId: data.reciverId
+                });
+                
+                // Update sender's notifications too
+                socket.emit("notification-received", {
+                    type: "invitation",
+                    action: "sent"
+                });
 
             } catch (err) {
-                console.log("Error whiel approving user", err)
-                socket.emit("error", "Approval failed");
+                console.log("Error while sending invitation", err)
+                socket.emit("error", "Failed to send invitation");
             }
-        })
+        });
     }
-
 }

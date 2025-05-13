@@ -285,11 +285,11 @@ const Header = ({
             <div className="flex-row gap-x-6 hidden md:flex relative">
                 {isWantToCollab && (
                     <>
-                        <Button onClick={handleInvitation}
+                        {user?.id === ownerId && <Button onClick={handleInvitation}
                             className="bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer transition-all duration-[2000] ease-in-out hover:bg-gray-700 hover:from-gray-700 hover:to-gray-400">
                             <UserRoundPlus />
                             Invite
-                        </Button>
+                        </Button>}
 
                         <div
                             className="bg-tertiary p-2 hover:scale-125 rounded-md"
@@ -436,7 +436,10 @@ const Header = ({
                                                         {user.name.split(" ").map((n) => n[0]).join("")}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <p>{user.name}</p>
+                                                <div className="flex flex-col item-center">
+                                                    <p>{user.name}</p>
+                                                    <p className="text-xs">{user.email}</p>
+                                                </div>
                                             </div>
                                             <Button
                                                 variant="outline"

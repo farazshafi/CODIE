@@ -121,8 +121,12 @@ export class RoomSocketService implements IRoomSocketService {
         const invitation = await this.invitationRepository.findById(data.invitationId)
         const senderId = invitation.senderId.toString()
         const reciverId = invitation.reciverId.toString()
-
         const reciverName = (await this.userRepository.findById(reciverId)).name
+
+        const addUser = await this.roomRepository.addUserToCollabrators(reciverId, data.roomId)
+        if (!addUser) {
+            return { success: false, error: "Failed to add user to collabration" }
+        }
 
         const updatedRoom = await this.invitationRepository.updateStatus(invitation._id as string, "accepted")
 
