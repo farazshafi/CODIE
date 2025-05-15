@@ -12,6 +12,7 @@ export class RoomSocketController {
         private readonly userSocketRepository: IUserSocketRepository,
     ) { }
 
+    // request 
     handleJoinRequest(socket: Socket) {
         socket.on("join-request", async (data: RequestData) => {
             try {
@@ -51,7 +52,6 @@ export class RoomSocketController {
             }
         });
     }
-
     handleApproveUser(socket: Socket) {
         socket.on("approve-user", async (data: ApproveRequestData) => {
             try {
@@ -96,7 +96,6 @@ export class RoomSocketController {
             }
         });
     }
-
     handleRejectUser(socket: Socket) {
         socket.on("reject-user", async (data: ApproveRequestData) => {
             try {
@@ -139,6 +138,7 @@ export class RoomSocketController {
         });
     }
 
+    // invitations
     handleApproveInvitation(socket: Socket) {
         socket.on("approve-invitation", async (data: { invitationId: string, roomId: string }) => {
             try {
@@ -180,7 +180,6 @@ export class RoomSocketController {
             }
         });
     }
-
     handleRejectInvitation(socket: Socket) {
         socket.on("reject-invitation", async (data: { invitationId: string, roomId: string }) => {
             try {
@@ -222,7 +221,6 @@ export class RoomSocketController {
             }
         });
     }
-
     sendInvitation(socket: Socket) {
         socket.on("send-invitation", async (data: { reciverId: string, roomId: string, senderName: string }) => {
             try {
@@ -262,5 +260,5 @@ export class RoomSocketController {
                 socket.emit("error", "Failed to send invitation");
             }
         });
-    }
+    }    
 }

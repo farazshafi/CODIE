@@ -22,5 +22,15 @@ export interface ApproveInvitationResult {
     error?: string;
     senderId?: string;
     roomId?: string;
-    reciverName?:string;
+    reciverName?: string;
+}
+
+// project socket 
+
+export interface JoinProjectData { projectId: string, userId: string }
+
+
+export interface ProjectServiceResult {
+    success: boolean;
+    error?: string;
 }
