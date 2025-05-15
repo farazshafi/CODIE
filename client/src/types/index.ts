@@ -40,7 +40,7 @@ export interface ProjectCardType {
     id: string;
 }
 
-export interface Collaborator {
+export interface ICollaborator {
     user: {
         _id: string;
         name: string;

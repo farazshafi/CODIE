@@ -32,7 +32,7 @@ import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { enableCollabrationApi, getRoomByProjectIdApi, updateCollabratorRoleApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
-import { Collaborator } from "@/types";
+import { ICollaborator } from "@/types";
 import { Input } from "@/components/ui/input";
 import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
@@ -56,9 +56,11 @@ type Collaborator = {
 const Header = ({
     onChatToggle,
     onCollaboratorsToggle,
+    onlineUsers
 }: {
     onChatToggle: () => void;
     onCollaboratorsToggle: () => void;
+    onlineUsers: string[]
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
@@ -189,6 +191,10 @@ const Header = ({
         }, 500);
         return () => clearTimeout(deleyInputTimeout);
     }, [searchEmail])
+
+    useEffect(() => {
+        console.log("Header received online users:", onlineUsers);
+    }, [onlineUsers]);
 
     return (
         <nav className="text-white bg-primary px-10 py-3 flex justify-between items-center relative">
@@ -322,13 +328,29 @@ const Header = ({
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-medium">{item.user.name}</p>
+                                                    <div className="flex flex-row items-center space-x-3">
+                                                        <p className="font-medium">{item.user.name}</p>
+
+                                                        {(() => {
+                                                            console.log("Checking online status for:", item.user._id, "is in", onlineUsers);
+                                                            return null;
+                                                        })()}
+
+                                                        {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id || onlineId === item.user._id) ? (
+                                                            <span className="relative flex h-3 w-3">
+                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-400 opacity-50"></span>
+                                                        )}
+                                                    </div>
+
                                                     <p className="text-xs text-gray-500">{item.user.email}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className={`px-2 py-1 rounded-md text-xs ${item.role === "editor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                                                    }`}>
+                                                <span className={`px-2 py-1 rounded-md text-xs ${item.role === "editor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
                                                     {item.role}
                                                 </span>
                                                 {ownerId === user?.id && item.role !== "owner" && (
@@ -341,7 +363,7 @@ const Header = ({
                                                         <DropdownMenuContent className="bg-white">
                                                             <DropdownMenuItem
                                                                 disabled={item.role === "editor" || updateRoleLoading}
-                                                                onClick={() => handleUpdateRole(item.user._id, "editor")}
+                                                                onClick={() => handleUpdateRole(item.user.id, "editor")}
                                                                 onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
                                                                 className="hover:bg-slate-100 text-sm"
                                                             >
@@ -349,7 +371,7 @@ const Header = ({
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                                 disabled={item.role === "viewer" || updateRoleLoading}
-                                                                onClick={() => handleUpdateRole(item.user._id, "viewer")}
+                                                                onClick={() => handleUpdateRole(item.user.id, "viewer")}
                                                                 onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
                                                                 className="hover:bg-slate-100 text-sm"
                                                             >
