@@ -21,14 +21,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getAllRecivedRequestApi, getAllSendedRequestApi } from "@/apis/requestApi";
 import useNotificationSocketListner from "@/hooks/useNotificationSocketListner";
-import useSocket from "@/hooks/useSocket";
 import { getRecivedInvitationsApi } from "@/apis/invitationApi";
+import { useSocket } from "@/context/SocketContext";
 
-const Navbar = () => {
+const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
     const user = useUserStore((state) => state.user);
     const logout = useUserStore((state) => state.logout);
     const router = useRouter();
     const isActive = (path: string) => pathname === path;
+    const { socket } = useSocket()
 
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +40,6 @@ const Navbar = () => {
     const [recivedInvitation, setRecivedInvitation] = useState([]);
     const [hasNewNotifications, setHasNewNotifications] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
-    const { socket, isConnected } = useSocket(user?.id);
 
     const updateNotificationData = () => {
         if (user?.id) {
@@ -49,7 +49,7 @@ const Navbar = () => {
         }
     };
 
-    useNotificationSocketListner(socket, updateNotificationData);
+    useNotificationSocketListner(updateNotificationData, refetchProjects);
 
     //functions
     const handleLogout = () => {
@@ -99,14 +99,14 @@ const Navbar = () => {
             updateNotificationCount();
         },
     });
-    
+
     const { mutate: getAllRecReq } = useMutationHook(getAllRecivedRequestApi, {
         onSuccess(res) {
             setRecivedData(res)
             updateNotificationCount();
         },
     });
-    
+
     const { mutate: getRecInvitations } = useMutationHook(getRecivedInvitationsApi, {
         onSuccess(data) {
             setRecivedInvitation(data);

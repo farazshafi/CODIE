@@ -18,15 +18,14 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LANGUAGE_CONFIG } from "@/app/editor/_constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { createProjectApi, getProjectByRoomIdApi } from "@/apis/projectApi";
 import { toast } from "sonner";
-import useSocket from "@/hooks/useSocket";
 import { useUserStore } from "@/stores/userStore";
-import useJoinRequestListener from "@/hooks/useJoinRequestListener";
+import { LANGUAGE_CONFIG } from "../../editor/_constants";
+import { useSocket } from "@/context/SocketContext";
 
 interface CreateProjectModalProps {
   trigger: React.ReactNode;
@@ -50,9 +49,7 @@ export default function CreateProjectModal({
   const { setLanguage } = useCodeEditorStore();
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  const { socket, isConnected } = useSocket(user?.id);
-
-  useJoinRequestListener(socket);
+  const { socket } = useSocket()
 
   const { mutate, isLoading } = useMutationHook(createProjectApi, {
     onError(error) {

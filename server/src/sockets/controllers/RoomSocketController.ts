@@ -16,6 +16,7 @@ export class RoomSocketController {
     handleJoinRequest(socket: Socket) {
         socket.on("join-request", async (data: RequestData) => {
             try {
+                console.log(`aah bernn ind bernn idd , ${data}`.bgWhite)
                 const result = await this.roomSocketService.handleJoinRequest(data);
                 if ("error" in result) {
                     socket.emit("error", result.error);
@@ -28,19 +29,20 @@ export class RoomSocketController {
                         roomId: data.roomId,
                         userId: data.userId,
                         userName: data.userName,
-                        reqId: result.requestId
+                        reqId: result.requestId,
+                        message: `New join request received from ${data.userName} to join Room: ${data.roomId}`
                     });
-                    
+
                     // Emit notification update event
                     this.io.to(result.ownerSocketId).emit("notification-received", {
                         type: "request",
                         action: "received"
                     });
                 }
-                
+
                 // Notify requester that request was sent
-                socket.emit("request-sent", "Your join request has been sent!");
-                
+                socket.emit("request-sent", { message: "Your join request has been sent!" });
+                console.log("request toast sended".bgYellow)
                 // Update sender's notifications too
                 socket.emit("notification-received", {
                     type: "request",
@@ -75,14 +77,14 @@ export class RoomSocketController {
                             message: "Request accepted",
                             roomId: result.roomId
                         });
-                        
+
                         // Update notifications for the approved user
                         this.io.to(userSocketId).emit("notification-received", {
                             type: "request",
                             action: "approved"
                         });
                     }
-                    
+
                     // Update notifications for the approver
                     socket.emit("notification-received", {
                         type: "request",
@@ -116,14 +118,14 @@ export class RoomSocketController {
                             message: "Request Rejected",
                             roomId: result.roomId
                         });
-                        
+
                         // Update notifications for the rejected user
                         this.io.to(userSocketId).emit("notification-received", {
                             type: "request",
                             action: "rejected"
                         });
                     }
-                    
+
                     // Update notifications for the rejecter
                     socket.emit("notification-received", {
                         type: "request",
@@ -159,14 +161,14 @@ export class RoomSocketController {
                             message: `${result.reciverName} has accepted Invitation`,
                             roomId: result.roomId
                         });
-                        
+
                         // Update notifications for the invitation sender
                         this.io.to(userSocketId).emit("notification-received", {
                             type: "invitation",
                             action: "accepted"
                         });
                     }
-                    
+
                     // Update notifications for the accepter
                     socket.emit("notification-received", {
                         type: "invitation",
@@ -200,14 +202,14 @@ export class RoomSocketController {
                             message: `${result.reciverName} has rejected Invitation`,
                             roomId: result.roomId
                         });
-                        
+
                         // Update notifications for the invitation sender
                         this.io.to(userSocketId).emit("notification-received", {
                             type: "invitation",
                             action: "rejected"
                         });
                     }
-                    
+
                     // Update notifications for the rejecter
                     socket.emit("notification-received", {
                         type: "invitation",
@@ -226,7 +228,7 @@ export class RoomSocketController {
             try {
                 const userId = this.userSocketRepository.getUserId(socket.id);
                 if (!userId) throw new Error("Unauthorized");
-                
+
                 const userSocketId = this.userSocketRepository.getSocketId(data.reciverId);
                 if (userSocketId) {
                     // Notify receiver about the invitation
@@ -235,20 +237,20 @@ export class RoomSocketController {
                         roomId: data.roomId,
                         senderId: userId
                     });
-                    
+
                     // Update notifications for invitation receiver
                     this.io.to(userSocketId).emit("notification-received", {
                         type: "invitation",
                         action: "received"
                     });
                 }
-                
+
                 // Notify sender that invitation was sent
                 socket.emit("invitation-sent", {
                     message: "Invitation sent successfully",
                     receiverId: data.reciverId
                 });
-                
+
                 // Update sender's notifications too
                 socket.emit("notification-received", {
                     type: "invitation",
@@ -260,5 +262,5 @@ export class RoomSocketController {
                 socket.emit("error", "Failed to send invitation");
             }
         });
-    }    
+    }
 }

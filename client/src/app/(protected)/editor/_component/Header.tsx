@@ -17,7 +17,7 @@ import {
     UserRoundPlus,
 
 } from "lucide-react";
-import Logo from "../../../../public/logo.png";
+import Logo from "../../../../../public/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
@@ -38,7 +38,7 @@ import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
 import { createInvitationApi } from "@/apis/invitationApi";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
-import useSocket from "@/hooks/useSocket";
+import { useSocket } from "@/context/SocketContext";
 
 
 type SearchResultUser = {
@@ -75,7 +75,7 @@ const Header = ({
     const [ownerId, setOwnerId] = useState("")
     let reciverId: string | null = null
     const user = useUserStore((state) => state.user)
-    const { socket, isConnected } = useSocket(user?.id);
+    const { socket, isConnected } = useSocket()
 
 
     const params = useParams()

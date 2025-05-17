@@ -54,7 +54,7 @@ export default function Home() {
 
     return (
         <div>
-            <Navbar />
+            <Navbar refetchProjects={refetchContributedProject} />
             <PageTransitionWrapper>
                 <div className="px-10 py-6">
 

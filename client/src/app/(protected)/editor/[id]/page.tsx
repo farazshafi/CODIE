@@ -10,24 +10,24 @@ import Header from "../_component/Header"
 import EditorPanel from "../_component/EditorPanel"
 import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
 import { LANGUAGE_CONFIG } from "../_constants"
-import useSocket from "@/hooks/useSocket"
 import { useUserStore } from "@/stores/userStore"
 import { useParams } from "next/navigation"
+import { useSocket } from "@/context/SocketContext"
+import { useOnlineUsers } from "@/hooks/useOnlineUsers"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
     const [showChat, setShowChat] = useState(false)
     const [showCollaborators, setShowCollaborators] = useState(false)
     const [copyLoading, setCopyLoading] = useState(false)
-    const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
 
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
     const user = useUserStore((state) => state.user)
     const params = useParams()
-    const { id: ProjectId } = params
+    const { id: projectId } = params
 
-    const { socket, isConnected } = useSocket(user?.id)
+    const { onlineUsers } = useOnlineUsers(projectId?.toString())
 
     // functions
     const handleReset = () => {
@@ -56,28 +56,6 @@ const Page = () => {
             toast.info("No output to copy")
         }
     }
-    useEffect(() => {
-        if (socket && user) {
-            console.log("Setting up socket connection with userId:", user.id);
-
-            socket.emit("join-project", {
-                userId: user.id,
-                userName: user.name,
-                projectId: ProjectId,
-            });
-
-            socket.on("online-users", (onlineUsers) => {
-                console.log("Received online users:", onlineUsers);
-                setOnlineUsers(onlineUsers);
-            });
-
-            return () => {
-                console.log("Cleaning up socket listeners");
-                socket.off("online-users");
-            };
-        }
-    }, [socket, isConnected, user, ProjectId]);
-
 
 
     useEffect(() => {
