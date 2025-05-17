@@ -15,7 +15,6 @@ export class MailService implements IMailService {
                 html: `<p>Your OTP is: <b>${otp}</b></p>`,
             });
 
-            console.log("Message sent: %s", info.messageId);
         } catch (error) {
             console.error("Error sending email: ", error);
             throw new HttpError(401, "Failed to send email");
@@ -32,7 +31,6 @@ export class MailService implements IMailService {
                        <p>If this was not you, please ignore this email.</p>`,
             });
 
-            console.log("Message sent: %s", info.messageId);
         } catch (error) {
             console.error("Error sending email: ", error);
             throw new HttpError(401, "Failed to send reset link");
@@ -52,7 +50,6 @@ export class MailService implements IMailService {
                     <p>For more details, visit: <a href="http://localhost:3000/dashboard">Check Notifications</a></p>,`
             });
 
-            console.log("Notification sent: %s", info.messageId);
         } catch (error) {
             console.error("Error sending notification email: ", error);
             throw new HttpError(401, "Failed to send collaboration request notification");

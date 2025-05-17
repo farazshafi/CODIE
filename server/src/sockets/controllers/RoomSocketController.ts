@@ -16,7 +16,6 @@ export class RoomSocketController {
     handleJoinRequest(socket: Socket) {
         socket.on("join-request", async (data: RequestData) => {
             try {
-                console.log(`aah bernn ind bernn idd , ${data}`.bgWhite)
                 const result = await this.roomSocketService.handleJoinRequest(data);
                 if ("error" in result) {
                     socket.emit("error", result.error);
@@ -42,7 +41,7 @@ export class RoomSocketController {
 
                 // Notify requester that request was sent
                 socket.emit("request-sent", { message: "Your join request has been sent!" });
-                console.log("request toast sended".bgYellow)
+
                 // Update sender's notifications too
                 socket.emit("notification-received", {
                     type: "request",

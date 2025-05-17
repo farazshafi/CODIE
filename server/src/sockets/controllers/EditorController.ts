@@ -8,7 +8,6 @@ export class EditorController {
 
     async handleJoinRoom(data: JoinProjectData, client: Socket) {
         const onlineUsers = await this.editorService.joinRoom(data.projectId, data.userId, client.id);
-        console.log("saved user in redis , and return all users".bgYellow, onlineUsers)
 
         client.join(data.projectId);
         client.emit('online-users', onlineUsers);
@@ -19,7 +18,6 @@ export class EditorController {
         const rooms = await this.editorService.leaveAllRooms(client.id);
         for (const room of rooms) {
             const users = await this.editorService.getOnlineUsers(room);
-            console.log("user disconnected other users...".bgYellow, users)
             client.to(room).emit('online-users', users);
         }
     }

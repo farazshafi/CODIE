@@ -170,7 +170,6 @@ const Header = ({
     }
 
     const handleUpdateRole = (userId: string, role: string) => {
-        console.log(`user: ${userId}, role : ${role}`)
         updateRole({ userId, role, roomId })
     }
 
@@ -330,11 +329,6 @@ const Header = ({
                                                 <div>
                                                     <div className="flex flex-row items-center space-x-3">
                                                         <p className="font-medium">{item.user.name}</p>
-
-                                                        {(() => {
-                                                            console.log("Checking online status for:", item.user._id, "is in", onlineUsers);
-                                                            return null;
-                                                        })()}
 
                                                         {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id || onlineId === item.user._id) ? (
                                                             <span className="relative flex h-3 w-3">

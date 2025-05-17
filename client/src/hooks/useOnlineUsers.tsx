@@ -16,12 +16,6 @@ export const useOnlineUsers = (projectId: string | undefined) => {
                 projectId,
             })
 
-            console.log("this is what i send", {
-                userId: user.id,
-                userName: user.name,
-                projectId,
-            })
-
             socket.on("online-users", (onlineUsers: string[]) => {
                 setOnlineUsers(onlineUsers)
             })
