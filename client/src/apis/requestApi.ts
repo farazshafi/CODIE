@@ -21,3 +21,13 @@ export const getAllRecivedRequestApi = async (userId: string) => {
         throw err;
     }
 }
+
+export const getRequetsByRoom = async (roomId: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_requests_by_room/${roomId}`);
+        return response.data;
+    } catch (err) {
+        console.log("Error while Creating Project", err);
+        throw err;
+    }
+}

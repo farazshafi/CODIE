@@ -35,4 +35,9 @@ export class RequestRepositories extends BaseRepository<IRequest> implements IRe
     async getRequestById(id: string): Promise<IRequest> {
         return await RequestModel.findById(id)
     }
+
+    async getRequestsByRoomId(roomId: string): Promise<IRequest[]> {
+        return await RequestModel.find({ roomId, status: "pending" }).populate("senderId", "name email");
+    }
+
 }

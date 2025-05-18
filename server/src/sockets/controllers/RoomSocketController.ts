@@ -42,6 +42,7 @@ export class RoomSocketController {
                 // Notify requester that request was sent
                 socket.emit("request-sent", { message: "Your join request has been sent!" });
 
+
                 // Update sender's notifications too
                 socket.emit("notification-received", {
                     type: "request",
@@ -82,6 +83,8 @@ export class RoomSocketController {
                             type: "request",
                             action: "approved"
                         });
+
+                        socket.emit("update-request", "true")
                     }
 
                     // Update notifications for the approver
@@ -123,6 +126,8 @@ export class RoomSocketController {
                             type: "request",
                             action: "rejected"
                         });
+
+                        socket.emit("update-request", "true")
                     }
 
                     // Update notifications for the rejecter

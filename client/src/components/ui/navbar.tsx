@@ -114,7 +114,6 @@ const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
         },
     });
 
-    // Function to update notification count
     const updateNotificationCount = () => {
         const totalCount = sendedData.length + recivedData.length + recivedInvitation.length;
         setNotificationCount(totalCount);
@@ -127,12 +126,10 @@ const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
         }
     }, [user?.id]);
 
-    // Update notification count whenever the data changes
     useEffect(() => {
         updateNotificationCount();
     }, [sendedData, recivedData, recivedInvitation]);
 
-    // Open notification dropdown when there's a new notification
     useEffect(() => {
         if (notificationCount > 0) {
             setHasNewNotifications(true);

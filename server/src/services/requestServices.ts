@@ -81,4 +81,19 @@ export class RequestService implements IRequestService {
         }
     }
 
+    async getAllRequetByRoomId(roomId: string): Promise<IRequest[]> {
+        try {
+            const data = await this.requestRepository.getRequestsByRoomId(roomId)
+            if (!data) {
+                throw new HttpError(404, "Requets not found")
+            }
+            return data
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            throw new HttpError(500, "Error while getting all requests by roomID")
+        }
+    }
+
 }

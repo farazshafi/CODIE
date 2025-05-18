@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Menu,
     X,
@@ -15,6 +15,7 @@ import {
     CircleSmall,
     Handshake,
     UserRoundPlus,
+    Inbox,
 
 } from "lucide-react";
 import Logo from "../../../../../public/logo.png";
@@ -32,13 +33,13 @@ import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { enableCollabrationApi, getRoomByProjectIdApi, updateCollabratorRoleApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
-import { ICollaborator } from "@/types";
 import { Input } from "@/components/ui/input";
 import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
 import { createInvitationApi } from "@/apis/invitationApi";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { useSocket } from "@/context/SocketContext";
+import RoomRequests from "./RoomRequests";
 
 
 type SearchResultUser = {
@@ -75,7 +76,7 @@ const Header = ({
     const [ownerId, setOwnerId] = useState("")
     let reciverId: string | null = null
     const user = useUserStore((state) => state.user)
-    const { socket, isConnected } = useSocket()
+    const { socket } = useSocket()
 
 
     const params = useParams()
@@ -195,6 +196,14 @@ const Header = ({
         console.log("Header received online users:", onlineUsers);
     }, [onlineUsers]);
 
+    useEffect(() => {
+        if (!socket) return
+        const refetchCollabrators = () => {
+            getRoomByProjectId(id)
+        }
+        socket.on("update-request", refetchCollabrators)
+    }, [socket, id])
+
     return (
         <nav className="text-white bg-primary px-10 py-3 flex justify-between items-center relative">
             {" "}
@@ -288,6 +297,10 @@ const Header = ({
 
             {/* Desktop Icons */}
             <div className="flex-row gap-x-6 hidden md:flex relative">
+
+                {/* Inbox */}
+                {roomId && ownerId === user?.id && <RoomRequests roomID={roomId} />}
+
                 {isWantToCollab && (
                     <>
                         {user?.id === ownerId && <Button onClick={handleInvitation}
@@ -295,6 +308,8 @@ const Header = ({
                             <UserRoundPlus />
                             Invite
                         </Button>}
+
+
 
                         <div
                             className="bg-tertiary p-2 hover:scale-125 rounded-md"

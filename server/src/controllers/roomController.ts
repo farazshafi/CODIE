@@ -3,7 +3,9 @@ import { IRoomService } from "../services/interface/IRoomService";
 
 
 export class RoomController {
-    constructor(private readonly roomService: IRoomService) { }
+    constructor(
+        private readonly roomService: IRoomService,
+    ) { }
 
     createRoom = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -51,6 +53,4 @@ export class RoomController {
             next(error)
         }
     }
-
-
 }
