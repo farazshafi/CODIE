@@ -10,10 +10,6 @@ import Header from "../_component/Header"
 import EditorPanel from "../_component/EditorPanel"
 import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
 import { LANGUAGE_CONFIG } from "../_constants"
-import { useUserStore } from "@/stores/userStore"
-import { useParams } from "next/navigation"
-import { useSocket } from "@/context/SocketContext"
-import { useOnlineUsers } from "@/hooks/useOnlineUsers"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
@@ -23,11 +19,7 @@ const Page = () => {
 
 
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
-    const user = useUserStore((state) => state.user)
-    const params = useParams()
-    const { id: projectId } = params
-
-    const { onlineUsers } = useOnlineUsers(projectId?.toString())
+    
 
     // functions
     const handleReset = () => {
@@ -78,7 +70,6 @@ const Page = () => {
                     setShowCollaborators((prev) => !prev)
                     setShowChat(false)
                 }}
-                onlineUsers={onlineUsers || []}
             />
 
             <div className="flex-1 overflow-hidden">

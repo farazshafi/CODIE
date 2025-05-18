@@ -40,12 +40,14 @@ import { createInvitationApi } from "@/apis/invitationApi";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { useSocket } from "@/context/SocketContext";
 import RoomRequests from "./RoomRequests";
+import Contributers from "./Contributers";
+import InvitationModal from "./InvitationModal";
 
 
 type SearchResultUser = {
     name: string;
     email: string;
-    id: string;
+    _id: string;
 };
 
 type Collaborator = {
@@ -57,11 +59,9 @@ type Collaborator = {
 const Header = ({
     onChatToggle,
     onCollaboratorsToggle,
-    onlineUsers
 }: {
     onChatToggle: () => void;
     onCollaboratorsToggle: () => void;
-    onlineUsers: string[]
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
@@ -72,7 +72,6 @@ const Header = ({
     const [showInvitationModal, setShowInvitationModal] = useState(false)
     const [searchEmail, setSearchEmail] = useState("")
     const [userResult, setUserResult] = useState([])
-    const [invitedUserId, setInvitedUserId] = React.useState<string | null>(null)
     const [ownerId, setOwnerId] = useState("")
     let reciverId: string | null = null
     const user = useUserStore((state) => state.user)
@@ -117,21 +116,6 @@ const Header = ({
         },
     })
 
-    const { mutate: createInvitation, isLoading: invitationLoading } = useMutationHook(createInvitationApi, {
-        onSuccess(data) {
-            toast.success(data.message || "Invitation sended")
-            setInvitedUserId(null)
-            if (socket) {
-                socket.emit("send-invitation", { reciverId })
-            }
-        },
-        onError(error) {
-            console.log(error)
-            toast.error(error.response.data.message || "Invitaiton failed")
-            setInvitedUserId(null)
-        },
-    })
-
     const { mutate: updateRole, isLoading: updateRoleLoading } = useMutationHook(updateCollabratorRoleApi, {
         onError(error) {
             toast.error(error.response.data.message || "Error occured while updating role")
@@ -156,23 +140,16 @@ const Header = ({
         setShowInvitationModal(true)
     }
 
-    const handleSearchUsers = () => {
-        if (!user?.id) return
-
-        searchUsers({ email: searchEmail, userId: user?.id })
-    }
-
-    const handleSendingInvitation = (id: string) => {
-        if (!user?.id) return
-        setInvitedUserId(id)
-        reciverId = id
-        createInvitation({ roomId, senderId: user?.id, reciverId: id })
-
-    }
 
     const handleUpdateRole = (userId: string, role: string) => {
         updateRole({ userId, role, roomId })
     }
+
+    const hanldeModalClose = () => {
+        setShowInvitationModal(false)
+    }
+
+    
 
     useEffect(() => {
         getRoomByProjectId(id)
@@ -184,17 +161,6 @@ const Header = ({
             setTextSize(Number(storedSize));
         }
     }, [setFontChange])
-
-    useEffect(() => {
-        const deleyInputTimeout = setTimeout(() => {
-            handleSearchUsers()
-        }, 500);
-        return () => clearTimeout(deleyInputTimeout);
-    }, [searchEmail])
-
-    useEffect(() => {
-        console.log("Header received online users:", onlineUsers);
-    }, [onlineUsers]);
 
     useEffect(() => {
         if (!socket) return
@@ -303,14 +269,14 @@ const Header = ({
 
                 {isWantToCollab && (
                     <>
+                        {/* invite btn */}
                         {user?.id === ownerId && <Button onClick={handleInvitation}
                             className="bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer transition-all duration-[2000] ease-in-out hover:bg-gray-700 hover:from-gray-700 hover:to-gray-400">
                             <UserRoundPlus />
                             Invite
                         </Button>}
 
-
-
+                        {/* mesage */}
                         <div
                             className="bg-tertiary p-2 hover:scale-125 rounded-md"
                             onClick={onChatToggle}
@@ -318,84 +284,7 @@ const Header = ({
                             <MessageSquare />
                         </div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <div className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer">
-                                    <Users />
-                                </div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[400px]">
-                                <DropdownMenuLabel>
-                                    <div className="text-center py-2 font-bold">
-                                        <p>Collabrators</p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {collaborators.map((item, index) => (
-                                    <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
-                                        <div className="flex items-center justify-between w-full">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage alt={item.user.name} />
-                                                    <AvatarFallback className="bg-green-400 text-black font-bold text-sm">
-                                                        {item.user.name.split(" ").map((n) => n[0]).join("")}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="flex flex-row items-center space-x-3">
-                                                        <p className="font-medium">{item.user.name}</p>
-
-                                                        {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id || onlineId === item.user._id) ? (
-                                                            <span className="relative flex h-3 w-3">
-                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
-                                                            </span>
-                                                        ) : (
-                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-400 opacity-50"></span>
-                                                        )}
-                                                    </div>
-
-                                                    <p className="text-xs text-gray-500">{item.user.email}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-2 py-1 rounded-md text-xs ${item.role === "editor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                                                    {item.role}
-                                                </span>
-                                                {ownerId === user?.id && item.role !== "owner" && (
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
-                                                                Change Role
-                                                            </div>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent className="bg-white">
-                                                            <DropdownMenuItem
-                                                                disabled={item.role === "editor" || updateRoleLoading}
-                                                                onClick={() => handleUpdateRole(item.user.id, "editor")}
-                                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
-                                                                className="hover:bg-slate-100 text-sm"
-                                                            >
-                                                                {updateRoleLoading ? "Updating..." : "Make Editor"}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                disabled={item.role === "viewer" || updateRoleLoading}
-                                                                onClick={() => handleUpdateRole(item.user.id, "viewer")}
-                                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
-                                                                className="hover:bg-slate-100 text-sm"
-                                                            >
-                                                                Make Viewer
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </DropdownMenuItem>
-                                ))}
-                                <DropdownMenuSeparator />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Contributers handleUpdateRole={handleUpdateRole} isRoleLoading={updateRoleLoading} ownerId={ownerId} collaborators={collaborators} />
                     </>
                 )}
 
@@ -442,75 +331,8 @@ const Header = ({
             </div>
 
             {
-                showInvitationModal && (
-                    <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg w-96 text-black">
-                            <h2 className="text-xl font-semibold mb-4">Invite Collaborator</h2>
-                            <Input
-                                type="text"
-                                placeholder="Search for email"
-                                value={searchEmail}
-                                onChange={(e) => setSearchEmail(e.target.value)}
-                            />
-
-                            {!searchUserLoading ? (
-                                <div className="mt-4 space-y-2">
-                                    {userResult.length > 0 && userResult.map((user: SearchResultUser, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage alt={user.name} />
-                                                    <AvatarFallback className="bg-green text-black font-bold text-sm">
-                                                        {user.name.split(" ").map((n) => n[0]).join("")}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col item-center">
-                                                    <p>{user.name}</p>
-                                                    <p className="text-xs">{user.email}</p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                variant="outline"
-                                                className="text-sm"
-                                                disabled={invitedUserId === user.id ? invitationLoading : false}
-                                                onClick={() => handleSendingInvitation(user.id)}
-                                            >
-                                                {invitedUserId === user.id && invitationLoading ? (
-                                                    <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-black rounded-full"></div>
-                                                ) : (
-                                                    "Invite"
-                                                )}
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="mt-4 space-y-2">
-                                    {[...Array(3)].map((_, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between p-2 bg-gray-100 rounded-md mb-2 animate-pulse"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 bg-gray-300 rounded-full" />
-                                                <div className="h-4 w-24 bg-gray-300 rounded" />
-                                            </div>
-                                            <div className="h-6 w-16 bg-gray-300 rounded" />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <div className="flex justify-end mt-4 gap-2">
-                                <Button variant="outline" onClick={() => setShowInvitationModal(false)}>
-                                    Close
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+                showInvitationModal && roomId && (
+                    <InvitationModal hanldeModalClose={hanldeModalClose} roomId={roomId} />
                 )
             }
         </nav >
