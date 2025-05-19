@@ -30,6 +30,11 @@ export class RoomController {
             const { projectId } = req.params
             const room = await this.roomService.getRoomByProjectId(projectId)
 
+            if (!room) {
+                res.status(404).json({ message: "Room Not Found" })
+                return
+            }
+
             res.status(201).json({
                 status: 'success',
                 data: room

@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import Logo from "../../../public/logo.png";
 import Link from "next/link";
 import { Menu, X, LogOut, User, LogIn, Banknote, Bell, CircleX, CircleCheckBig } from "lucide-react";
@@ -24,7 +24,14 @@ import useNotificationSocketListner from "@/hooks/useNotificationSocketListner";
 import { getRecivedInvitationsApi } from "@/apis/invitationApi";
 import { useSocket } from "@/context/SocketContext";
 
-const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
+type NavbarProps = {
+    refetchProjects(): void;
+
+}
+
+const Navbar = forwardRef((props: NavbarProps, ref) => {
+    const { refetchProjects } = props;
+
     const user = useUserStore((state) => state.user);
     const logout = useUserStore((state) => state.logout);
     const router = useRouter();
@@ -118,6 +125,11 @@ const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
         const totalCount = sendedData.length + recivedData.length + recivedInvitation.length;
         setNotificationCount(totalCount);
     };
+
+
+    useImperativeHandle(ref, () => ({
+        updateNotificationData,
+    }))
 
     // useEffects
     useEffect(() => {
@@ -345,6 +357,5 @@ const Navbar = ({ refetchProjects }: { refetchProjects: () => void }) => {
             </div>
         </nav>
     );
-};
-
+})
 export default Navbar;

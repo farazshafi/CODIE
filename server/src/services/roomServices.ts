@@ -40,7 +40,8 @@ export class RoomServices implements IRoomService {
         try {
             const existRoom = await this.roomRepository.getRoomByProjectId(projectId)
             if (!existRoom) {
-                throw new HttpError(404, "Room Not Found")
+                console.log("exist rom result", existRoom)
+                return null
             }
 
             return existRoom
@@ -72,7 +73,7 @@ export class RoomServices implements IRoomService {
 
     async getContributedProjectsByUserId(userId: string): Promise<IProject[]> {
         try {
-            const rooms = await this.roomRepository.find({ 
+            const rooms = await this.roomRepository.find({
                 "collaborators.user": new mongoose.Types.ObjectId(userId),
                 owner: { $ne: new mongoose.Types.ObjectId(userId) }
             });
@@ -80,7 +81,7 @@ export class RoomServices implements IRoomService {
             return await this.projectRepository.getProjectByIds(projectIds)
         } catch (error) {
             console.log("Occured whiel getting contributed projects", error)
-            throw new HttpError(500, "Occured whiel getting contributed projects") 
+            throw new HttpError(500, "Occured whiel getting contributed projects")
         }
     }
 }

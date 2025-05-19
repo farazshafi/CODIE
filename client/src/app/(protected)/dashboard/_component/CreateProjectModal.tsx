@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores/userStore";
 import { LANGUAGE_CONFIG } from "../../editor/_constants";
 import { useSocket } from "@/context/SocketContext";
+import { LoaderCircle } from "lucide-react";
 
 interface CreateProjectModalProps {
   trigger: React.ReactNode;
@@ -42,14 +43,18 @@ export default function CreateProjectModal({
   language = true,
   refetchProject,
 }: CreateProjectModalProps) {
+  const router = useRouter();
+  const { setLanguage } = useCodeEditorStore();
+  const { socket } = useSocket()
+  const user = useUserStore((state) => state.user);
+
   const [projectName, setProjectName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [error, setError] = useState("");
-  const { setLanguage } = useCodeEditorStore();
-  const router = useRouter();
-  const user = useUserStore((state) => state.user);
-  const { socket } = useSocket()
+  const [open, setOpen] = useState(false);
+  const [isJoinLoading, setIsJoinLoading] = useState(false)
+
 
   const { mutate, isLoading } = useMutationHook(createProjectApi, {
     onError(error) {
@@ -58,6 +63,7 @@ export default function CreateProjectModal({
     onSuccess(data) {
       router.push(`/editor/${data.data._id}`);
       refetchProject?.();
+      setOpen(false)
     },
   });
 
@@ -86,7 +92,7 @@ export default function CreateProjectModal({
       toast.error("User or room ID is missing");
       return;
     }
-
+    setIsJoinLoading(true)
     socket.emit("join-request", {
       roomId,
       userId: user.id,
@@ -94,8 +100,24 @@ export default function CreateProjectModal({
     });
   };
 
+  useEffect(() => {
+    if (!socket) return
+
+    const handleSocketJoin = () => {
+      setIsJoinLoading(false)
+      setOpen(false)
+    }
+
+    socket.on("request-sent", handleSocketJoin)
+
+    return () => {
+      socket.off("request-sent", handleSocketJoin)
+    }
+
+  }, [socket])
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="text-white border border-[#1bf07c] backdrop-blur-[2px] bg-white/15">
         <DialogHeader>
@@ -147,7 +169,9 @@ export default function CreateProjectModal({
           onClick={language ? handleCreate : handleJoin}
           className="mt-4 bg-green hover:bg-green-600 text-white"
         >
-          {language ? "Create" : "Join"}
+          {isLoading || isJoinLoading ? (
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+          ) : language ? "Create" : "Join"}
         </Button>
       </DialogContent>
     </Dialog>

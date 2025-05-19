@@ -158,6 +158,7 @@ export class RoomSocketController {
                 }
 
                 if (result.senderId) {
+                    console.log(`Result fo invitaiotn: ${JSON.stringify(result)}`.bgYellow)
                     const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
                     if (userSocketId && result.reciverName) {
                         // Notify sender that invitation was accepted
@@ -177,6 +178,11 @@ export class RoomSocketController {
                     socket.emit("notification-received", {
                         type: "invitation",
                         action: "processed"
+                    });
+
+                    socket.emit("invitation-accepted-success", {
+                        message: "You have successfully joined the room.",
+                        roomId: result.roomId
                     });
                 }
 

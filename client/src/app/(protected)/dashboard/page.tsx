@@ -6,7 +6,7 @@ import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import CreateProjectModal from "./_component/CreateProjectModal";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
@@ -16,14 +16,17 @@ import { ProjectCardType } from "@/types";
 import { toast } from "sonner";
 import ProjectCardSkeleton from "./_component/ProjectCardSkelton";
 import SectionTitle from "./_component/SectionTitle";
+import { useSocket } from "@/context/SocketContext";
 
 export default function Home() {
 
     const user = useUserStore((state) => state.user);
     const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
-
+    const { socket } = useSocket()
     const userId = user?.id;
+    const navbarRef = useRef<any>(null);
+
 
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
         variables: { userId },
@@ -48,13 +51,29 @@ export default function Home() {
         }
     }, [error, contributeError]);
 
+    useEffect(() => {
+        if (!socket) return
+        const fetchProjects = () => {
+            refetchContributedProject()
+            if (navbarRef.current) {
+                navbarRef.current.updateNotificationData()
+            }
+        }
+
+        socket.on("invitation-accepted-success", fetchProjects)
+
+        return () => {
+            socket.off("invitation-accepted-success", fetchProjects)
+        }
+    }, [socket, refetchContributedProject])
+
     if (isRedirecting) {
         return <Loading fullScreen text="Redirecting to Login page" />;
     }
 
     return (
         <div>
-            <Navbar refetchProjects={refetchContributedProject} />
+            <Navbar ref={navbarRef} refetchProjects={refetchContributedProject} />
             <PageTransitionWrapper>
                 <div className="px-10 py-6">
 

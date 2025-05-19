@@ -34,7 +34,15 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
-        return (await Room.findOne({ projectId })).populate("collaborators.user", "name email")
+        const room = await Room.findOne({ projectId });
+
+        if (!room) {
+            return null;
+        }
+
+        await room.populate("collaborators.user", "name email");
+
+        return room;
     }
 
     async getOwnderByRoomId(roomId: string): Promise<string> {
