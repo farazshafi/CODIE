@@ -1,9 +1,10 @@
 // src/container.ts
 import { InvitationController } from './controllers/InvitationController';
 import { ProjectController } from './controllers/ProjectController';
-import { RequestController } from './controllers/RequestController';
-import { RoomController } from './controllers/RoomController';
-import { UserController } from './controllers/UserController';
+import { RequestController } from './controllers/requestController';
+import { RoomController } from './controllers/roomController';
+import { UserController } from './controllers/userController';
+
 import InvitationModel from './models/InvitationModel';
 
 import OtpModel from './models/otpModel';

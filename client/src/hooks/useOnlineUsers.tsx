@@ -1,6 +1,7 @@
 import { useSocket } from "@/context/SocketContext"
 import { useUserStore } from "@/stores/userStore"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
 
 
 export const useOnlineUsers = (projectId: string | undefined) => {
@@ -8,23 +9,48 @@ export const useOnlineUsers = (projectId: string | undefined) => {
     const user = useUserStore((state) => state.user)
     const [onlineUsers, setOnlineUsers] = useState<string[]>([])
 
+    const handleOnlineUsers = useCallback((onlineUsers: string[]) => {
+        setOnlineUsers(onlineUsers);
+    }, []);
+
+    const handleUserJoin = useCallback(({ message }: { message: string }) => {
+        toast.success(message);
+    }, []);
+
+    const handleUserLeft = useCallback(({ message }: { message: string }) => {
+        toast.info(message)
+    }, []);
+
+
     useEffect(() => {
-        if (socket && user) {
-            socket.emit("join-project", {
+        if (!socket || !user || !projectId) return;
+
+        socket.emit("join-project", {
+            userId: user.id,
+            userName: user.name,
+            projectId,
+        });
+
+        socket.off("online-users", handleOnlineUsers);
+        socket.off("user-joined", handleUserJoin);
+        socket.off("user-left", handleUserLeft);
+
+        socket.on("online-users", handleOnlineUsers);
+        socket.on("user-joined", handleUserJoin);
+        socket.on("user-left", handleUserLeft);
+
+        return () => {
+            socket.emit("leave-project", {
                 userId: user.id,
-                userName: user.name,
-                projectId,
+                projectId: projectId,
+                userName: user.name
             })
-
-            socket.on("online-users", (onlineUsers: string[]) => {
-                setOnlineUsers(onlineUsers)
-            })
-
-            return () => {
-                socket.off("online-users")
-            }
-        }
-    }, [socket, isConnected, user, projectId])
+            console.log("header disconnect: ")
+            socket.off("online-users", handleOnlineUsers);
+            socket.off("user-joined", handleUserJoin);
+            socket.off("user-left", handleUserLeft);
+        };
+    }, [socket, isConnected, user, projectId, handleOnlineUsers, handleUserJoin, handleUserLeft]);
 
     return {
         onlineUsers,

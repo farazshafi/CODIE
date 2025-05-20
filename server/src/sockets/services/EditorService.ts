@@ -12,9 +12,9 @@ export class EditorService implements IEditorService {
         return this.onlineUserRepo.getUsersInRoom(projectId);
     }
 
-    async leaveAllRooms(socketId: string): Promise<string[]> {
-        const rooms = await this.onlineUserRepo.removeUserFromAllRooms(socketId);
-        return rooms;
+    async leaveRoom(projectId: string, userId: string, socketId: string): Promise<string[]> {
+        await this.onlineUserRepo.removeUserFromRoom(projectId, userId, socketId);
+        return this.onlineUserRepo.getUsersInRoom(projectId);
     }
 
     async getOnlineUsers(projectId: string): Promise<string[]> {

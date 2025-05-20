@@ -7,14 +7,14 @@ import { UserSocketRepository } from './repositories/UserSocketRepository';
 import { OnlineUserRepository } from './repositories/OnlineUserRepository';
 import { EditorService } from './services/EditorService';
 import { EditorController } from './controllers/EditorController';
-import { JoinProjectData } from '../types/socketType';
+import { JoinProjectData, leaveProjectData } from '../types/socketType';
 
 export function setupSocket(io: Server) {
     const userSocketRepository = new UserSocketRepository();
     const onlineUserRepository = new OnlineUserRepository();
 
     const editorService = new EditorService(onlineUserRepository);
-    const editorController = new EditorController(editorService);
+    const editorController = new EditorController(editorService, userRepository);
 
     io.on('connection', (socket) => {
         socket.on('register-user', (userId: string) => {
@@ -24,11 +24,23 @@ export function setupSocket(io: Server) {
 
         socket.on('join-project', (data: JoinProjectData) => {
             editorController.handleJoinRoom(data, socket)
+
+            socket.data.projectId = data.projectId;
+            socket.data.userId = data.userId;
         })
+
+        socket.on('leave-project', (data: leaveProjectData) => {
+            editorController.handleLeaveRoom(data, socket)
+        });
+
 
         socket.on('disconnect', () => {
             userSocketRepository.remove(socket.id);
-            editorController.handleDisconnect(socket)
+
+            const projectId = socket.data.projectId;
+            const userId = socket.data.userId;
+
+            editorController.handleLeaveRoom({ projectId, userId, userName:"" }, socket)
             console.log('Socket disconnected:', socket.id.red)
         });
     });

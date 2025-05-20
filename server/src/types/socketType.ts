@@ -29,6 +29,8 @@ export interface ApproveInvitationResult {
 
 export interface JoinProjectData { projectId: string, userId: string }
 
+export interface leaveProjectData { projectId: string, userId: string, userName: string }
+
 
 export interface ProjectServiceResult {
     success: boolean;

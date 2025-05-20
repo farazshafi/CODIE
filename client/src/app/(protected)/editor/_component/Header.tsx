@@ -15,11 +15,9 @@ import {
     CircleSmall,
     Handshake,
     UserRoundPlus,
-    Inbox,
 
 } from "lucide-react";
 import Logo from "../../../../../public/logo.png";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import {
@@ -33,11 +31,8 @@ import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { enableCollabrationApi, getRoomByProjectIdApi, updateCollabratorRoleApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
-import { createInvitationApi } from "@/apis/invitationApi";
-import { DropdownMenuLabel, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { useSocket } from "@/context/SocketContext";
 import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
@@ -70,10 +65,8 @@ const Header = ({
     const [roomId, setRoomId] = useState(null)
     const [collaborators, setCollaborators] = useState<Collaborator[]>([])
     const [showInvitationModal, setShowInvitationModal] = useState(false)
-    const [searchEmail, setSearchEmail] = useState("")
     const [userResult, setUserResult] = useState([])
     const [ownerId, setOwnerId] = useState("")
-    let reciverId: string | null = null
     const user = useUserStore((state) => state.user)
     const { socket } = useSocket()
 
@@ -149,7 +142,6 @@ const Header = ({
         setShowInvitationModal(false)
     }
 
-    
 
     useEffect(() => {
         getRoomByProjectId(id)
@@ -168,6 +160,10 @@ const Header = ({
             getRoomByProjectId(id)
         }
         socket.on("update-request", refetchCollabrators)
+
+        return () => {
+            socket.off("update-request", refetchCollabrators)
+        }
     }, [socket, id])
 
     return (

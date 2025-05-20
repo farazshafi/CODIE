@@ -1,6 +1,5 @@
 import { createClient } from "redis";
 import { IOnlineUserRepository } from "./interface/IOnlineUserRepository";
-import { object } from "zod";
 
 export class OnlineUserRepository implements IOnlineUserRepository {
     private readonly redis = createClient();
@@ -29,7 +28,8 @@ export class OnlineUserRepository implements IOnlineUserRepository {
         }
         const key = `room:${projectId}:users`;
         const usersMap = await this.redis.hGetAll(key);
-        return Object.values(usersMap);
+        const userIds = Object.values(usersMap)
+        return [...new Set(userIds)]
     }
 
     async isUserOnline(projectId: string, userId: string): Promise<boolean> {
@@ -41,22 +41,20 @@ export class OnlineUserRepository implements IOnlineUserRepository {
         return Object.values(userMap).includes(userId)
     }
 
-    async removeUserFromAllRooms(socketId: string): Promise<string[]> {
+    async removeUserFromRoom(projectId: string, userId: string, socketId: string): Promise<void> {
         if (!this.redis.isOpen) {
             await this.redis.connect();
         }
-        const keys = await this.redis.keys("room:*:users");
-        const roomsLeft: string[] = [];
 
-        for (const key of keys) {
-            const user = await this.redis.hGet(key, socketId);
-            if (user) {
-                await this.redis.hDel(key, socketId);
-                const projectId = key.split(':')[1];
-                roomsLeft.push(projectId);
-            }
+        const key = `room:${projectId}:users`;
+
+        const existingUserId = await this.redis.hGet(key, socketId);
+        console.log("user id getting", existingUserId)
+
+        if (existingUserId === userId) {
+            await this.redis.hDel(key, socketId);
+            console.log(`Removed user ${userId} from project ${projectId}`);
         }
-
-        return roomsLeft;
     }
+
 }

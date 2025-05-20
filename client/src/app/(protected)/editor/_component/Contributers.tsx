@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useOnlineUsers } from '@/hooks/useOnlineUsers';
 import { useUserStore } from '@/stores/userStore';
@@ -34,6 +35,11 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
     const { onlineUsers } = useOnlineUsers(projectId?.toString())
     const user = useUserStore((state) => state.user)
 
+    const isUserOnline = (userId: string, onlineUsers: string[]): boolean => {
+        return onlineUsers?.includes(userId);
+    };
+
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger>
@@ -41,7 +47,7 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                     <Users />
                 </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[400px]">
+            <DropdownMenuContent className="">
                 <DropdownMenuLabel>
                     <div className="text-center py-2 font-bold">
                         <p>Collabrators</p>
@@ -50,26 +56,28 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                 <DropdownMenuSeparator />
                 {collaborators.map((item, index) => (
                     <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-x-4 justify-between w-full">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage alt={item.user.name} />
-                                    <AvatarFallback className="bg-green-400 text-black font-bold text-sm">
+                                    <AvatarFallback className={`text-black font-bold text-sm ${isUserOnline(item.user._id, onlineUsers) ? 'bg-green-400' : 'bg-red-400'
+                                        }`}>
                                         {item.user.name.split(" ").map((n) => n[0]).join("")}
                                     </AvatarFallback>
+
                                 </Avatar>
                                 <div>
                                     <div className="flex flex-row items-center space-x-3">
                                         <p className="font-medium">{item.user.name}</p>
-
-                                        {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id || onlineId === item.user._id) ? (
-                                            <span className="relative flex h-3 w-3">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
+                                        
+                                        {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id) ? (
+                                            <span className="text-[10px] bg-green rounded-lg px-[5px] py-[2px]">
+                                                online
                                             </span>
                                         ) : (
-                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-400 opacity-50"></span>
+                                            <span className='text-[10px] bg-red-400 rounded-lg px-[5px] py-[2px]'>offline</span>
                                         )}
+
                                     </div>
 
                                     <p className="text-xs text-gray-500">{item.user.email}</p>
@@ -82,9 +90,10 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                                 {ownerId === user?.id && item.role !== "owner" && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
+                                            <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
                                                 Change Role
                                             </div>
+                                            {/* <Button size={"sm"} variant={'outline'} className='rounded-md bg-white text-sm'>Change Role</Button> */}
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent className="bg-white">
                                             <DropdownMenuItem
