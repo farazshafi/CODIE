@@ -8,4 +8,5 @@ export interface IRoomService {
     updateCollabratorRole(roomId: string, userId: string, role: "viewer" | "editor"): Promise<IRoom>
     getContributedProjectsByUserId(userId: string): Promise<IProject[]>;
     isEligibleToEdit(userId: string, roomId: string): Promise<boolean>;
+    getUserRoleInProject(projectId: string, userId: string): Promise<string>;
 }

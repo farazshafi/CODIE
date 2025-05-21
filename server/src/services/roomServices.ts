@@ -105,5 +105,27 @@ export class RoomServices implements IRoomService {
             throw new HttpError(500, "Cannot check permission")
         }
     }
+
+    async getUserRoleInProject(projectId: string, userId: string): Promise<string> {
+        try {
+            const room = await this.roomRepository.findOne({ projectId })
+            if (!room) {
+                throw new HttpError(404, "Room not found")
+            }
+            const isOwner = room.owner.toString() === userId
+            if (isOwner) {
+                return "owner"
+            }
+
+            const role = await this.roomRepository.findContributerRole(userId, projectId)
+            return role
+
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            throw new HttpError(500, "Error While getting role")
+        }
+    }
 }
 

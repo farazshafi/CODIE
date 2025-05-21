@@ -56,4 +56,13 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
             { new: true }
         )
     }
+
+    async findContributerRole(userId: string, projectId: string): Promise<"owner" | "editor" | "viewer"> {
+        const room = await Room.findOne({ projectId })
+
+        const collaborator = room.collaborators.find(c => c.user.toString() === userId)
+        if (collaborator) {
+            return collaborator.role
+        }
+    }
 }
