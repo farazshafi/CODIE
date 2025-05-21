@@ -67,7 +67,7 @@ export class ProjectService implements IProjectService {
         try {
             const project = await this.projectRepository.findById(id);
             if (project) {
-                return await this.projectRepository.updateCode(project, updatedCode);
+                return await this.projectRepository.updateCode(project.id, updatedCode);
             } else {
                 throw new HttpError(404, "Project not found");
             }

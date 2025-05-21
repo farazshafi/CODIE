@@ -10,16 +10,20 @@ import Header from "../_component/Header"
 import EditorPanel from "../_component/EditorPanel"
 import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
 import { LANGUAGE_CONFIG } from "../_constants"
+import { useEditorStore } from "@/stores/editorStore"
+import { useParams } from "next/navigation"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
     const [showChat, setShowChat] = useState(false)
     const [showCollaborators, setShowCollaborators] = useState(false)
     const [copyLoading, setCopyLoading] = useState(false)
+    const { id } = useParams()
+    const setProjectId = useEditorStore((state) => state.setProjectId)
 
 
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
-    
+
 
     // functions
     const handleReset = () => {
@@ -49,7 +53,6 @@ const Page = () => {
         }
     }
 
-
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768)
@@ -58,6 +61,10 @@ const Page = () => {
         window.addEventListener("resize", handleResize)
         return () => window.removeEventListener("resize", handleResize)
     }, [])
+
+    useEffect(() => {
+        setProjectId(id as string)
+    }, [id])
 
     return (
         <div className="h-screen flex flex-col overflow-hidden">

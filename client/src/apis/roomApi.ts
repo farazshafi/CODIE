@@ -22,9 +22,29 @@ export const getRoomByProjectIdApi = async (projectId: string) => {
     }
 }
 
+export const getContributersApi = async (projectId: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_contributers/${projectId}`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
 export const updateCollabratorRoleApi = async (data: { roomId: string, userId: string, role: "viewer" | "editor" }) => {
     try {
         const response = await API.post(`${API_BASE_URL}/update_role`, data)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const checkIsEligibleToEditApi = async (data: { roomId: string, userId: string }) => {
+    try {
+        const response = await API.post(`${API_BASE_URL}/ceck_permission_to_edit`, data)
         return response.data
     } catch (error) {
         console.log("Error While fetching code", error)

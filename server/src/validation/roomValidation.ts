@@ -10,3 +10,8 @@ export const updateRoleSchema = z.object({
     userId: z.string(),
     role: z.enum(["viewer", "editor"])
 })
+
+export const checkPermissionSchema = z.object({
+    userId: z.string(),
+    roomId: z.string(),
+})

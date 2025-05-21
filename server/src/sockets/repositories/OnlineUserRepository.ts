@@ -57,4 +57,21 @@ export class OnlineUserRepository implements IOnlineUserRepository {
         }
     }
 
+    async getSocketIdByUserId(projectId: string, userId: string): Promise<string | null> {
+        if (!this.redis.isOpen) {
+            await this.redis.connect();
+        }
+
+        const key = `room:${projectId}:users`
+        const userMap = await this.redis.hGetAll(key)
+
+        for (const [socketId, storedUserId] of Object.entries(userMap)) {
+            if (storedUserId === userId) {
+                return socketId
+            }
+        }
+
+        return null
+    }
+
 }

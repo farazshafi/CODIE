@@ -4,7 +4,7 @@ import { toast } from "sonner";
 type Options = {
     successMessage?: string;
     errorMessage?: string;
-    onSuccess?: (data: any) => void;
+    onSuccess?: (data: any, variable?: any) => void;
     onError?: (error: any) => void;
 };
 
@@ -34,11 +34,11 @@ export const useMutationHook = (
                 toast(options.successMessage);
             }
 
-            options?.onSuccess?.(response);
+            options?.onSuccess?.(response, inputData);
         } catch (err: any) {
             setError(err);
             setIsError(true);
-            
+
             options?.onError?.(err);
         } finally {
             setIsLoading(false);

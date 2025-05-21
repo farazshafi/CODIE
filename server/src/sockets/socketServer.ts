@@ -7,13 +7,13 @@ import { UserSocketRepository } from './repositories/UserSocketRepository';
 import { OnlineUserRepository } from './repositories/OnlineUserRepository';
 import { EditorService } from './services/EditorService';
 import { EditorController } from './controllers/EditorController';
-import { JoinProjectData, leaveProjectData } from '../types/socketType';
+import { JoinProjectData, leaveProjectData, updateRoleData } from '../types/socketType';
 
 export function setupSocket(io: Server) {
     const userSocketRepository = new UserSocketRepository();
     const onlineUserRepository = new OnlineUserRepository();
 
-    const editorService = new EditorService(onlineUserRepository);
+    const editorService = new EditorService(onlineUserRepository, roomRepository, projectRepository);
     const editorController = new EditorController(editorService, userRepository);
 
     io.on('connection', (socket) => {
@@ -33,6 +33,14 @@ export function setupSocket(io: Server) {
             editorController.handleLeaveRoom(data, socket)
         });
 
+        socket.on('code-update', (data) => {
+            console.log("comming here... ")
+            editorController.handleCodeUpdate(data, socket);
+        });
+
+        socket.on("notify-role-change", (data: updateRoleData) => {
+            editorController.handleUpdateRole(data, socket)
+        })
 
         socket.on('disconnect', () => {
             userSocketRepository.remove(socket.id);
@@ -40,7 +48,7 @@ export function setupSocket(io: Server) {
             const projectId = socket.data.projectId;
             const userId = socket.data.userId;
 
-            editorController.handleLeaveRoom({ projectId, userId, userName:"" }, socket)
+            editorController.handleLeaveRoom({ projectId, userId, userName: "" }, socket)
             console.log('Socket disconnected:', socket.id.red)
         });
     });

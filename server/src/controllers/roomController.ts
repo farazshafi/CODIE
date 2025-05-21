@@ -44,6 +44,25 @@ export class RoomController {
         }
     }
 
+    getContributers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { projectId } = req.params
+            const room = await this.roomService.getRoomByProjectId(projectId)
+
+            if (!room) {
+                res.status(404).json({ message: "Room Not Found" })
+                return
+            }
+
+            res.status(201).json({
+                status: 'success',
+                data: room.collaborators
+            });
+        } catch (error) {
+            next(error)
+        }
+    }
+
     updateRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId, userId, role } = req.body
@@ -54,6 +73,19 @@ export class RoomController {
                 status: 'success',
                 message: "successfully updated role"
             });
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    checkPermission = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { userId, roomId } = req.body
+
+            const isEligibleToEdit: boolean = await this.roomService.isEligibleToEdit(userId, roomId)
+
+            res.status(200).json({ isAllowed: isEligibleToEdit })
+
         } catch (error) {
             next(error)
         }

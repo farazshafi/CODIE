@@ -1,11 +1,15 @@
+import { getContributersApi, updateCollabratorRoleApi } from '@/apis/roomApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useSocket } from '@/context/SocketContext';
+import { useMutationHook } from '@/hooks/useMutationHook';
 import { useOnlineUsers } from '@/hooks/useOnlineUsers';
+import { useEditorStore } from '@/stores/editorStore';
 import { useUserStore } from '@/stores/userStore';
 import { Users } from 'lucide-react'
 import { useParams } from 'next/navigation';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { toast } from 'sonner';
 
 
 type SearchResultUser = {
@@ -21,24 +25,68 @@ type Collaborator = {
 };
 
 type ContributersProps = {
-    collaborators: Collaborator[];
     ownerId: string;
-    isRoleLoading: boolean;
-    handleUpdateRole(userId: string, role: string): void;
 };
 
 
-const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isRoleLoading, handleUpdateRole }) => {
+const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
     const params = useParams()
 
     const { id: projectId } = params
     const { onlineUsers } = useOnlineUsers(projectId?.toString())
     const user = useUserStore((state) => state.user)
+    const { socket } = useSocket()
+    const roomId = useEditorStore((state) => state.roomId)
+
+
+    const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+
 
     const isUserOnline = (userId: string, onlineUsers: string[]): boolean => {
         return onlineUsers?.includes(userId);
     };
 
+
+    const { mutate: getContributers } = useMutationHook(getContributersApi, {
+        onSuccess(res) {
+            console.log("contributer res: ", res)
+            setCollaborators(res.data)
+        },
+    })
+    const { mutate: updateRole, isLoading: isRoleLoading } = useMutationHook(updateCollabratorRoleApi, {
+        onError(error) {
+            toast.error(error.response.data.message || "Error occured while updating role")
+        },
+        onSuccess(data, variables) {
+            getContributers(projectId as string)
+
+            socket?.emit("notify-role-change", {
+                userId: variables.userId,
+                role: variables.role,
+                projectId,
+            });
+        },
+    })
+
+    const handleUpdateRole = (userId: string, role: string) => {
+        updateRole({ userId, role, roomId })
+    }
+
+    useEffect(() => {
+        if (!socket) return
+        getContributers(projectId)
+
+        const handleUpdateRole = (data: { message: string, }) => {
+            toast.info(data.message)
+            getContributers(projectId)
+        }
+
+        socket.on("updated-role", handleUpdateRole)
+
+        return () => {
+            socket.off("updated-role", handleUpdateRole)
+        }
+    }, [socket, projectId])
 
     return (
         <DropdownMenu>
@@ -56,7 +104,7 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                 <DropdownMenuSeparator />
                 {collaborators.map((item, index) => (
                     <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
-                        <div className="flex items-center gap-x-4 justify-between w-full">
+                        <div className="flex items-center gap-x-6 justify-between w-full">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage alt={item.user.name} />
@@ -69,7 +117,7 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                                 <div>
                                     <div className="flex flex-row items-center space-x-3">
                                         <p className="font-medium">{item.user.name}</p>
-                                        
+
                                         {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id) ? (
                                             <span className="text-[10px] bg-green rounded-lg px-[5px] py-[2px]">
                                                 online
@@ -93,13 +141,12 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                                             <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
                                                 Change Role
                                             </div>
-                                            {/* <Button size={"sm"} variant={'outline'} className='rounded-md bg-white text-sm'>Change Role</Button> */}
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent className="bg-white">
                                             <DropdownMenuItem
                                                 disabled={item.role === "editor" || isRoleLoading}
                                                 onClick={() => handleUpdateRole(item.user._id, "editor")}
-                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
+                                                onSelect={(e) => e.preventDefault()}
                                                 className="hover:bg-slate-100 text-sm"
                                             >
                                                 {isRoleLoading ? "Updating..." : "Make Editor"}
@@ -107,7 +154,7 @@ const Contributers: React.FC<ContributersProps> = ({ collaborators, ownerId, isR
                                             <DropdownMenuItem
                                                 disabled={item.role === "viewer" || isRoleLoading}
                                                 onClick={() => handleUpdateRole(item.user._id, "viewer")}
-                                                onSelect={(e) => e.preventDefault()} // Prevent default Radix UI close behavior
+                                                onSelect={(e) => e.preventDefault()}
                                                 className="hover:bg-slate-100 text-sm"
                                             >
                                                 Make Viewer

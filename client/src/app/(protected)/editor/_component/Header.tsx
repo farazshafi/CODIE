@@ -29,14 +29,14 @@ import {
 import { THEMES } from "../_constants";
 import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { enableCollabrationApi, getRoomByProjectIdApi, updateCollabratorRoleApi } from "@/apis/roomApi";
+import { enableCollabrationApi, getRoomByProjectIdApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
-import { searchUsersApi } from "@/apis/userApi";
 import { useUserStore } from "@/stores/userStore";
 import { useSocket } from "@/context/SocketContext";
 import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
 import InvitationModal from "./InvitationModal";
+import { useEditorStore } from "@/stores/editorStore";
 
 
 type SearchResultUser = {
@@ -62,14 +62,15 @@ const Header = ({
     const [textSize, setTextSize] = useState(16);
     const [textIsOpened, setTextIsOpened] = useState(false)
     const [isWantToCollab, setIsWantToCollab] = useState(false)
-    const [roomId, setRoomId] = useState(null)
     const [collaborators, setCollaborators] = useState<Collaborator[]>([])
     const [showInvitationModal, setShowInvitationModal] = useState(false)
-    const [userResult, setUserResult] = useState([])
     const [ownerId, setOwnerId] = useState("")
+    const [collabVersion, setCollabVersion] = useState(0);
+
+    const roomId = useEditorStore((state) => state.roomId)
+    const setRoomId = useEditorStore((state) => state.setRoomId)
     const user = useUserStore((state) => state.user)
     const { socket } = useSocket()
-
 
     const params = useParams()
     const { id } = params
@@ -100,25 +101,6 @@ const Header = ({
         },
     })
 
-    const { mutate: searchUsers, isLoading: searchUserLoading } = useMutationHook(searchUsersApi, {
-        onSuccess(data) {
-            setUserResult(data)
-        },
-        onError(error) {
-            toast.error(error.response.data.message || "Search failed")
-        },
-    })
-
-    const { mutate: updateRole, isLoading: updateRoleLoading } = useMutationHook(updateCollabratorRoleApi, {
-        onError(error) {
-            toast.error(error.response.data.message || "Error occured while updating role")
-        },
-        onSuccess(data) {
-            getRoomByProjectId(id)
-            toast.success(data.message || "Updated Role")
-        },
-    })
-
     const setFontChange = (newSize: number) => {
         const size = Math.min(Math.max(newSize, 12), 24);
         setFontSize(size);
@@ -133,11 +115,6 @@ const Header = ({
         setShowInvitationModal(true)
     }
 
-
-    const handleUpdateRole = (userId: string, role: string) => {
-        updateRole({ userId, role, roomId })
-    }
-
     const hanldeModalClose = () => {
         setShowInvitationModal(false)
     }
@@ -145,7 +122,7 @@ const Header = ({
 
     useEffect(() => {
         getRoomByProjectId(id)
-    }, [isWantToCollab])
+    }, [isWantToCollab, collabVersion])
 
     useEffect(() => {
         const storedSize = localStorage.getItem("editor-font-size");
@@ -156,9 +133,11 @@ const Header = ({
 
     useEffect(() => {
         if (!socket) return
+
         const refetchCollabrators = () => {
             getRoomByProjectId(id)
         }
+
         socket.on("update-request", refetchCollabrators)
 
         return () => {
@@ -280,7 +259,7 @@ const Header = ({
                             <MessageSquare />
                         </div>
 
-                        <Contributers handleUpdateRole={handleUpdateRole} isRoleLoading={updateRoleLoading} ownerId={ownerId} collaborators={collaborators} />
+                        <Contributers ownerId={ownerId} />
                     </>
                 )}
 
