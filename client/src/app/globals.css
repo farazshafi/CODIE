@@ -132,7 +132,7 @@ body {
     background-color: #1bf07c;
   }
   .bg-discover {
-    background-color: #1bf07c !important; /* Equivalent to Tailwind's bg-green-500 */
+    background-color: #1bf07c !important;
   }
   .bg-tertiary {
     background-color: rgba(255, 255, 255, 0.05) !important;
@@ -150,29 +150,83 @@ body {
     display: flex;
     flex-direction: row;
   }
-
   .gutter {
     background-color: #eee;
     background-repeat: no-repeat;
     background-position: 50%;
   }
-
   .gutter.gutter-horizontal {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==");
     cursor: col-resize;
   }
-
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
   }
-
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #1f2937; /* Gray-800 */
     border-radius: 100vh;
   }
-
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: #4ade80; /* green-400 */
     border-radius: 100vh;
+  }
+
+  .admin-sidebar {
+    background-color: #1a1f2c;
+    border-right: 1px solid #2a2f3c;
+  }
+
+  .bg-admin-card {
+    background-color: red;
+  }
+}
+
+@layer utilities {
+  @keyframes glow {
+    0%,
+    100% {
+      box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 14px 3px rgba(34, 197, 94, 0.7);
+    }
+  }
+}
+
+@layer components {
+  .bg-admin-card {
+    background-color: #2e3440; /* Your desired gray */
+  }
+
+  .text-admin-muted {
+    color: #a1a1aa; /* Tailwind gray-400 or similar */
+  }
+
+  .text-admin-accent {
+    color: #1bf07c; /* Your custom green */
+  }
+
+  .bg-admin-hover:hover {
+    background-color: #2e3440;
+    color: white;
+  }
+
+  .bg-admin-selected {
+    background-color: #2e3440;
+    color: white;
+  }
+
+  .admin-card {
+    background-color: #24292f;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .active-status {
+    color: #00e676;
+  }
+
+  .suspended-status {
+    color: #ff5252;
   }
 }
