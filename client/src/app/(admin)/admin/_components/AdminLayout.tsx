@@ -1,5 +1,7 @@
-import React from 'react';
+"use client"
+import React, { useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
+import { useUserStore } from '@/stores/userStore';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -7,6 +9,14 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
+
+    const user = useUserStore((state) => state.user)
+
+    useEffect(() => {
+        if (!user) return
+    }, [])
+
+
     return (
         <div className="admin-layout flex min-h-screen bg-gray-900 text-white">
             <AdminSidebar />
@@ -17,7 +27,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
                         <h1 className="text-xl md:text-2xl font-bold truncate">{title}</h1>
                         <div className="flex items-center space-x-2 md:space-x-4">
                             <div className="hidden sm:block">
-                                <p className="text-sm text-admin-muted">Good day, Admin</p>
+                                <p className="text-sm text-admin-muted">Good day, {user?.name}</p>
                             </div>
                             <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
                                 <span className="text-sm font-medium">A</span>

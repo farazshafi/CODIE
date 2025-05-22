@@ -1,4 +1,5 @@
 // src/container.ts
+import { AdminController } from './controllers/adminController';
 import { InvitationController } from './controllers/InvitationController';
 import { ProjectController } from './controllers/ProjectController';
 import { RequestController } from './controllers/requestController';
@@ -49,3 +50,4 @@ export const userController = new UserController(userService, otpService, mailSe
 export const requestController = new RequestController(requestService)
 export const roomController = new RoomController(roomService)
 export const invitationController = new InvitationController(invitationService)
+export const adminController = new AdminController(userService)

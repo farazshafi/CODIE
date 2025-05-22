@@ -4,8 +4,12 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Mail, Lock } from 'lucide-react';
-import AnimatedInput from '@/components/ui/AnimatedInput';
 import { Input } from '@/components/ui/input';
+import { loginSchema } from '@/lib/validations/userSchema';
+import { useMutationHook } from '@/hooks/useMutationHook';
+import { loginAdminApi } from '@/apis/adminApi';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/stores/userStore';
 
 interface LoginErrors {
     email?: string;
@@ -13,50 +17,59 @@ interface LoginErrors {
 }
 
 const AdminLogin = () => {
-    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter()
+    const setUser = useUserStore((state) => state.setUser)
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<LoginErrors>({});
 
-    const validateForm = () => {
-        const newErrors: LoginErrors = {};
 
-        if (!email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Email is invalid';
+
+    const { mutate, isLoading, error: errors } = useMutationHook(loginAdminApi, {
+        onSuccess: (data) => {
+            toast.success(data.message || "User Registred succesfully");
+            setUser({
+                name: data.data.name,
+                email: data.data.email,
+                avatar: data.data.avatar,
+                token: data.accessToken,
+                id: data.data.id,
+                isAdmin: data.data.isAdmin,
+            })
+            router.push("/admin/dashboard")
+        },
+
+        onError: (e) => {
+            const errors = e?.response?.data?.errors;
+            let message = "Login failed";
+            if (Array.isArray(errors)) {
+                message = errors.map(err => err.message).join("\n");
+            } else if (e?.response?.data?.message) {
+                message = e.response.data.message;
+            }
+
+            toast.error(message);
         }
+    })
 
-        if (!password) {
-            newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        const result = loginSchema.safeParse({
+            email,
+            password
+        });
 
-        setIsLoading(true);
-
-        try {
-            // Simulating API call with timeout
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // For demonstration only - would be replaced with actual authentication
-            toast.success('Login successful!');
-            console.log('Login attempt:', { email, password });
-
-        } catch (error) {
-            toast.error('Login failed. Please check your credentials.');
-        } finally {
-            setIsLoading(false);
+        if (!result.success) {
+            result.error.errors.forEach(err => {
+                toast.error(err.message);
+            });
+            return;
         }
+
+        mutate({ email, password });
+
     };
 
     return (
@@ -82,13 +95,12 @@ const AdminLogin = () => {
                                 <div className="absolute left-4 top-3.5 text-gray-500">
                                     <Mail size={20} className={cn(
                                         "transition-colors",
-                                        errors.email ? "text-destructive" : (email ? "text-green-500" : "")
+                                        (email ? "text-green-500" : "")
                                     )} />
                                 </div>
                                 <Input
                                     id="email"
                                     placeholder='Email'
-                                    type="email"
                                     className="pl-10 text-white"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -99,7 +111,7 @@ const AdminLogin = () => {
                                 <div className="absolute left-4 top-3.5 text-gray-500">
                                     <Lock size={20} className={cn(
                                         "transition-colors",
-                                        errors.password ? "text-destructive" : (password ? "text-green-500" : "")
+                                        (password ? "text-green-500" : "")
                                     )} />
                                 </div>
                                 <Input

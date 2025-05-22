@@ -1,13 +1,27 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import { LayoutGrid, Users, Settings, Package, BarChart, LogOut, Code2 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../../../public/logo.png"
+import { Button } from '@/components/ui/button';
+import { useUserStore } from '@/stores/userStore';
+import Loading from '@/components/Loading';
 
 const AdminSidebar = () => {
     const currentPath = usePathname()
+    const router = useRouter()
+
+    const logout = useUserStore((state) => state.logout)
+    const [isLoading, setIsLoading] = useState(false)
+
+    const handleLogout = () => {
+        setIsLoading(true);
+        logout();
+        router.push("/admin/login");
+        setIsLoading(false)
+    }
 
     return (
         <div className="admin-sidebar w-16 md:w-64 flex flex-col h-screen fixed left-0">
@@ -43,18 +57,20 @@ const AdminSidebar = () => {
 
             </div>
 
-            {/* 
+
             <div className="p-4 border-t border-gray-700">
-                <Link href="/admin/settings" className="p-3 rounded-md hover:bg-admin-card transition-colors hover:scale-105 transform duration-200 flex items-center">
+                {/* <Link href="/admin/settings" className="p-3 rounded-md hover:bg-admin-card transition-colors hover:scale-105 transform duration-200 flex items-center">
                     <Settings className="h-5 w-5 text-admin-muted" />
                     <span className="ml-3 hidden md:inline text-admin-muted">Settings</span>
-                </Link>
+                </Link> */}
 
-                <Link href="/" className="p-3 rounded-md hover:bg-admin-card transition-colors hover:scale-105 transform duration-200 flex items-center mt-4">
+                <Button onClick={handleLogout} className="p-3 rounded-md hover:bg-admin-card transition-colors hover:scale-105 transform duration-200 flex items-center mt-4 cursor-pointer">
                     <LogOut className="h-5 w-5 text-admin-muted" />
                     <span className="ml-3 hidden md:inline text-admin-muted">Logout</span>
-                </Link>
-            </div> */}
+                </Button>
+            </div>
+
+            {isLoading && <Loading />}
         </div>
     );
 };

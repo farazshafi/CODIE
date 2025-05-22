@@ -9,6 +9,7 @@ import requestRouter from "./routes/requestRouter";
 import cookieParser from "cookie-parser"
 import colors from 'colors';
 import invitationRouter from "./routes/invitationRouter";
+import adminRouter from "./routes/adminRouter";
 
 
 const app = express();
@@ -23,12 +24,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 colors.enable()
 
-// Routes
+// User Routes
 app.use("/api", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/room", roomRouter);
 app.use("/api/request", requestRouter);
 app.use("/api/invitation", invitationRouter);
+
+// Admin Routes
+app.use("/api/admin",adminRouter)
 
 // GraphQL Setup
 setupGraphQl(app);

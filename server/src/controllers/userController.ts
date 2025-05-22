@@ -78,7 +78,8 @@ export class UserController {
                 data: {
                     name: newUser.name,
                     email: newUser.email,
-                    id: newUser._id
+                    id: newUser._id,
+                    isAdmin: newUser.isAdmin
                 },
                 accessToken
             })
@@ -181,7 +182,8 @@ export class UserController {
                     name: userExist.name,
                     email: userExist.email,
                     avatar: userExist.avatarUrl,
-                    id: userExist._id
+                    id: userExist._id,
+                    isAdmin: userExist.isAdmin
                 },
                 accessToken
             })
@@ -234,8 +236,8 @@ export class UserController {
                     name: myUser.name,
                     email: myUser.email,
                     avatar: myUser.avatarUrl,
-                    id: myUser._id
-
+                    id: myUser._id,
+                    isAdmin: myUser.isAdmin
                 },
                 accessToken
             })
@@ -254,7 +256,7 @@ export class UserController {
                 return
             }
 
-            const user = await userService.findUserByEmail(email)
+            const user = await this.userService.findUserByEmail(email)
 
             if (!user) {
                 res.status(401).json({ message: "User not exists" })
@@ -284,8 +286,8 @@ export class UserController {
                     name: user.name,
                     email: user.email,
                     avatar: user.avatarUrl,
-                    id: user._id
-
+                    id: user._id,
+                    isAdmin: user.isAdmin
                 },
                 accessToken
             })

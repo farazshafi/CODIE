@@ -6,7 +6,8 @@ interface User {
     email: string;
     avatar?: string;
     token?: string;
-    id: string
+    id: string;
+    isAdmin: boolean;
 }
 
 interface userState {
