@@ -11,5 +11,10 @@ export interface IUserService {
     findResetToken(tokenHash: string, email: string): Promise<IResetLink>;
     updateUserPassword(email: string, password: string): Promise<void>;
     deleteResetToken(email: string): Promise<void>;
-    searchAllUsers(input: string,userId:string): Promise<IUser[]>;
+    searchAllUsers(input: string, userId: string): Promise<IUser[]>;
+    findUsersWithPagination(filter: any, page: number, limit: number): Promise<IUser[]>;
+    countUsers(filter: any): Promise<number>;
+    findUserById(userId: string): Promise<IUser>;
+    blockUserById(userId: string): Promise<void>;
+    unblockUserById(userId: string): Promise<void>;
 }

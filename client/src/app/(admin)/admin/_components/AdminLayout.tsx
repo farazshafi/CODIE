@@ -2,6 +2,8 @@
 import React, { useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
 import { useUserStore } from '@/stores/userStore';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -11,9 +13,20 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
 
     const user = useUserStore((state) => state.user)
+    const router = useRouter()
+    const logout = useUserStore((state) => state.logout)
 
     useEffect(() => {
-        if (!user) return
+        if (!user) {
+            router.push("/admin/login")
+            return
+        }
+
+        if (user && !user.isAdmin) {
+            logout()
+            toast.warning("You are not allowed")
+            return
+        }
     }, [])
 
 

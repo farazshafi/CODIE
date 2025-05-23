@@ -24,4 +24,17 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
         }
         return this.model.findOneAndUpdate({ email }, updateData, { new: true });
     }
+
+    async findMany(filter: any, skip: number, limit: number): Promise<IUser[]> {
+        return this.model
+            .find(filter)
+            .skip(skip)
+            .limit(limit)
+            .select('name email isBlocked avatarUrl')
+    }
+
+    async count(filter: any): Promise<number> {
+        return this.model.countDocuments(filter);
+    }
+
 }

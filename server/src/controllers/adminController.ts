@@ -65,17 +65,80 @@ export class AdminController {
         }
     }
 
-    searchUsers = async (req: Request, res: Response, next: NextFunction) => {
+    getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { email, userId } = req.body
+            const { page = 1, limit = 10, search = '', status = "all" } = req.query;
 
-            const allUsers = await this.userService.searchAllUsers(email, userId)
-            const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
-            res.status(200).json(userEmails);
+            // Convert to proper types
+            const pageNumber = parseInt(page as string);
+            const pageSize = parseInt(limit as string);
+            const searchQuery = search.toString();
 
+            const filter: any = {
+                isAdmin: false,
+            };
+
+            if (searchQuery) {
+                filter.$or = [
+                    { name: { $regex: searchQuery, $options: "i" } },
+                    { email: { $regex: searchQuery, $options: "i" } }
+                ];
+            }
+
+            if (status === 'active') {
+                filter.isBlocked = false;
+            } else if (status === 'suspended') {
+                filter.isBlocked = true;
+            }
+
+            // Fetch users with pagination
+            const users = await this.userService.findUsersWithPagination(filter, pageNumber, pageSize);
+
+            const totalUsers = await this.userService.countUsers(filter);
+
+            res.status(200).json({
+                message: "Users fetched successfully",
+                data: users.map(user => ({
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    isBlocked: user.isBlocked,
+                    avatarUrl: user.avatarUrl,
+                    bio: user.bio
+                })),
+                pagination: {
+                    total: totalUsers,
+                    page: pageNumber,
+                    limit: pageSize,
+                    totalPages: Math.ceil(totalUsers / pageSize)
+                }
+            });
         } catch (err) {
             next(err)
         }
     }
 
+    updateBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { userId, status } = req.body
+
+            const user = this.userService.findUserById(userId)
+            if (!user) {
+                res.status(404).json({ message: "User not found" })
+                return
+            }
+
+            if (status === "suspend") {
+                await this.userService.blockUserById(userId)
+                res.status(200).json({ message: "User Blocked Successfully" })
+                return
+            } else if (status === "active") {
+                await this.userService.unblockUserById(userId)
+                res.status(200).json({ message: "User Unblocked Successfully" })
+                return
+            }
+        } catch (error) {
+            next(error)
+        }
+    }
 }

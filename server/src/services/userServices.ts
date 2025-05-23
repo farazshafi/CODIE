@@ -1,4 +1,3 @@
-import { optional } from 'zod';
 import ResetLinkModel, { IResetLink } from '../models/resetLinkModel';
 import { IUser } from '../models/userModel';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
@@ -91,6 +90,27 @@ export class UserService implements IUserService {
             console.log("Failed to get all users", error)
             throw new HttpError(500, "Filed to get all users")
         }
+    }
+
+    async findUsersWithPagination(filter: any, page: number, limit: number): Promise<IUser[]> {
+        const skip = (page - 1) * limit;
+        return this.userRepository.findMany(filter, skip, limit);
+    }
+
+    async countUsers(filter: any): Promise<number> {
+        return this.userRepository.count(filter);
+    }
+
+    async findUserById(userId: string): Promise<IUser> {
+        return await this.userRepository.findById(userId)
+    }
+
+    async blockUserById(userId: string): Promise<void> {
+        await this.userRepository.findByIdAndUpdate(userId, { isBlocked: true })
+    }
+
+    async unblockUserById(userId: string): Promise<void> {
+        await this.userRepository.findByIdAndUpdate(userId, { isBlocked: false })
     }
 
 }
