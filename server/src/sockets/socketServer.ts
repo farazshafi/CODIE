@@ -1,4 +1,3 @@
-// src/sockets/socketServer.ts
 import { Server } from 'socket.io';
 import { RoomSocketController } from './controllers/RoomSocketController';
 import { RoomSocketService } from './services/RoomSocketService';
@@ -8,6 +7,8 @@ import { OnlineUserRepository } from './repositories/OnlineUserRepository';
 import { EditorService } from './services/EditorService';
 import { EditorController } from './controllers/EditorController';
 import { JoinProjectData, leaveProjectData, updateRoleData } from '../types/socketType';
+import { UserSocketController } from './controllers/userSocketController';
+import { UserSocketService } from './services/UserSocketService';
 
 export function setupSocket(io: Server) {
     const userSocketRepository = new UserSocketRepository();
@@ -15,12 +16,14 @@ export function setupSocket(io: Server) {
 
     const editorService = new EditorService(onlineUserRepository, roomRepository, projectRepository);
     const editorController = new EditorController(editorService, userRepository);
+    const userSocketService = new UserSocketService(userSocketRepository)
+    const userSocketController = new UserSocketController(userSocketService)
 
     io.on('connection', (socket) => {
         socket.on('register-user', (userId: string) => {
             userSocketRepository.add(userId, socket.id);
-            console.log(`User registered: ${userId}, Socket ID: ${socket.id}`.blue);
-        });
+            console.log(`User registered: ${userId}, Socket ID: ${socket.id}`.blue)
+        })
 
         socket.on('join-project', (data: JoinProjectData) => {
             editorController.handleJoinRoom(data, socket)
@@ -32,6 +35,10 @@ export function setupSocket(io: Server) {
         socket.on('leave-project', (data: leaveProjectData) => {
             editorController.handleLeaveRoom(data, socket)
         });
+
+        socket.on("block-user", (data: { userId: string }) => {
+            userSocketController.handleBlockUser(data.userId, socket)
+        })
 
         socket.on('code-update', (data) => {
             console.log("comming here... ")

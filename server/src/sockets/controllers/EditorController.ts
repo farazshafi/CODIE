@@ -56,7 +56,6 @@ export class EditorController {
     }
 
     async handleUpdateRole(data: updateRoleData, socket: Socket) {
-
         const { userId, role, projectId } = data
 
         const isUserOnline = await this.editorService.isUserOnline(projectId, userId)

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import API from "../lib/axiosInstance";
 
 export const registerUserApi = async (userData: { email: string, name: string, password: string }) => {
@@ -7,6 +8,11 @@ export const registerUserApi = async (userData: { email: string, name: string, p
 
 export const loginUserApi = async (userData: { email: string, password: string }) => {
     const response = await API.post("/login", userData);
+    console.log("request login ", response)
+    if (response.data?.isBlocked) {
+        toast.error("Uer is Blocked")
+        return
+    }
     return response.data;
 }
 
@@ -62,6 +68,10 @@ export const googleAuthRegisterApi = async (userData: { email: string, name: str
 export const googleAuthLoginApi = async (userData: { email: string }) => {
     try {
         const response = await API.post("/google-auth-login", userData);
+        if (response.data?.isBlocked) {
+            toast.error("Uer is Blocked")
+            return
+        }
         return response.data;
     } catch (err) {
         console.log("api error", err);

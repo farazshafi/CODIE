@@ -66,7 +66,16 @@ API.interceptors.response.use(
             }
         }
 
-        return Promise.reject(error);
+        if (error.response?.status === 403) {
+            const message = error.response?.data?.message || "";
+            if (message.toLowerCase().includes("blocked")) {
+                localStorage.removeItem("user-storage");
+                window.location.href = "/login";
+            }
+        }
+
+
+        return Promise.reject(error); 
     }
 );
 

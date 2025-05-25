@@ -153,8 +153,14 @@ export class UserController {
                 return
             }
 
+            if (userExist.isBlocked) {
+                res.status(200).json({ message: "User Blocked", isBlocked: true })
+                return
+            }
+
             if (userExist && userExist?.googleId && userExist?.googleId.length > 1) {
                 res.status(409).json({ message: "This account is accociated with Google , Please try to Login with google instead." });
+                return
             }
 
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
@@ -259,9 +265,15 @@ export class UserController {
             const user = await this.userService.findUserByEmail(email)
 
             if (!user) {
-                res.status(401).json({ message: "User not exists" })
+                res.status(404).json({ message: "User not exists" })
                 return
             }
+
+            if (user.isBlocked) {
+                res.status(200).json({ message: "User is blocked!, Can't access", isBlocked: true })
+                return
+            }
+
 
             if (user && !user.googleId) {
                 res.status(409).json({ message: "An account with this email already exists" })

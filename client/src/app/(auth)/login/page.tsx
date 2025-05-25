@@ -35,13 +35,15 @@ const Page = () => {
 
     const { mutate, isLoading, isSuccess } = useMutationHook(loginUserApi, {
         onSuccess: (data) => {
+            if (data === undefined) return
             toast.success(data.message || "User Registred succesfully");
             setUser({
                 name: data.data.name,
                 email: data.data.email,
                 avatar: data.data.avatar,
                 token: data.accessToken,
-                id: data.data.id
+                id: data.data.id,
+                isAdmin: data.data.isAdmin
             })
             router.push("/dashboard")
         },
@@ -61,14 +63,15 @@ const Page = () => {
 
     const { mutate: googleMutate, isLoading: googleLoading } = useMutationHook(googleAuthLoginApi, {
         onSuccess: (data) => {
+            if (data === undefined) return
             toast.success(data.message || "Google Auth login Success")
             setUser({
                 email: data.data.email,
                 name: data.data.name,
                 token: data.accessToken,
                 avatar: data.data.avatar,
-                id: data.data.id
-
+                id: data.data.id,
+                isAdmin: data.data.isAdmin
             })
             router.push("/dashboard")
         },

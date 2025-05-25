@@ -5,6 +5,8 @@ import { useMutationHook } from './useMutationHook';
 import { allUsersApi, blockUnblockUserApi } from '@/apis/adminApi';
 import { debounce } from 'lodash';
 import { toast } from 'sonner';
+import { useUserStore } from '@/stores/userStore';
+import { useSocket } from '@/context/SocketContext';
 
 export interface IUserData {
   name: string;
@@ -21,6 +23,8 @@ export const useUsersData = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [searchKeyword, _setSearchKeyword] = useState("")
   const usersPerPage = "10";
+  const user = useUserStore((state) => state.user)
+  const { socket, isConnected } = useSocket()
 
   const searchRef = useRef(searchKeyword);
 
@@ -38,7 +42,12 @@ export const useUsersData = () => {
         page: 1,
         status: filterStatus,
       });
-      console.log("variable is : ", variable)
+      if (!user || !socket || !isConnected) {
+        console.log(`Socket not ready or user missing user: ${user}, socket: ${socket}`);
+        return;
+      }
+
+      socket.emit("block-user", { userId: variable.userId })
     }
   })
 

@@ -10,6 +10,7 @@ type DataMessage = {
 export const useLivemessage = () => {
     const { socket } = useSocket()
     const user = useUserStore((state) => state.user)
+    const logout = useUserStore((state) => state.logout)
 
     useEffect(() => {
         if (socket && user) {
@@ -26,6 +27,11 @@ export const useLivemessage = () => {
                 );
             };
 
+            const handleBlockUser = (data: { message: string }) => {
+                toast.warning(data.message)
+                logout()
+            }
+
             // requests
             socket.on("join-approved", handleSuccessMessage);
             socket.on("approve-request", handleSuccessMessage);
@@ -36,6 +42,9 @@ export const useLivemessage = () => {
             socket.on("join-invitation-approved", handleSuccessMessage);
             socket.on("join-invitation-rejected", handleWarningMessage);
             socket.on("recive-invitation", handleSuccessMessage);
+
+            // user block
+            socket.on("user-blocked", handleBlockUser)
 
             // socket.on("invitation-sent", handleSuccessMessage);
 
@@ -50,6 +59,9 @@ export const useLivemessage = () => {
                 socket.off("join-invitation-approved", handleSuccessMessage);
                 socket.off("join-invitation-rejected", handleWarningMessage);
                 socket.off("recive-invitation", handleSuccessMessage);
+
+                // user block
+                socket.off("user-blocked", handleBlockUser)
 
                 // socket.off("invitation-sent", handleSuccessMessage);
             };

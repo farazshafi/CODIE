@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ interface LoginErrors {
 
 const AdminLogin = () => {
     const router = useRouter()
+    const user = useUserStore((state) => state.user)
     const setUser = useUserStore((state) => state.setUser)
 
     const [email, setEmail] = useState('');
@@ -71,6 +72,13 @@ const AdminLogin = () => {
         mutate({ email, password });
 
     };
+
+    useEffect(() => {
+        if (user && user.isAdmin) {
+            router.push("/admin/dashboard")
+            return
+        }
+    }, [user])
 
     return (
         <div className="w-full max-w-md mx-auto">

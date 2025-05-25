@@ -1,6 +1,6 @@
+'use client';
 import React from 'react';
 import { Users, Package, CreditCard, Activity } from 'lucide-react';
-import AdminLayout from '../_components/AdminLayout';
 
 const statsCards = [
     {
@@ -35,7 +35,7 @@ const statsCards = [
 
 const Dashboard = () => {
     return (
-        <AdminLayout title="Dashboard">
+        <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {statsCards.map((card, index) => (
                     <div key={index} className="admin-card p-4">
@@ -78,7 +78,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </>
     );
 };
 
