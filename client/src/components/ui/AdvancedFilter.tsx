@@ -2,11 +2,11 @@
 import { Funnel } from 'lucide-react';
 import React, { useState } from 'react';
 
-interface UserAdvancedFilterProps {
+interface AdvancedFilterProps {
     onFilterChange: (filter: 'all' | 'suspended' | 'active') => void;
 }
 
-const UserAdvancedFilter: React.FC<UserAdvancedFilterProps> = ({ onFilterChange }) => {
+const AdvancedFilter: React.FC<AdvancedFilterProps> = ({ onFilterChange }) => {
     const [showOptions, setShowOptions] = useState(false);
     const [selected, setSelected] = useState<'all' | 'suspended' | 'active'>('all');
 
@@ -52,4 +52,4 @@ const UserAdvancedFilter: React.FC<UserAdvancedFilterProps> = ({ onFilterChange 
     );
 };
 
-export default UserAdvancedFilter;
+export default AdvancedFilter;

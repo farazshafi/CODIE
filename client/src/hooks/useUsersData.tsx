@@ -1,10 +1,8 @@
-// useUsersData.ts
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { useMutationHook } from './useMutationHook';
 import { allUsersApi, blockUnblockUserApi } from '@/apis/adminApi';
 import { debounce } from 'lodash';
-import { toast } from 'sonner';
 import { useUserStore } from '@/stores/userStore';
 import { useSocket } from '@/context/SocketContext';
 
@@ -19,10 +17,10 @@ export interface IUserData {
 export const useUsersData = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'suspended'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState<IUserData[]>([])
   const [totalPages, setTotalPages] = useState(1)
-  const [searchKeyword, _setSearchKeyword] = useState("")
   const usersPerPage = "10";
+  const [searchKeyword, _setSearchKeyword] = useState("")
+  const [users, setUsers] = useState<IUserData[]>([])
   const user = useUserStore((state) => state.user)
   const { socket, isConnected } = useSocket()
 

@@ -49,7 +49,6 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
 
     const { mutate: getContributers } = useMutationHook(getContributersApi, {
         onSuccess(res) {
-            console.log("contributer res: ", res)
             setCollaborators(res.data)
         },
     })

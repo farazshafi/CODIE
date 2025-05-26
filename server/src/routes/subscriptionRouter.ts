@@ -12,6 +12,7 @@ subscriptionRouter.post("/create_subscription", authenticate, isAdmin, validate(
 subscriptionRouter.delete("/delete_subscription/:id", authenticate, isAdmin, subscriptionController.deleteSubscription)
 subscriptionRouter.get("/", subscriptionController.getAllSubscriptions)
 subscriptionRouter.patch("/edit_subscription/:id", authenticate, isAdmin, validate(updateSubscription), subscriptionController.updateSubscription);
+subscriptionRouter.put("/block_unblock/", subscriptionController.blockUnblock);
 
 
 export default subscriptionRouter

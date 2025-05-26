@@ -12,6 +12,5 @@ export class UserSocketController {
         const userSocket = await this.userSocketService.getSocketId(userId)
         if (!userSocket) return
         socket.to(userSocket).emit("user-blocked", { message: "You are Blocked!" })
-        console.log("process completed bloced ".bgYellow)
     }
 }

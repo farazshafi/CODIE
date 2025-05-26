@@ -38,7 +38,6 @@ export class EditorController {
 
     async handleCodeUpdate(data: updateCodeData, client: Socket) {
         const { userId, projectId, code } = data
-        console.log("bernn ind bernn ind".bgBlue)
         const room = await this.editorService.getRoomByProjectId(projectId)
         if (!room) {
             client.emit('error', { message: 'Room not found' });

@@ -1,13 +1,13 @@
 
 import React from 'react';
 
-interface UserPaginationProps {
+interface PaginationProps {
     currentPage: number;
     totalPages: number;
     setCurrentPage: (page: number) => void;
 }
 
-const UserPagination: React.FC<UserPaginationProps> = ({
+const Pagination: React.FC<PaginationProps> = ({
     currentPage,
     totalPages,
     setCurrentPage
@@ -30,4 +30,4 @@ const UserPagination: React.FC<UserPaginationProps> = ({
     );
 };
 
-export default UserPagination;
+export default Pagination;

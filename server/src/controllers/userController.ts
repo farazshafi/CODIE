@@ -324,7 +324,7 @@ export class UserController {
             res.status(200).json({ accessToken });
             return
         } catch (err) {
-            console.log("error from here....", err)
+            console.log("error", err)
             res.status(403).json({ message: "Invalid refresh token" });
         }
     }

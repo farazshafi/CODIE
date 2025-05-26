@@ -49,7 +49,6 @@ export class OnlineUserRepository implements IOnlineUserRepository {
         const key = `room:${projectId}:users`;
 
         const existingUserId = await this.redis.hGet(key, socketId);
-        console.log("user id getting", existingUserId)
 
         if (existingUserId === userId) {
             await this.redis.hDel(key, socketId);

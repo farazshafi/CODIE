@@ -72,4 +72,31 @@ export class SubscriptionService implements ISubscriptionService {
             throw new HttpError(500, "Error while updating subscription");
         }
     }
+
+    async findById(id: string): Promise<ISubscription | null> {
+        return this.subscriptionRepository.findById(id);
+    }
+
+    async blockSubscription(id: string): Promise<void> {
+        await this.subscriptionRepository.findByIdAndUpdate(id, { isVisible: false })
+    }
+
+    async unblockSubscription(id: string): Promise<void> {
+        await this.subscriptionRepository.findByIdAndUpdate(id, { isVisible: true })
+    }
+
+    async findSubscriptionsWithPagination(filter: any, page: number, limit: number): Promise<ISubscription[]> {
+        const skip = (page - 1) * limit;
+        return this.subscriptionRepository.findMany(filter, skip, limit);
+    }
+
+    async countSubscription(filter: any): Promise<number> {
+        try {
+            return this.subscriptionRepository.count(filter);
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Error while counting subscriptions");
+        }
+    }
+
 }

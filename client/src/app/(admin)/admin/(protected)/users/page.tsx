@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
 import { useUsersData } from '@/hooks/useUsersData';
-import UserSearchBar from './_components/UserSearchBar';
 import UsersTable from './_components/UserTable';
-import UserPagination from './_components/UserPagination';
-import UserAdvancedFilter from '../../_components/UserAdvancedFilter';
+import Pagination from '@/components/ui/Pagination';
+import AdvancedFilter from '../../../../../components/ui/AdvancedFilter';
+import SearchBar from '../../../../../components/ui/SearchBar';
 
 const Users = () => {
     const {
@@ -23,8 +23,8 @@ const Users = () => {
                 <p className="text-admin-muted text-sm">Showing {currentUsers.length} result{currentUsers.length !== 1 && 's'}</p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
-                    <UserSearchBar onSearch={setSearchKeyword} />
-                    <UserAdvancedFilter onFilterChange={setFilterStatus} />
+                    <SearchBar onSearch={setSearchKeyword} />
+                    <AdvancedFilter onFilterChange={setFilterStatus} />
                 </div>
             </div>
 
@@ -38,7 +38,7 @@ const Users = () => {
             )}
 
             {/* Pagination */}
-            <UserPagination
+            <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 setCurrentPage={setCurrentPage}

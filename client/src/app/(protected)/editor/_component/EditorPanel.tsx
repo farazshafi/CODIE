@@ -75,7 +75,6 @@ const EditorPanel = () => {
     if (id && userId && roomId) {
       checkPermission({ projectId: id, userId, roomId });
     }
-    console.log("yella data kittunialla bro")
   }, [id, userId, roomId]);
 
 

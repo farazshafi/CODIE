@@ -8,7 +8,6 @@ export const registerUserApi = async (userData: { email: string, name: string, p
 
 export const loginUserApi = async (userData: { email: string, password: string }) => {
     const response = await API.post("/login", userData);
-    console.log("request login ", response)
     if (response.data?.isBlocked) {
         toast.error("Uer is Blocked")
         return

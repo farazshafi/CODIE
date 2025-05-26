@@ -41,7 +41,6 @@ export function setupSocket(io: Server) {
         })
 
         socket.on('code-update', (data) => {
-            console.log("comming here... ")
             editorController.handleCodeUpdate(data, socket);
         });
 

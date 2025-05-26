@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { LayoutGrid, Users, Settings, Package, BarChart, LogOut, Code2 } from 'lucide-react';
+import { LayoutGrid, Users, Settings, Package, BarChart, LogOut, Code2, Banknote } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -53,6 +53,15 @@ const AdminSidebar = () => {
                 >
                     <Users className={`h-5 w-5 ${currentPath === '/admin/users' ? 'text-admin-accent' : 'text-admin-muted'}`} />
                     <span className="ml-3 hidden md:inline">Users</span>
+                </Link>
+
+                <Link
+                    href="/admin/subscription"
+                    className={`p-3 rounded-md transition-colors hover:scale-105 transform duration-200 flex items-center 
+    ${currentPath === '/admin/subscription' ? 'bg-admin-selected' : 'text-admin-muted hover:bg-admin-card hover:text-white'}`}
+                >
+                    <Banknote className={`h-5 w-5 ${currentPath === '/admin/subscription' ? 'text-admin-accent' : 'text-admin-muted'}`} />
+                    <span className="ml-3 hidden md:inline">Subscription</span>
                 </Link>
 
             </div>
