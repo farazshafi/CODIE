@@ -1,4 +1,5 @@
 import { Document, FilterQuery } from 'mongoose';
+import { DeepPartial } from '../../types/SubscriptionType';
 
 interface ModelUpdateOptions {
     new?: boolean;
@@ -8,7 +9,7 @@ interface ModelUpdateOptions {
 
 export interface IBaseRepository<T extends Document> {
     create(item: Partial<T>): Promise<T>;
-    update(id: string, item: Partial<T>, options?: ModelUpdateOptions): Promise<T | null>;
+    update(id: string, data: DeepPartial<T>): Promise<T>;
     delete(id: string): Promise<boolean>;
     findById(id: string): Promise<T | null>;
     findAll(): Promise<T[]>;
