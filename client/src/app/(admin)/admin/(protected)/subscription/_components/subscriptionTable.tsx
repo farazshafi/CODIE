@@ -1,7 +1,7 @@
 import React from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { CircleEllipsis, Trash2 } from 'lucide-react';
+import { CircleEllipsis, Pencil, Trash2 } from 'lucide-react';
 import { CreateSubscriptionInput } from '@/lib/validations/subscriptionValidation';
 import { useSubscriptionData } from '../_hook/useSubscriptionData';
 
@@ -10,9 +10,10 @@ interface SubscriptionTableProps {
     subscriptions: CreateSubscriptionInput[];
     handleSuspendActive(id: string, status: "suspend" | "active"): void;
     handleDeleteSubscription(id: string): void;
+    opneModal(data: CreateSubscriptionInput): void;
 }
 
-const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, handleSuspendActive, handleDeleteSubscription }) => {
+const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, handleSuspendActive, handleDeleteSubscription, opneModal }) => {
 
 
     return (
@@ -60,6 +61,9 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, ha
                                         <DropdownMenuItem onSelect={() => handleSuspendActive(item._id as string, "suspend")} className='flex flex-row items-center' disabled={!item.isVisible}>
                                             <div className='rounded-full w-2 h-2 bg-red-500'></div>
                                             Suspend</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => opneModal(item)} className='flex flex-row items-center'>
+                                            <Pencil />
+                                            Edit</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleDeleteSubscription(item._id as string)} className='flex flex-row items-center'>
                                             <Trash2 />
                                             Delete</DropdownMenuItem>

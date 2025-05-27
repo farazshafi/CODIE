@@ -38,6 +38,7 @@ export const useSubscriptionData = () => {
 
     const { mutate: deleteSubscription } = useMutationHook(deleteSubcriptionApi, {
         onSuccess(response) {
+            toast.success(response.message || "Subscription deleted successfully");
             fetchAllSubscriptions()
         },
         onError(erro) {

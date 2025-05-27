@@ -7,11 +7,12 @@ import AdvancedFilter from '@/components/ui/AdvancedFilter';
 import SearchBar from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import CreateSubscriptionModal from './_components/CreateSubscriptionModal';
+import CreateSubscriptionModal, { CreateSubscriptionType } from './_components/CreateSubscriptionModal';
 
 const page = () => {
     const [openModal, setOpenModal] = useState(false);
     const { subscriptions, fetchAllSubscriptions, handleSuspendActive, setCurrentPage, totalPages, currentPage, setFilterStatus, setSearchInput, handleDeleteSubscription } = useSubscriptionData()
+    const [editData, setEditData] = useState<CreateSubscriptionType & { id: string } | null>(null);
 
 
     return (
@@ -23,7 +24,16 @@ const page = () => {
                 Create Subscription
             </Button>
 
-            <CreateSubscriptionModal isOpen={openModal} onClose={() => setOpenModal(false)} onCreate={fetchAllSubscriptions} />
+            <CreateSubscriptionModal
+                key={editData ? editData.id : 'create'}
+                isOpen={openModal}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditData(null);
+                }}
+                onCreate={fetchAllSubscriptions}
+                editData={editData}
+            />
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <p className="text-admin-muted text-sm">Showing {subscriptions.length} result{subscriptions.length !== 1 && 's'}</p>
@@ -36,7 +46,10 @@ const page = () => {
 
             {/* Subscription table */}
             {subscriptions.length > 0 ? (
-                <SubscriptionTable handleSuspendActive={handleSuspendActive} subscriptions={subscriptions} handleDeleteSubscription={handleDeleteSubscription} />
+                <SubscriptionTable opneModal={(data) => {
+                    setEditData(data);
+                    setOpenModal(true);
+                }} handleSuspendActive={handleSuspendActive} subscriptions={subscriptions} handleDeleteSubscription={handleDeleteSubscription} />
             ) : (
                 <div className="text-center text-gray-500">
                     <p>No Subscription Found</p>

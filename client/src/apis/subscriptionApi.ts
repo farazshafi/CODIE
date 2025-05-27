@@ -43,3 +43,13 @@ export const createSubscriptionApi = async (data: CreateSubscriptionInput) => {
         throw err;
     }
 }
+
+export const editSubscriptionApi = async ({ id, data }: { id: string; data: CreateSubscriptionInput }) => {
+    try {
+        const response = await API.patch(`${API_BASE_URL}/edit_subscription/${id}`, data);
+        return response.data;
+    } catch (err) {
+        console.log("Error while editing subscription", err);
+        throw err;
+    }
+}
