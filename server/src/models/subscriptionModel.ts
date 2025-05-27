@@ -1,23 +1,4 @@
-// const SubscriptionPlan = {
-//   name: String, // 'Free', 'Pro', 'Team', 'Enterprise'
-//   pricePerMonth: Number, // in USD
-//   maxPrivateProjects: Number, 
-//   maxCollaborators: Number,
-//   chatSupport: {
-//     text: Boolean,
-//     voice: Boolean,
-//   },
-//   aiFeatures: {
-//     codeSuggestion: Boolean,
-//     codeExplanation: Boolean,
-//   },
-//   limits: {
-//     codeExecutionsPerDay: Number, // null or -1 for unlimited
-//   },
-// }
-
 import mongoose, { Document, Schema } from "mongoose";
-
 
 export interface ISubscriptionBase {
     name: string;

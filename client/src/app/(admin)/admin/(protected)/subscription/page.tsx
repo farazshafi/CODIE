@@ -1,18 +1,30 @@
 "use client";
-import React from 'react'
+import React, { useState } from 'react'
 import { useSubscriptionData } from './_hook/useSubscriptionData'
 import SubscriptionTable from './_components/subscriptionTable';
 import Pagination from '@/components/ui/Pagination';
 import AdvancedFilter from '@/components/ui/AdvancedFilter';
 import SearchBar from '@/components/ui/SearchBar';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import CreateSubscriptionModal from './_components/CreateSubscriptionModal';
 
 const page = () => {
-
-    const { subscriptions, handleSuspendActive, setCurrentPage, totalPages, currentPage, setFilterStatus, setSearchInput } = useSubscriptionData()
+    const [openModal, setOpenModal] = useState(false);
+    const { subscriptions, fetchAllSubscriptions, handleSuspendActive, setCurrentPage, totalPages, currentPage, setFilterStatus, setSearchInput, handleDeleteSubscription } = useSubscriptionData()
 
 
     return (
         <div className="admin-card p-4">
+            <Button
+                onClick={() => setOpenModal(true)}
+                className='bg-white text-black mb-4 hover:bg-gray-300 cursor-pointer' size={'lg'}>
+                <Plus />
+                Create Subscription
+            </Button>
+
+            <CreateSubscriptionModal isOpen={openModal} onClose={() => setOpenModal(false)} onCreate={fetchAllSubscriptions} />
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <p className="text-admin-muted text-sm">Showing {subscriptions.length} result{subscriptions.length !== 1 && 's'}</p>
 
@@ -24,7 +36,7 @@ const page = () => {
 
             {/* Subscription table */}
             {subscriptions.length > 0 ? (
-                <SubscriptionTable handleSuspendActive={handleSuspendActive} subscriptions={subscriptions} />
+                <SubscriptionTable handleSuspendActive={handleSuspendActive} subscriptions={subscriptions} handleDeleteSubscription={handleDeleteSubscription} />
             ) : (
                 <div className="text-center text-gray-500">
                     <p>No Subscription Found</p>

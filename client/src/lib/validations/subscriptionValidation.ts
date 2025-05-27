@@ -22,7 +22,7 @@ export const createSubscription = z.object({
         codeExecutionsPerDay: z.number().int(),
     }),
 
-    isVisible: z.boolean().default(true),
+    isVisible: z.boolean().default(true).optional(),
 });
 
 export const updateSubscription = createSubscription.partial();

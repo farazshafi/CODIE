@@ -1,11 +1,9 @@
 "use client";
-import { blockUnblockSubscribeApi, getAllSubscriptionApi } from "@/apis/subscriptionApi"
+import { blockUnblockSubscribeApi, deleteSubcriptionApi, getAllSubscriptionApi } from "@/apis/subscriptionApi"
 import { useMutationHook } from "@/hooks/useMutationHook"
 import { CreateSubscriptionInput } from "@/lib/validations/subscriptionValidation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-
 
 export const useSubscriptionData = () => {
     const [subscriptions, setSubscriptions] = useState<CreateSubscriptionInput[]>([]);
@@ -38,6 +36,15 @@ export const useSubscriptionData = () => {
         }
     })
 
+    const { mutate: deleteSubscription } = useMutationHook(deleteSubcriptionApi, {
+        onSuccess(response) {
+            fetchAllSubscriptions()
+        },
+        onError(erro) {
+            toast.error(`Error fetching subscriptions: ${erro.message || "Unknown error"}`);
+        }
+    })
+
 
     // functions
     const fetchAllSubscriptions = () => {
@@ -51,6 +58,10 @@ export const useSubscriptionData = () => {
 
     const handleSuspendActive = (id: string, status: string) => {
         updateBlockStatus({ id, status })
+    }
+
+    const handleDeleteSubscription = (id: string) => {
+        deleteSubscription(id)
     }
 
     //useeffect
@@ -74,6 +85,7 @@ export const useSubscriptionData = () => {
         setCurrentPage,
         currentPage,
         setFilterStatus,
-        setSearchInput
+        setSearchInput,
+        handleDeleteSubscription
     }
 }

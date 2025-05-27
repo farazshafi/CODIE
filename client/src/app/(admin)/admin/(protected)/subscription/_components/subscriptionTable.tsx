@@ -1,16 +1,20 @@
 import React from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { CircleEllipsis } from 'lucide-react';
+import { CircleEllipsis, Trash2 } from 'lucide-react';
 import { CreateSubscriptionInput } from '@/lib/validations/subscriptionValidation';
+import { useSubscriptionData } from '../_hook/useSubscriptionData';
 
 
 interface SubscriptionTableProps {
     subscriptions: CreateSubscriptionInput[];
     handleSuspendActive(id: string, status: "suspend" | "active"): void;
+    handleDeleteSubscription(id: string): void;
 }
 
-const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, handleSuspendActive }) => {
+const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, handleSuspendActive, handleDeleteSubscription }) => {
+
+
     return (
         <div className="overflow-x-auto">
             <table className="w-full">
@@ -26,7 +30,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, ha
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                    {subscriptions.map((item) => (
+                    {subscriptions.map((item: CreateSubscriptionInput) => (
                         <tr key={item._id} className="text-sm">
                             <td className="py-3">{item._id}</td>
                             <td className="py-3">{item.maxCollaborators}</td>
@@ -56,6 +60,9 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, ha
                                         <DropdownMenuItem onSelect={() => handleSuspendActive(item._id as string, "suspend")} className='flex flex-row items-center' disabled={!item.isVisible}>
                                             <div className='rounded-full w-2 h-2 bg-red-500'></div>
                                             Suspend</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleDeleteSubscription(item._id as string)} className='flex flex-row items-center'>
+                                            <Trash2 />
+                                            Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </td>
