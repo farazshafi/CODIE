@@ -1,6 +1,7 @@
 // src/container.ts
 import { AdminController } from './controllers/adminController';
 import { InvitationController } from './controllers/InvitationController';
+import { MessageController } from './controllers/MessageController';
 import { ProjectController } from './controllers/ProjectController';
 import { RequestController } from './controllers/requestController';
 import { RoomController } from './controllers/roomController';
@@ -8,6 +9,7 @@ import { SubscriptionController } from './controllers/subscriptionController';
 import { UserController } from './controllers/userController';
 
 import InvitationModel from './models/InvitationModel';
+import { MessageModel } from './models/messageModel';
 
 import OtpModel from './models/otpModel';
 import ProjectModel from './models/projectModel';
@@ -16,6 +18,7 @@ import RoomModel from './models/roomModel';
 import SubscriptionModel from './models/subscriptionModel';
 import UserModel from './models/userModel';
 import { InvitationRepository } from './repositories/invitationRepository';
+import { MessageRepository } from './repositories/MessageRepository';
 import { OtpRepository } from './repositories/otpRepositories';
 import { ProjectRepository } from './repositories/projectRepositories';
 import { RequestRepositories } from './repositories/requestRepositories';
@@ -24,6 +27,7 @@ import { SubscriptionRepository } from './repositories/subscriptionRepository';
 import { UserRepository } from './repositories/userRepositories';
 import { InvitationService } from './services/InvitationService';
 import { MailService } from './services/mailServices';
+import { MessageService } from './services/MessageService';
 import { OtpService } from './services/otpServices';
 import { ProjectService } from './services/projectServices';
 import { RequestService } from './services/requestServices';
@@ -39,6 +43,7 @@ export const otpRepository = new OtpRepository(OtpModel)
 export const roomRepository = new RoomRepositories(RoomModel)
 export const invitationRepository = new InvitationRepository(InvitationModel)
 export const subscriptionRepository = new SubscriptionRepository(SubscriptionModel)
+export const messageRepository = new MessageRepository(MessageModel)
 
 // Set up services
 export const projectService = new ProjectService(projectRepository);
@@ -49,6 +54,7 @@ export const otpService = new OtpService(otpRepository, mailService)
 export const roomService = new RoomServices(roomRepository, projectRepository)
 export const invitationService = new InvitationService(invitationRepository, mailService, userRepository)
 export const subscriptionService = new SubscriptionService(subscriptionRepository)
+export const messageService = new MessageService(messageRepository)
 
 // Set up controller
 export const projectController = new ProjectController(projectService)
@@ -58,3 +64,4 @@ export const roomController = new RoomController(roomService)
 export const invitationController = new InvitationController(invitationService)
 export const adminController = new AdminController(userService)
 export const subscriptionController = new SubscriptionController(subscriptionService)
+export const messageController = new MessageController(messageService)

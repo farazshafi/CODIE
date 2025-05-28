@@ -37,6 +37,7 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
     const user = useUserStore((state) => state.user)
     const { socket } = useSocket()
     const roomId = useEditorStore((state) => state.roomId)
+    const setUserRole = useEditorStore((state) => state.setUserRole)
 
 
     const [collaborators, setCollaborators] = useState<Collaborator[]>([])
@@ -50,6 +51,10 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
     const { mutate: getContributers } = useMutationHook(getContributersApi, {
         onSuccess(res) {
             setCollaborators(res.data)
+            const me = res.data.find(u => u.user._id === user?.id)
+            if (me) {
+                setUserRole(me.role)
+            }
         },
     })
     const { mutate: updateRole, isLoading: isRoleLoading } = useMutationHook(updateCollabratorRoleApi, {

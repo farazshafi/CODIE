@@ -27,6 +27,10 @@ export interface ApproveInvitationResult {
     reciverName?: string;
 }
 
+export interface ISentMessage {
+    roomId: string; senderId: string; senderName: string; content: string; senderRole: "owner" | "editor" | "viewer", projectId: string
+}
+
 // project socket 
 
 export interface JoinProjectData { projectId: string, userId: string }
@@ -35,7 +39,7 @@ export interface leaveProjectData { projectId: string, userId: string, userName:
 
 export interface updateCodeData { projectId: string, code: string, userId: string }
 
-export interface updateRoleData { userId: string, role: "viewer" | "editor", projectId:string }
+export interface updateRoleData { userId: string, role: "viewer" | "editor", projectId: string }
 
 export interface ProjectServiceResult {
     success: boolean;

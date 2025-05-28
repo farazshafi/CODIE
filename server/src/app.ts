@@ -11,6 +11,7 @@ import colors from 'colors';
 import invitationRouter from "./routes/invitationRouter";
 import adminRouter from "./routes/adminRouter";
 import subscriptionRouter from "./routes/subscriptionRouter";
+import messageRouter from "./routes/messageRouter";
 
 
 const app = express();
@@ -29,6 +30,7 @@ colors.enable()
 app.use("/api", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/room", roomRouter);
+app.use("/api/message", messageRouter);
 app.use("/api/request", requestRouter);
 app.use("/api/invitation", invitationRouter);
 app.use("/api/subscription", subscriptionRouter)

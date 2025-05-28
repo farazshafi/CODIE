@@ -1,14 +1,15 @@
 import { Server } from 'socket.io';
 import { RoomSocketController } from './controllers/RoomSocketController';
 import { RoomSocketService } from './services/RoomSocketService';
-import { invitationRepository, mailService, projectRepository, requestRepository, requestService, roomRepository, userRepository } from '../container';
+import { invitationRepository, mailService, messageService, projectRepository, requestRepository, requestService, roomRepository, userRepository } from '../container';
 import { UserSocketRepository } from './repositories/UserSocketRepository';
 import { OnlineUserRepository } from './repositories/OnlineUserRepository';
 import { EditorService } from './services/EditorService';
 import { EditorController } from './controllers/EditorController';
-import { JoinProjectData, leaveProjectData, updateRoleData } from '../types/socketType';
+import { ISentMessage, JoinProjectData, leaveProjectData, updateRoleData } from '../types/socketType';
 import { UserSocketController } from './controllers/userSocketController';
 import { UserSocketService } from './services/UserSocketService';
+import { MessageSocketController } from './controllers/MessageSocketController';
 
 export function setupSocket(io: Server) {
     const userSocketRepository = new UserSocketRepository();
@@ -18,6 +19,7 @@ export function setupSocket(io: Server) {
     const editorController = new EditorController(editorService, userRepository);
     const userSocketService = new UserSocketService(userSocketRepository)
     const userSocketController = new UserSocketController(userSocketService)
+    const messageSocketController = new MessageSocketController(messageService)
 
     io.on('connection', (socket) => {
         socket.on('register-user', (userId: string) => {
@@ -27,9 +29,12 @@ export function setupSocket(io: Server) {
 
         socket.on('join-project', (data: JoinProjectData) => {
             editorController.handleJoinRoom(data, socket)
-
             socket.data.projectId = data.projectId;
             socket.data.userId = data.userId;
+        })
+
+        socket.on("send-message", (data: ISentMessage) => {
+            messageSocketController.saveMessage(data,socket)
         })
 
         socket.on('leave-project', (data: leaveProjectData) => {

@@ -12,6 +12,8 @@ import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
 import { LANGUAGE_CONFIG } from "../_constants"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
+import ChatArea from "../_component/ChatArea"
+import { useUserStore } from "@/stores/userStore"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
@@ -20,8 +22,7 @@ const Page = () => {
     const [copyLoading, setCopyLoading] = useState(false)
     const { id } = useParams()
     const setProjectId = useEditorStore((state) => state.setProjectId)
-
-
+    const userRole = useEditorStore((state) => state.userRole)
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
 
 
@@ -223,37 +224,8 @@ const Page = () => {
 
                         {/* RIGHT SIDE (Either Chat or Output) */}
                         <div className="h-full w-full overflow-hidden">
-                            {showChat ? (
-                                <div className="bg-tertiary text-center overflow-auto py-5 flex flex-col justify-between gap-y-5  h-full px-5">
-                                    <p className="text-white text-center text-3xl font-semibold">Chat With Collabrators</p>
-                                    <div className=" h-[500px] w-full bg-primary rounded-lg px-5 py-3 ">
-                                        <div className="h-[80%] w-full flex flex-col gap-y-5 relative">
-                                            {/* Left side message */}
-                                            <div className="self-start bg-white rounded px-4 py-2 text-black max-w-[80%] w-fit text-left">
-                                                <p>Hi Faraz, can you create a function that finds prime numbers?</p>
-                                            </div>
-
-                                            {/* Right side message */}
-                                            <div className="self-end bg-tertiary rounded px-4 py-2 text-white max-w-[80%] w-fit text-right">
-                                                <p>I am okay with that sir, can you send an example?</p>
-                                            </div>
-                                        </div>
-
-
-                                        <div className="h-fit gap-x-3 w-full px-5 py-3 bg-white flex flex-row justify-between items-center rounded-md">
-                                            <SmilePlus />
-                                            <Input placeholder="Message..." />
-                                            <div className="flex flex-row gap-x-5 item-center">
-                                                <div className="bg-green px-3 py-2 rounded-md">
-                                                    <Mic />
-                                                </div>
-                                                <div className="bg-primary text-white px-3 py-2 rounded-md">
-                                                    <Send />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            {showChat && userRole ? (
+                                <ChatArea userRole={userRole} />
                             ) : (
                                 <div className="bg-slate-800 h-screen flex flex-col">
                                     <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
