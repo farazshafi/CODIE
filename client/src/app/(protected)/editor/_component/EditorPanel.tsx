@@ -23,7 +23,7 @@ const EditorPanel = () => {
   const roomId = useEditorStore((state) => state.roomId)
   const { isProgrammaticChange } = useEditor(id as string)
   const { language, theme, fontSize, editor, setFontSize, setEditor } = useCodeEditorStore();
-  const [isReadOnly, setIsReadOnly] = useState(true);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   const { mutate } = useMutationHook(saveCodeApi)
   const { mutate: checkPermission, isLoading } = useMutationHook(checkIsEligibleToEditApi, {

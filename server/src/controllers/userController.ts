@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express"
 import { GoogleAuthInput, LoginInput, UserInput } from "../validation/userValidation"
-import { userService } from "../container"
 import redis from "../config/redis"
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
