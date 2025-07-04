@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Menu,
     X,
@@ -37,7 +37,11 @@ import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
 import InvitationModal from "./InvitationModal";
 import { useEditorStore } from "@/stores/editorStore";
-
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 type SearchResultUser = {
     name: string;
@@ -66,6 +70,12 @@ const Header = ({
     const [showInvitationModal, setShowInvitationModal] = useState(false)
     const [ownerId, setOwnerId] = useState("")
     const [collabVersion, setCollabVersion] = useState(0);
+    const [copyMessage, setCopyMessage] = useState("")
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+
 
     const roomId = useEditorStore((state) => state.roomId)
     const setRoomId = useEditorStore((state) => state.setRoomId)
@@ -120,6 +130,39 @@ const Header = ({
     }
 
 
+    const copyRoomId = async () => {
+        if (!roomId) return;
+
+        try {
+            await navigator.clipboard.writeText(roomId);
+            setCopyMessage("Copied!");
+        } catch {
+            setCopyMessage("Failed to copy!");
+        }
+
+        setTooltipOpen(false);
+        setTimeout(() => {
+            setTooltipOpen(true);
+        }, 0);
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            setCopyMessage("Click to copy");
+            setTooltipOpen(false);
+        }, 2000);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
     useEffect(() => {
         getRoomByProjectId(id)
     }, [isWantToCollab, collabVersion])
@@ -163,10 +206,22 @@ const Header = ({
                             <p>
                                 RoomId:
                                 {roomId && (
-                                    <span className="ml-2 px-2 hover:text-green-500 font-bold py-1 bg-white text-black rounded-md">
-                                        #{roomId}
-                                    </span>
+                                    <Tooltip open={tooltipOpen}>
+                                        <TooltipTrigger asChild>
+                                            <span
+                                                onClick={copyRoomId}
+                                                className="ml-2 px-2 cursor-pointer hover:text-green-500 font-bold py-1 bg-white text-black rounded-md"
+                                            >
+                                                #{roomId}
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{copyMessage}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+
                                 )}
+
                             </p>
                         </div>
                     </div>
