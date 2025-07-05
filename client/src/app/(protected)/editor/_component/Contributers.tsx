@@ -86,9 +86,17 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
         }
 
         socket.on("updated-role", handleUpdateRole)
+        socket.on("contributors-updated", () => {
+            toast.success("new Contributer Accepted")
+            getContributers(projectId as string)
+        });
 
         return () => {
             socket.off("updated-role", handleUpdateRole)
+            socket.off("contributors-updated", () => {
+                toast.success("New Contributer Accepted")
+                getContributers(projectId as string)
+            });
         }
     }, [socket, projectId])
 

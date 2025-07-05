@@ -129,7 +129,7 @@ export class RoomSocketService implements IRoomSocketService {
         }
 
         const updatedRoom = await this.invitationRepository.updateStatus(invitation._id as string, "accepted")
-
+        const projectId = await (await this.roomRepository.getProjectIdByRoomId(invitation.roomId)).projectId.toString()
         if (!updatedRoom) {
             return { success: false, error: "Failed to update room." };
         }
@@ -139,6 +139,7 @@ export class RoomSocketService implements IRoomSocketService {
             senderId,
             roomId: invitation.roomId,
             reciverName,
+            projectId: projectId
         };
     }
 

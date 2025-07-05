@@ -71,4 +71,7 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
         return result.deletedCount > 0;
     }
 
+    async getProjectIdByRoomId(roomId: string): Promise<IRoom> {
+        return (await Room.findOne({ roomId }))
+    }
 }

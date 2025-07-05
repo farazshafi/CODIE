@@ -25,6 +25,7 @@ export interface ApproveInvitationResult {
     senderId?: string;
     roomId?: string;
     reciverName?: string;
+    projectId?: string
 }
 
 export interface ISentMessage {

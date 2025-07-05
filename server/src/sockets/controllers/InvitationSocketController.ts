@@ -9,19 +9,18 @@ export class InvitationSocketController {
         private readonly userSocketRepository: IUserSocketRepository,
     ) { }
 
-    async handleApproveInvitation(data: { invitationId: string, roomId: string }, socket: Socket) {
+    async handleApproveInvitation(data: { invitationId: string, roomId: string, projectId: string }, socket: Socket) {
         try {
             const userId = this.userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
             const result = await this.roomSocketService.handleApproveInvitation(data)
-
+            console.log("result: ".bgYellow, result)
             if (result.error) {
                 return socket.emit("error", result.error);
             }
 
             if (result.senderId) {
-                console.log(`Result fo invitaiotn: ${JSON.stringify(result)}`.bgYellow)
                 const userSocketId = this.userSocketRepository.getSocketId(result.senderId);
                 if (userSocketId && result.reciverName) {
                     // Notify sender that invitation was accepted
@@ -45,6 +44,12 @@ export class InvitationSocketController {
 
                 socket.emit("invitation-accepted-success", {
                     message: "You have successfully joined the room.",
+                    roomId: result.roomId
+                });
+
+                // Notify all room members to update contributors list
+                socket.to(result.projectId).emit("contributors-updated", {
+                    message: "A new member has joined the room.",
                     roomId: result.roomId
                 });
             }
