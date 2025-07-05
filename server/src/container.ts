@@ -46,7 +46,7 @@ export const subscriptionRepository = new SubscriptionRepository(SubscriptionMod
 export const messageRepository = new MessageRepository(MessageModel)
 
 // Set up services
-export const projectService = new ProjectService(projectRepository);
+export const projectService = new ProjectService(projectRepository,roomRepository);
 export const userService = new UserService(userRepository)
 export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()

@@ -65,4 +65,10 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
             return collaborator.role
         }
     }
+
+    async findRoomByProjIdAndDlt(projectId: string): Promise<boolean> {
+        const result = await Room.deleteOne({ projectId });
+        return result.deletedCount > 0;
+    }
+
 }

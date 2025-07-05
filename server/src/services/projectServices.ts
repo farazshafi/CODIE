@@ -4,9 +4,13 @@ import { CreateProjectType } from '../types/projectType';
 import { HttpError } from '../utils/HttpError';
 import { IProjectService } from './interface/IProjectService';
 import { IProject } from '../models/projectModel';
+import { IRoomRepository } from '../repositories/interface/IRoomRepository';
 
 export class ProjectService implements IProjectService {
-    constructor(private readonly projectRepository: IProjectRepository) { }
+    constructor(
+        private readonly projectRepository: IProjectRepository,
+        private readonly roomRepository: IRoomRepository
+    ) { }
 
     async createProject(data: CreateProjectType): Promise<IProject> {
         try {
@@ -85,6 +89,11 @@ export class ProjectService implements IProjectService {
         if (!isDeleted) {
             throw new HttpError(404, "Project not found or already deleted.");
         }
+        const completed = await this.roomRepository.findRoomByProjIdAndDlt(projectId)
+        if (!completed) {
+            throw new HttpError(404, "room not found or already deleted.");
+        }
+
         return { message: "Project deleted successfully." };
     }
 
