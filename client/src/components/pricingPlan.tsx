@@ -2,13 +2,14 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface PricingPlanProps {
     title: string;
     price: string;
     period?: string;
     features: string[];
+    notAvailable: string[];
     buttonText: string;
     buttonLink: string;
     popular?: boolean;
@@ -20,6 +21,7 @@ const PricingPlan = ({
     period,
     features,
     buttonText,
+    notAvailable,
     buttonLink,
     popular = false,
 }: PricingPlanProps) => {
@@ -43,13 +45,24 @@ const PricingPlan = ({
                     </div>
                 </div>
 
-                <ul className="mb-8 flex-grow">
+                <ul className="flex-grow">
                     {features.map((feature, index) => (
                         <li key={index} className="flex items-start mb-4">
                             <span className="mr-2 mt-1 text-green-400">
                                 <Check size={16} />
                             </span>
                             <span className="text-gray-300">{feature}</span>
+                        </li>
+                    ))}
+                </ul>
+
+                <ul className="mb-8 flex-grow">
+                    {notAvailable.map((item, index) => (
+                        <li key={index} className="flex items-start mb-4">
+                            <span className="mr-2 mt-1 text-red-500">
+                                <X size={16} />
+                            </span>
+                            <span className="text-gray-300">{item}</span>
                         </li>
                     ))}
                 </ul>

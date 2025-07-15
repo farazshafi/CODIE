@@ -30,7 +30,7 @@ export class SubscriptionController {
 
     getAllSubscriptions = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { page = 1, limit = 10, search = '', status = "all" } = req.query;
+            const { page = 1, limit = 5, search = '', status = "all" } = req.query;
 
             const pageNumber = parseInt(page as string);
             const pageSize = parseInt(limit as string);
@@ -107,6 +107,60 @@ export class SubscriptionController {
             next(error);
         }
     }
+
+    getSubscription = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            console.log("comming to subscription listing".bgYellow);
+            const subscriptions = await this.subscriptionService.getSubscription();
+
+            const transformed = subscriptions.map(sub => {
+                const features: string[] = [];
+                const notAvailable: string[] = [];
+
+                if (sub.chatSupport?.text) {
+                    features.push("Chat");
+                } else {
+                    notAvailable.push("Chat");
+                }
+
+                if (sub.chatSupport?.voice) {
+                    features.push("Voice");
+                } else {
+                    notAvailable.push("Voice");
+                }
+
+                if (sub.aiFeature?.codeSuggestion) {
+                    features.push("AI Suggestions");
+                } else {
+                    notAvailable.push("AI Suggestions");
+                }
+
+                if (sub.aiFeature?.codeExplanation) {
+                    features.push("AI Explanations");
+                } else {
+                    notAvailable.push("AI Explanations");
+                }
+
+                features.push(
+                    `${sub.maxPrivateProjects} private projects`,
+                    `${sub.maxCollaborators} collaborators`,
+                    `${sub.limits.codeExecutionsPerDay} code executions/day`
+                );
+
+                return {
+                    name: sub.name,
+                    pricePerMonth: sub.pricePerMonth,
+                    features,
+                    notAvailable
+                };
+            });
+
+            res.status(200).json(transformed);
+        } catch (error) {
+            next(error);
+        }
+    };
+
 
 
 }

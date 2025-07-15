@@ -13,6 +13,7 @@ subscriptionRouter.delete("/delete_subscription/:id", authenticate, isAdmin, sub
 subscriptionRouter.get("/", subscriptionController.getAllSubscriptions)
 subscriptionRouter.patch("/edit_subscription/:id", authenticate, isAdmin, validate(updateSubscription), subscriptionController.updateSubscription);
 subscriptionRouter.put("/block_unblock/", authenticate, isAdmin, subscriptionController.blockUnblock);
+subscriptionRouter.get("/active", subscriptionController.getSubscription)
 
 
 export default subscriptionRouter

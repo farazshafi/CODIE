@@ -12,4 +12,5 @@ export interface ISubscriptionService {
     unblockSubscription(id: string): Promise<void>;
     findSubscriptionsWithPagination(filter: any, page: number, limit: number): Promise<ISubscription[]>;
     countSubscription(filter: any): Promise<number>;
+    getSubscription(): Promise<ISubscription[]>
 }

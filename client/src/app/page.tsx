@@ -2,6 +2,7 @@
 import CodeAnimation from '@/components/codeAnimation'
 import FeatureCard from '@/components/featureCard'
 import PricingPlan from '@/components/pricingPlan'
+import Subscription from '@/components/Subscription'
 import PageTransitionWrapper from '@/components/TransitionWrapper'
 import { Button } from '@/components/ui/button'
 import Navbar from '@/components/ui/navbar'
@@ -78,58 +79,7 @@ const page = () => {
           </div>
         </section>
         {/* Pricing Section */}
-        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="py-24 relative">
-          <div className="absolute inset-0 bg-priamry opacity-50"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text">
-              Choose Your Plan
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <PricingPlan
-                title="Free"
-                price="$0"
-                features={[
-                  "3 concurrent projects",
-                  "Basic code editor",
-                  "Limited collaboration",
-                  "Community support"
-                ]}
-                buttonText="Get Started"
-                buttonLink="/register"
-              />
-              <PricingPlan
-                title="Pro"
-                price="$15"
-                period="per month"
-                popular={true}
-                features={[
-                  "Unlimited projects",
-                  "Advanced code editor",
-                  "Unlimited collaborators",
-                  "AI code explanations",
-                  "Priority support"
-                ]}
-                buttonText="Upgrade Now"
-                buttonLink="/signup?plan=pro"
-              />
-              <PricingPlan
-                title="Premium"
-                price="$39"
-                period="per month"
-                features={[
-                  "Everything in Pro",
-                  "Custom domain",
-                  "Team management",
-                  "Advanced analytics",
-                  "24/7 dedicated support",
-                  "API access"
-                ]}
-                buttonText="Contact Sales"
-                buttonLink="/contact"
-              />
-            </div>
-          </div>
-        </section>
+        <Subscription />
 
         {/* CTA Section */}
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="py-24">

@@ -99,4 +99,8 @@ export class SubscriptionService implements ISubscriptionService {
         }
     }
 
+    async getSubscription(): Promise<ISubscription[]> {
+        return await this.subscriptionRepository.find({ isVisible: true })
+    }
+
 }
