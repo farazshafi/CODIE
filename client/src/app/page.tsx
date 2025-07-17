@@ -1,20 +1,23 @@
-"use client"
 import CodeAnimation from '@/components/codeAnimation'
 import FeatureCard from '@/components/featureCard'
 import PricingPlan from '@/components/pricingPlan'
 import Subscription from '@/components/Subscription'
 import PageTransitionWrapper from '@/components/TransitionWrapper'
 import { Button } from '@/components/ui/button'
-import Navbar from '@/components/ui/navbar'
 import { ArrowRight, Code, Rocket, Sparkles, Users } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
+import { getSubscriptions } from './(protected)/plan/page'
 
-const page = () => {
+const page = async() => {
+
+  const subscriptions = await getSubscriptions();
+
+  const hasPlans = Array.isArray(subscriptions) && subscriptions.length > 0;
+
   return (
     <PageTransitionWrapper>
       <div className="min-h-screen bg-primary text-white overflow-x-hidden">
-        {/* <Navbar /> */}
         {/* hero Section */}
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="container mx-auto px-10 pt-20 pb-32 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="max-w-2xl">
@@ -79,7 +82,14 @@ const page = () => {
           </div>
         </section>
         {/* Pricing Section */}
-        <Subscription />
+        {hasPlans ? (
+          <Subscription plan={subscriptions} />
+        ) : (
+          <div className="text-center text-white py-10">
+            <h2 className="text-2xl">No subscription plans available.</h2>
+            <p className="text-gray-400 mt-2">Please try again later.</p>
+          </div>
+        )}
 
         {/* CTA Section */}
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="py-24">

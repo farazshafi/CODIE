@@ -3,7 +3,7 @@ import Subscription from '@/components/Subscription';
 import PageTransitionWrapper from '@/components/TransitionWrapper';
 import Navbar from '@/components/ui/navbar';
 
-const getSubscriptions = async () => {
+export const getSubscriptions = async () => {
     const backendUrl = process.env.API_BASE_URL!;
 
     try {

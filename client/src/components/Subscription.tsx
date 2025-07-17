@@ -20,18 +20,23 @@ const Subscription = ({ plan }: { plan: SubscriptionPlan[] }) => {
                     </h2>
                     <p className='mt-5'>Flexible plans for coding, collaboration, and execution limits</p>
                     <div className="grid md:grid-cols-3 mt-10 gap-8">
-                        {plan.map((item: SubscriptionPlan, index) => (
-                            <PricingPlan
-                                key={index}
-                                title={item.name}
-                                price={`₹ ${item.pricePerMonth}/M`}
-                                popular={false}
-                                features={item.features}
-                                notAvailable={item.notAvailable}
-                                buttonText="Get Started"
-                                buttonLink="/register"
-                            />
-                        ))}
+                        {Array.isArray(plan) && plan.length > 0 ? (
+                            plan.map((item: SubscriptionPlan, index) => (
+                                <PricingPlan
+                                    key={index}
+                                    title={item.name}
+                                    price={`₹ ${item.pricePerMonth}/M`}
+                                    popular={false}
+                                    features={item.features}
+                                    notAvailable={item.notAvailable}
+                                    buttonText="Get Started"
+                                    buttonLink="/register"
+                                />
+                            ))
+                        ) : (
+                            <p>No plans available</p>
+                        )}
+
 
                     </div>
                 </div>
