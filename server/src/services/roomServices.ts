@@ -127,5 +127,21 @@ export class RoomServices implements IRoomService {
             throw new HttpError(500, "Error While getting role")
         }
     }
+
+    async removeContributer(userId: string, projectId: string): Promise<IRoom> {
+        try {
+            const updatedContributers = await this.roomRepository.removeUserFromCollabrators(userId, new mongoose.Types.ObjectId(projectId))
+            if (!updatedContributers) {
+                throw new HttpError(404, "Cannot find User in contributers")
+            }
+            return updatedContributers
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            throw new HttpError(500, "Cannot remove Contributer from room")
+            console.log("cannot remove contributer from room", error)
+        }
+    }
 }
 

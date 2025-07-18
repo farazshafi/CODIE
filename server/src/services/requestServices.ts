@@ -14,6 +14,7 @@ export class RequestService implements IRequestService {
         try {
             const { roomId, senderId } = data
             const reciverId = await this.roomRepositories.getOwnderByRoomId(roomId)
+            
             if (!reciverId) {
                 throw new HttpError(404, "Room Not Found when creating request")
             }

@@ -146,6 +146,7 @@ export default function Home() {
                                     title={project.projectName}
                                     language={project.projectLanguage}
                                     id={project.id}
+                                    isContributer={true}
                                     updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
                                 />
                             ))

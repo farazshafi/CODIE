@@ -12,6 +12,8 @@ import { deleteProjectApi } from '@/apis/projectApi';
 import { toast } from 'sonner';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { shareDiscoverApi } from '@/apis/discoverApi';
+import { removeFromProjectApi } from '@/apis/roomApi';
+import { useUserStore } from '@/stores/userStore';
 
 type ProjectCardProps = {
     title: string;
@@ -20,15 +22,24 @@ type ProjectCardProps = {
     refetchProject(): void
     // thumbnail: string;
     updatedAt: string;
+    isContributer: boolean
 };
 
-const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: ProjectCardProps) => {
+const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContributer = false }: ProjectCardProps) => {
 
     const router = useRouter()
+    const user = useUserStore((state) => state.user)
 
     const { mutate: shareDiscover } = useMutationHook(shareDiscoverApi, {
         onSuccess(data) {
             toast.success(data.message)
+        }
+    })
+    const { mutate: removeFromProject } = useMutationHook(removeFromProjectApi, {
+        onSuccess(data) {
+            console.log("successfully removed")
+            toast.success(data.message || "Removed from project")
+            refetchProject()
         }
     })
 
@@ -45,6 +56,10 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
             toast.error("Failed to delete the project. Please try again.");
             console.error("Error deleting project:", err);
         }
+    }
+
+    const removeContributerFromProject = async () => {
+        removeFromProject({ projectId: id, userId: user?.id })
     }
 
     const shareTODiscover = async (projectId: string) => {
@@ -81,18 +96,22 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
                                 </div>
                                 <p>Favorite</p>
                             </DropdownMenuItem> */}
-                            <DropdownMenuItem onClick={handleDelete} className='group'>
+                            <DropdownMenuItem onClick={isContributer ? removeContributerFromProject : handleDelete} className='group'>
                                 <div className='p-1 rounded group-hover:bg-black text-white hover:bg-gray-900'>
                                     <Trash className='' />
                                 </div>
                                 <p>Delete</p>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareTODiscover(id)} className='group'>
-                                <div className='p-1 rounded group-hover:bg-black text-white hover:bg-gray-900'>
-                                    <Share className='' />
-                                </div>
-                                <p>Share to Discover</p>
-                            </DropdownMenuItem>
+                            {!isContributer && (
+                                <>
+                                    <DropdownMenuItem onClick={() => shareTODiscover(id)} className='group'>
+                                        <div className='p-1 rounded group-hover:bg-black text-white hover:bg-gray-900'>
+                                            <Share className='' />
+                                        </div>
+                                        <p>Share to Discover</p>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <p className="text-xs mt-2 text-gray-400">Edited: {updatedAt}</p>

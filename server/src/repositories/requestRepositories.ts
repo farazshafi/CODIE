@@ -16,9 +16,14 @@ export class RequestRepositories extends BaseRepository<IRequest> implements IRe
     }
 
     async updateRequestStatus(status: "accepted" | "rejected", id: string): Promise<IRequest> {
-        return await RequestModel.findByIdAndUpdate(
-            id, { status }, { new: true });
+        const update: Partial<IRequest> & { statusChangedAt?: Date | null } = {
+            status,
+            statusChangedAt: new Date()
+        };
+
+        return await RequestModel.findByIdAndUpdate(id, update, { new: true });
     }
+
 
     async getAllSendedRequest(id: string): Promise<IRequest[]> {
         return await RequestModel.find({ senderId: id, status: "pending" }, "reciverId roomId").populate("reciverId", "name");

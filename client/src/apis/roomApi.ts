@@ -51,3 +51,13 @@ export const checkIsEligibleToEditApi = async (data: { roomId: string, userId: s
         throw error
     }
 }
+
+export const removeFromProjectApi = async (data: { projectId: string, userId: string }) => {
+    try {
+        const response = await API.put(`${API_BASE_URL}/remove_from_project`, data)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}

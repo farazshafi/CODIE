@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { IDiscover } from '@/app/(protected)/discover/page';
 import { Check, Copy } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
 
 interface SnippetModalProps {
     open: boolean;
@@ -24,11 +26,14 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="bg-white w-[95vw] max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] h-[90vh] max-h-[90vh] p-4 overflow-hidden">
+                <VisuallyHidden>
+                    <DialogTitle>Project Code Modal</DialogTitle> {/* Required for accessibility */}
+                </VisuallyHidden>
                 <div className="flex flex-col md:flex-row gap-4 h-full">
                     <div className="w-full md:w-[70%] rounded-lg p-4 overflow-y-auto border border-gray-200">
                         <p className="text-black text-2xl font-semibold mb-4">
                             {project.projectId.projectName}
-                        </p>
+                        </p> 
 
                         <div className="relative bg-black text-white p-3 rounded-md text-sm">
                             <button

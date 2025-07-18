@@ -15,3 +15,8 @@ export const checkPermissionSchema = z.object({
     userId: z.string(),
     roomId: z.string(),
 })
+
+export const remove_from_project_Schema = z.object({
+    userId: z.string(),
+    projectId: z.string(),
+})

@@ -56,9 +56,11 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
                                     <Trash2 />
                                 </Button>
                             ) : (
-                                <Button className='bg-green cursor-pointer hover:bg-green-600'>
-                                    <Star />
-                                </Button>
+                                <>
+                                    {/* <Button className='bg-green cursor-pointer hover:bg-green-600'>
+                                        <Star />
+                                    </Button> */}
+                                </>
                             )}
                     </div>
                 </div>

@@ -90,4 +90,17 @@ export class RoomController {
             next(error)
         }
     }
+
+    removeUserFromContributers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { userId, projectId } = req.body
+
+            await this.roomService.removeContributer(userId, projectId)
+
+            res.status(200).json({ message: "You successfully removed"})
+
+        } catch (error) {
+            next(error)
+        }
+    }
 }

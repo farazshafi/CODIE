@@ -1,4 +1,4 @@
-import { Model } from "mongoose"
+import mongoose, { Model } from "mongoose"
 import Room, { IRoom } from "../models/roomModel"
 import { CreateRoomType } from "../types/roomType"
 import { BaseRepository } from "./baseRepository"
@@ -31,6 +31,14 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
             { path: "collaborators.user", select: "name" },
             { path: "owner", select: "name" }
         ])
+    }
+
+    async removeUserFromCollabrators(userId: string, projectId: mongoose.Types.ObjectId): Promise<IRoom> {
+        return await Room.findOneAndUpdate(
+            { projectId },
+            { $pull: { collaborators: { user: userId, role: "viewer" } } },
+            { new: true }
+        )
     }
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
