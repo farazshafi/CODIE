@@ -12,6 +12,7 @@ import invitationRouter from "./routes/invitationRouter";
 import adminRouter from "./routes/adminRouter";
 import subscriptionRouter from "./routes/subscriptionRouter";
 import messageRouter from "./routes/messageRouter";
+import discoverRouter from "./routes/discoverRouter";
 
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/message", messageRouter);
 app.use("/api/request", requestRouter);
 app.use("/api/invitation", invitationRouter);
 app.use("/api/subscription", subscriptionRouter)
+app.use("/api/discover", discoverRouter)
 
 // Admin Routes
 app.use("/api/admin", adminRouter)

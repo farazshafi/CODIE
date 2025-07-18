@@ -6,10 +6,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Ellipsis, Star, Trash } from 'lucide-react';
+import { Ellipsis, Share, Star, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { deleteProjectApi } from '@/apis/projectApi';
 import { toast } from 'sonner';
+import { useMutationHook } from '@/hooks/useMutationHook';
+import { shareDiscoverApi } from '@/apis/discoverApi';
 
 type ProjectCardProps = {
     title: string;
@@ -24,6 +26,12 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
 
     const router = useRouter()
 
+    const { mutate: shareDiscover } = useMutationHook(shareDiscoverApi, {
+        onSuccess(data) {
+            toast.success(data.message)
+        }
+    })
+
     const handleDelete = async () => {
         try {
             const data = await deleteProjectApi(id)
@@ -37,6 +45,10 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
             toast.error("Failed to delete the project. Please try again.");
             console.error("Error deleting project:", err);
         }
+    }
+
+    const shareTODiscover = async (projectId: string) => {
+        shareDiscover(projectId)
     }
 
     return (
@@ -74,6 +86,12 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject }: Project
                                     <Trash className='' />
                                 </div>
                                 <p>Delete</p>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareTODiscover(id)} className='group'>
+                                <div className='p-1 rounded group-hover:bg-black text-white hover:bg-gray-900'>
+                                    <Share className='' />
+                                </div>
+                                <p>Share to Discover</p>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

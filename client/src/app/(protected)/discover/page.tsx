@@ -1,24 +1,91 @@
-"use client";
-import React, { useRef } from 'react';
+"use client"
+import React, { useEffect, useState } from 'react';
 import { Search, SlidersHorizontal, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Navbar from '@/components/ui/navbar';
 import SnippetCard from '@/components/snippetCard';
-import VariableProximity from '@/components/ui/VariableProximity/VariableProximity';
 import PageTransitionWrapper from '@/components/TransitionWrapper';
+import { useMutationHook } from '@/hooks/useMutationHook';
+import { findDiscoveriesApi } from '@/apis/discoverApi';
+import SnippetCardSkeleton from "./_components/SnippetCardSkeleton";
+import Pagination from '@/components/ui/Pagination';
+import { LANGUAGE_CONFIG } from '../editor/_constants';
 
-interface SnippetCardProps {
-    title: string;
-    user: {
-        name: string;
-        avatar?: string;
-    };
-    language: string;
-    code: string;
+export interface IDiscover {
+    projectId: {
+        projectName: string;
+        projectCode: string;
+        projectLanguage: string;
+        userId: {
+            _id: string;
+            name: string;
+        };
+    },
+    like: number,
+    _id: string,
+    views: number,
+    createdAt: Date,
+    updatedAt: Date
 }
 
+const Page = () => {
+    const [discoveries, setDiscoveries] = useState<IDiscover[]>([]);
+    const [totalPage, setTotalPage] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedLanguage, setSelectedLanguage] = useState("");
+    const [keyword, setKeyword] = useState("");
 
-const page = () => {
+    const { mutate, isLoading } = useMutationHook(findDiscoveriesApi, {
+        onSuccess(data) {
+            setDiscoveries(data.discoveries);
+            setTotalPage(data.totalPages);
+            setCurrentPage(data.currentPage);
+        }
+    });
+
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+        mutate({
+            keyword,
+            language: selectedLanguage,
+            page: newPage,
+            limit: 6,
+        });
+    };
+
+    const selectLanguage = (language: string) => {
+        const newLanguage = selectedLanguage === language ? "" : language;
+        setSelectedLanguage(newLanguage);
+        setCurrentPage(1); // Reset page
+        mutate({
+            keyword,
+            language: newLanguage,
+            page: 1,
+            limit: 6,
+        });
+    };
+
+    useEffect(() => {
+        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6 });
+    }, []);
+
+    const handleDeleteSnippet = () => {
+        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6 });
+    }
+
+    useEffect(() => {
+        const delay = setTimeout(() => {
+            setCurrentPage(1);
+            mutate({
+                keyword,
+                language: selectedLanguage,
+                page: 1,
+                limit: 6,
+            });
+        }, 500);
+        return () => clearTimeout(delay);
+    }, [keyword, selectedLanguage]);
+
     return (
         <>
             <Navbar />
@@ -31,58 +98,71 @@ const page = () => {
                         Explore a curated collection of code snippets from the community
                     </p>
 
-                    {/* search input */}
-                    <div className="mt-10 sm:mt-20 flex flex-row sm:flex-row items-center gap-3 sm:gap-x-3 bg-tertiary rounded-lg px-4 sm:px-5 py-3">
+                    {/* Search input */}
+                    <div className="mt-10 sm:mt-20 flex items-center gap-3 bg-tertiary rounded-lg px-4 py-3">
                         <Search />
                         <Input
-                            placeholder="Search snippets by title, language, or author"
+                            placeholder="Search snippets by title, or author"
                             className="w-full"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
                         />
                     </div>
 
-                    {/* filter*/}
+                    {/* Filters */}
                     <div className="mt-10 flex flex-col lg:flex-row justify-between gap-y-5">
-                        {/* languages */}
                         <div className="flex flex-wrap gap-3">
-                            <div className="text-white px-3 py-2 rounded-sm bg-tertiary flex items-center">
+                            <div className="text-black px-3 py-2 rounded-sm bg-green flex items-center">
                                 <Tag />
                                 <p className="ml-2">Languages</p>
                             </div>
-                            {['C++', 'JavaScript', 'Rust', 'Java', 'Python'].map((lang) => (
-                                <div key={lang} className="text-white px-3 py-2 rounded-sm bg-tertiary">
-                                    <p>{lang}</p>
+                            {Object.entries(LANGUAGE_CONFIG).map(([key]) => (
+                                <div
+                                    key={key}
+                                    onClick={() => selectLanguage(key)}
+                                    className="hover:bg-gray-800 text-white px-3 py-2 rounded-sm bg-tertiary cursor-pointer"
+                                >
+                                    <p className={`${selectedLanguage === key ? "text-green-500" : ""}`}>{key}</p>
                                 </div>
                             ))}
                         </div>
 
-                        {/* sort options */}
-                        <div className="flex flex-row items-center justify-between sm:justify-end gap-x-5">
-                            <p className="text-sm text-white">12 snippets Found</p>
-                            <div className="text-white px-3 py-2 rounded-sm bg-tertiary">
+                        <div className="flex items-center justify-between sm:justify-end gap-x-5">
+                            <p className="text-sm text-white">{discoveries.length} snippets found</p>
+                            {/* <div className="text-white px-3 py-2 rounded-sm bg-tertiary">
                                 <SlidersHorizontal />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
-
-
-                    {/* responsible snippet cards */}
+                    {/* Snippet cards */}
                     <div className='mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-5'>
+                        {isLoading && discoveries.length === 0
+                            ? Array(6).fill(0).map((_, index) => <SnippetCardSkeleton key={index} />)
+                            : discoveries.map((item, index) => <SnippetCard onDelete={handleDeleteSnippet} project={item} key={index} />)
+                        }
 
-                        {/* single card */}
-                        <SnippetCard />
-                        <SnippetCard />
-                        <SnippetCard />
-                        <SnippetCard />
+                        {discoveries.length === 0 && (
+                            <div>
+                                <p>No Snippets yet</p>
+                            </div>
+                        )}
 
                     </div>
 
+                    {/* Pagination */}
+                    <div>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPage}
+                            setCurrentPage={handlePageChange}
+                        />
+                    </div>
                 </div>
+
             </PageTransitionWrapper>
-
         </>
-
     );
-}
+};
 
-export default page
+export default Page;

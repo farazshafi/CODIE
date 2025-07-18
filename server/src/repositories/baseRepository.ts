@@ -18,9 +18,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
         if (!updated) throw new Error("Not found");
         return updated;
     }
-
-
-
+    
     async delete(id: string): Promise<boolean> {
         const result = await this.model.findByIdAndDelete(id);
         return !!result;
