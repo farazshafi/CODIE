@@ -1,4 +1,4 @@
-import { IRoom } from "../../../models/roomModel";
+import { IRoom } from "../../../models/RoomModel";
 
 
 export interface IEditorService {

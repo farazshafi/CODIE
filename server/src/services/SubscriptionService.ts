@@ -1,4 +1,4 @@
-import { ISubscription, ISubscriptionBase } from "../models/subscriptionModel";
+import { ISubscription, ISubscriptionBase } from "../models/SubscriptionModel";
 import { ISubscriptionRepository } from "../repositories/interface/ISubscriptionRepository";
 import { HttpError } from "../utils/HttpError";
 import { CreateSubscriptionInput, UpdateSubscriptionInput } from "../validation/subscriptionValidation";

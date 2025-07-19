@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
-import { IProject } from "../models/projectModel"
-import { IRoom } from "../models/roomModel"
+import { IProject } from "../models/ProjectModel"
+import { IRoom } from "../models/RoomModel"
 import { IProjectRepository } from "../repositories/interface/IProjectRepository"
 import { IRoomRepository } from "../repositories/interface/IRoomRepository"
 import { CreateRoomType } from "../types/roomType"
@@ -40,7 +40,6 @@ export class RoomServices implements IRoomService {
         try {
             const existRoom = await this.roomRepository.getRoomByProjectId(projectId)
             if (!existRoom) {
-                console.log("exist rom result", existRoom)
                 return null
             }
 

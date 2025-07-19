@@ -1,5 +1,5 @@
 
-import { IProject } from "../../models/projectModel";
+import { IProject } from "../../models/ProjectModel";
 import { CreateProjectType } from "../../types/projectType";
 
 export interface IProjectService {

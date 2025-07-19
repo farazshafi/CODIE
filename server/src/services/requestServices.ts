@@ -1,6 +1,6 @@
 import { HttpError } from "../utils/HttpError";
 import { IRequestRepository } from "../repositories/interface/IRequestRepository";
-import { IRequest } from "../models/requestModel";
+import { IRequest } from "../models/RequestModel";
 import { IRequestService } from "./interface/IRequestService";
 import { IRoomRepository } from "../repositories/interface/IRoomRepository";
 

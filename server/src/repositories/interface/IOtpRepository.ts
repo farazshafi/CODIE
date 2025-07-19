@@ -1,4 +1,4 @@
-import { IOtp } from "../../models/otpModel";
+import { IOtp } from "../../models/OtpModel";
 import { IBaseRepository } from "./IBaseRepository";
 
 

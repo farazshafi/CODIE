@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
-import { IDiscover } from "../models/discoverModel";
-import { BaseRepository } from "./baseRepository";
+import { IDiscover } from "../models/DiscoverModel";
+import { BaseRepository } from "./BaseRepository";
 import { IDiscoverRepository } from "./interface/IDiscoverRepository";
 
 
@@ -8,7 +8,7 @@ export class DiscoverRepository extends BaseRepository<IDiscover> implements IDi
     constructor(model: Model<IDiscover>) {
         super(model)
     }
-    getModel(): Promise<IDiscover> {
+    getModel(): Model<IDiscover> {
         return this.model
     }
 }

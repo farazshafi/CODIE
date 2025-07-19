@@ -35,5 +35,5 @@ invitationSchema.index({ statusChangedAt: 1 },
         }
     })
 
-export const InvitationModel: Model<IInvitation> = mongoose.model<IInvitation>("Invitation", invitationSchema)
+export const InvitationModel: Model<IInvitation> = mongoose.models.Invitation || mongoose.model<IInvitation>("Invitation", invitationSchema)
 export default InvitationModel

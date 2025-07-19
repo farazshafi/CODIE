@@ -1,7 +1,7 @@
 import mongoose, { Model } from 'mongoose';
-import { IProject } from '../models/projectModel';
-import Room from '../models/roomModel';
-import { BaseRepository } from './baseRepository';
+import { IProject } from '../models/ProjectModel';
+import Room from '../models/RoomModel';
+import { BaseRepository } from './BaseRepository';
 import { IProjectRepository } from './interface/IProjectRepository';
 
 export class ProjectRepository extends BaseRepository<IProject> implements IProjectRepository {
@@ -31,8 +31,8 @@ export class ProjectRepository extends BaseRepository<IProject> implements IProj
         return room?.projectId?.toString() || null;
     }
 
-    async updateCode(projectId: string, code: string): Promise<IProject> {
-        return this.model.findByIdAndUpdate(projectId, { projectCode: code })
+    async updateCode(projectId: string, code: string): Promise<IProject | null> {
+        return await this.model.findByIdAndUpdate(projectId, { projectCode: code }, { new: true });
     }
 
     async getProjectByIds(ids: string[]): Promise<IProject[]> {

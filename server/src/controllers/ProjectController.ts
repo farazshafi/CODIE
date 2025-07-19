@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IProjectService } from "../services/interface/IProjectService";
 
 export class ProjectController {
-  constructor(private readonly projectService: IProjectService) {}
+  constructor(private readonly projectService: IProjectService) { }
 
   createProject = async (req: Request, res: Response, next: NextFunction) => {
     try {

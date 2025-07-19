@@ -1,5 +1,5 @@
-import { IProject } from "../../models/projectModel";
-import { IRoom } from "../../models/roomModel";
+import { IProject } from "../../models/ProjectModel";
+import { IRoom } from "../../models/RoomModel";
 
 
 export interface IRoomService {

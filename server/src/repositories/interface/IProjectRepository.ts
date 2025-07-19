@@ -1,4 +1,4 @@
-import { IProject } from "../../models/projectModel";
+import { IProject } from "../../models/ProjectModel";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IProjectRepository extends IBaseRepository<IProject> {

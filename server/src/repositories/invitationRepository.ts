@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 import { IInvitation, IInvitationBase } from "../models/InvitationModel";
-import { BaseRepository } from "./baseRepository";
+import { BaseRepository } from "./BaseRepository";
 import { IInvitationRepository } from "./interface/IInvitationRepository";
 
 

@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IDiscover } from "../models/discoverModel";
+import { IDiscover } from "../models/DiscoverModel";
 import { IDiscoverService } from "./interface/IDiscoverService";
 import { IDiscoverRepository } from "../repositories/interface/IDiscoverRepository";
 import { HttpError } from "../utils/HttpError";

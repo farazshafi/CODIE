@@ -1,7 +1,7 @@
 import { Document, FilterQuery } from 'mongoose';
 import { DeepPartial } from '../../types/SubscriptionType';
 
-interface ModelUpdateOptions {
+export interface ModelUpdateOptions {
     new?: boolean;
     upsert?: boolean;
     runValidators?: boolean;

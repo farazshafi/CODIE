@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IDiscover } from "../../models/discoverModel";
+import { IDiscover } from "../../models/DiscoverModel";
 
 
 export interface IDiscoverService {

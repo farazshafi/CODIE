@@ -1,5 +1,5 @@
-import ResetLinkModel, { IResetLink } from '../models/resetLinkModel';
-import { IUser } from '../models/userModel';
+import ResetLinkModel, { IResetLink } from '../models/ResetLinkModel';
+import { IUser } from '../models/UserModel';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
 import { HttpError } from '../utils/HttpError';
 import { UserInput, GoogleAuthInput } from '../validation/userValidation';
@@ -92,12 +92,12 @@ export class UserService implements IUserService {
         }
     }
 
-    async findUsersWithPagination(filter: any, page: number, limit: number): Promise<IUser[]> {
+    async findUsersWithPagination(filter: Record<string, unknown>, page: number, limit: number): Promise<IUser[]> {
         const skip = (page - 1) * limit;
         return this.userRepository.findMany(filter, skip, limit);
     }
 
-    async countUsers(filter: any): Promise<number> {
+    async countUsers(filter: Record<string, unknown>): Promise<number> {
         return this.userRepository.count(filter);
     }
 

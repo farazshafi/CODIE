@@ -1,5 +1,5 @@
 import { Model, Document, FilterQuery } from 'mongoose';
-import { IBaseRepository } from './interface/IBaseRepository';
+import { IBaseRepository, ModelUpdateOptions } from './interface/IBaseRepository';
 import { DeepPartial } from '../types/SubscriptionType';
 
 export abstract class BaseRepository<T extends Document> implements IBaseRepository<T> {
@@ -18,7 +18,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
         if (!updated) throw new Error("Not found");
         return updated;
     }
-    
+
     async delete(id: string): Promise<boolean> {
         const result = await this.model.findByIdAndDelete(id);
         return !!result;
@@ -35,7 +35,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     async findByIdAndUpdate(
         id: string,
         update: Partial<T>,
-        options?: any
+        options?: ModelUpdateOptions
     ): Promise<T | null> {
         return this.model.findByIdAndUpdate(id, update, { ...options, new: true });
     }

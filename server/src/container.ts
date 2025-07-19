@@ -1,43 +1,50 @@
 // src/container.ts
-import { AdminController } from './controllers/adminController';
-import { DiscoverController } from './controllers/discoverController';
+import { AdminController } from './controllers/AdminController';
+import { DiscoverController } from './controllers/DiscoverController';
 import { InvitationController } from './controllers/InvitationController';
 import { MessageController } from './controllers/MessageController';
 import { ProjectController } from './controllers/ProjectController';
-import { RequestController } from './controllers/requestController';
-import { RoomController } from './controllers/roomController';
-import { SubscriptionController } from './controllers/subscriptionController';
-import { UserController } from './controllers/userController';
-import DiscoverModel from './models/discoverModel';
+import { RequestController } from './controllers/RequestController';
+import { RoomController } from './controllers/RoomController';
+import { SubscriptionController } from './controllers/SubscriptionController';
+import { UserController } from './controllers/UserController';
 
+import DiscoverModel from './models/DiscoverModel';
 import InvitationModel from './models/InvitationModel';
-import { MessageModel } from './models/messageModel';
+import { MessageModel } from './models/MessageModel';
+import OtpModel from './models/OtpModel';
+import ProjectModel from './models/ProjectModel';
+import RequestModel from './models/RequestModel';
+import SubscriptionModel from './models/SubscriptionModel';
+import UserModel from './models/UserModel';
+import RoomModel from './models/RoomModel';
 
-import OtpModel from './models/otpModel';
-import ProjectModel from './models/projectModel';
-import RequestModel from './models/requestModel';
-import RoomModel from './models/roomModel';
-import SubscriptionModel from './models/subscriptionModel';
-import UserModel from './models/userModel';
+
 import { DiscoverRepository } from './repositories/DiscoverRepository';
-import { InvitationRepository } from './repositories/invitationRepository';
+import { InvitationRepository } from './repositories/InvitationRepository';
 import { MessageRepository } from './repositories/MessageRepository';
-import { OtpRepository } from './repositories/otpRepositories';
-import { ProjectRepository } from './repositories/projectRepositories';
+import { OtpRepository } from './repositories/OtpRepositories';
+import { ProjectRepository } from './repositories/ProjectRepositories';
 import { RequestRepositories } from './repositories/requestRepositories';
-import { RoomRepositories } from './repositories/roomRepositories';
-import { SubscriptionRepository } from './repositories/subscriptionRepository';
-import { UserRepository } from './repositories/userRepositories';
+import { RoomRepositories } from './repositories/RoomRepositories';
+import { SubscriptionRepository } from './repositories/SubscriptionRepository';
+import { UserRepository } from './repositories/UserRepositories';
+import { OnlineUserRepository } from './sockets/repositories/OnlineUserRepository';
+import { UserSocketRepository } from './sockets/repositories/UserSocketRepository';
+
 import { DiscoverService } from './services/DiscoverService';
 import { InvitationService } from './services/InvitationService';
-import { MailService } from './services/mailServices';
+import { MailService } from './services/MailServices';
 import { MessageService } from './services/MessageService';
-import { OtpService } from './services/otpServices';
-import { ProjectService } from './services/projectServices';
-import { RequestService } from './services/requestServices';
-import { RoomServices } from './services/roomServices';
+import { OtpService } from './services/OtpServices';
+import { ProjectService } from './services/ProjectServices';
+import { RequestService } from './services/RequestServices';
+import { RoomServices } from './services/RoomServices';
 import { SubscriptionService } from './services/SubscriptionService';
-import { UserService } from './services/userServices';
+import { UserService } from './services/UserServices';
+import { EditorService } from './sockets/services/EditorService';
+import { RoomSocketService } from './sockets/services/RoomSocketService';
+import { UserSocketService } from './sockets/services/UserSocketService';
 
 // Set up repositories
 export const projectRepository = new ProjectRepository(ProjectModel)
@@ -49,6 +56,8 @@ export const invitationRepository = new InvitationRepository(InvitationModel)
 export const subscriptionRepository = new SubscriptionRepository(SubscriptionModel)
 export const messageRepository = new MessageRepository(MessageModel)
 export const discoverRepository = new DiscoverRepository(DiscoverModel)
+export const onlineUserRepository = new OnlineUserRepository()
+export const userSocketRepository = new UserSocketRepository()
 
 // Set up services
 export const projectService = new ProjectService(projectRepository, roomRepository);
@@ -61,6 +70,10 @@ export const invitationService = new InvitationService(invitationRepository, mai
 export const subscriptionService = new SubscriptionService(subscriptionRepository)
 export const messageService = new MessageService(messageRepository)
 export const discoverService = new DiscoverService(discoverRepository)
+export const editorService = new EditorService(onlineUserRepository, roomRepository, projectRepository)
+export const roomSocketService = new RoomSocketService(roomRepository, requestService, requestRepository, userSocketRepository, userRepository, mailService, projectRepository, invitationRepository)
+export const userSocketService = new UserSocketService(userSocketRepository)
+
 
 // Set up controller
 export const projectController = new ProjectController(projectService)

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface ISubscriptionBase {
     name: string;
@@ -75,6 +75,6 @@ const SubscriptionSchema: Schema = new Schema({
 });
 
 
-export const SubscriptionModel = mongoose.model<ISubscription>("Subscription", SubscriptionSchema)
+export const SubscriptionModel: Model<ISubscription> = mongoose.models.Subscription || mongoose.model<ISubscription>("Subscription", SubscriptionSchema)
 export default SubscriptionModel
 

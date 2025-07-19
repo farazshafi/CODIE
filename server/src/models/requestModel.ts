@@ -38,5 +38,5 @@ requestSchema.index(
 );
 
 
-export const RequestModel: Model<IRequest> = mongoose.model<IRequest>("Request", requestSchema);
+export const RequestModel: Model<IRequest> = mongoose.models.Request || mongoose.model<IRequest>("Request", requestSchema);
 export default RequestModel;

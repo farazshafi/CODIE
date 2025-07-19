@@ -1,6 +1,6 @@
 import { Model } from "mongoose"
-import otpModel, { IOtp } from "../models/otpModel"
-import { BaseRepository } from "./baseRepository"
+import { IOtp } from "../models/OtpModel"
+import { BaseRepository } from "./BaseRepository"
 import { IOtpRepository } from "./interface/IOtpRepository"
 
 export class OtpRepository extends BaseRepository<IOtp> implements IOtpRepository {
@@ -15,20 +15,20 @@ export class OtpRepository extends BaseRepository<IOtp> implements IOtpRepositor
         expiresAt: Date
         verified: boolean
     }): Promise<void> {
-        await otpModel.deleteMany({ email })
+        await this.model.deleteMany({ email })
 
-        const newOtp = new otpModel({ email, otpHash, expiresAt, verified });
+        const newOtp = new this.model({ email, otpHash, expiresAt, verified });
         await newOtp.save();
     }
 
     async findValidOtp(email: string): Promise<IOtp> {
-        return await otpModel.findOne({
+        return await this.model.findOne({
             email,
             verified: false,
         }).sort({ createdAt: -1 });
     }
 
     async markOtpAsVerified(email: string): Promise<void> {
-        await otpModel.updateOne({ email }, { $set: { verified: true } })
+        await this.model.updateOne({ email }, { $set: { verified: true } })
     }
 }

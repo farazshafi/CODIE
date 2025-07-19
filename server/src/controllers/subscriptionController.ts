@@ -110,7 +110,6 @@ export class SubscriptionController {
 
     getSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            console.log("comming to subscription listing".bgYellow);
             const subscriptions = await this.subscriptionService.getSubscription();
 
             const transformed = subscriptions.map(sub => {

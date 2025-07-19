@@ -1,7 +1,7 @@
 import { Model } from "mongoose";
 import { IMessageRepository } from "./interface/IMessageRepository";
-import { IMessage, MessageModel } from "../models/messageModel";
-import { BaseRepository } from "./baseRepository";
+import { IMessage } from "../models/MessageModel";
+import { BaseRepository } from "./BaseRepository";
 
 
 export class MessageRepository extends BaseRepository<IMessage> implements IMessageRepository {
@@ -10,7 +10,7 @@ export class MessageRepository extends BaseRepository<IMessage> implements IMess
     }
 
     async getMessagesByRoomId(roomId: string): Promise<IMessage[]> {
-        return await MessageModel.find({ roomId }).sort({ createdAt: 1 }).lean();
+        return await this.model.find({ roomId }).sort({ createdAt: 1 }).lean();
 
     }
 }

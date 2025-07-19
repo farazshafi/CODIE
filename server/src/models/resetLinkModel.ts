@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IResetLinkBase {
     email: string;
@@ -16,6 +16,6 @@ const resetLinkSchema: Schema = new mongoose.Schema({
 
 resetLinkSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 3600 });
 
-export const ResetLinkModel = mongoose.model<IResetLink>("ResetLink", resetLinkSchema)
+export const ResetLinkModel: Model<IResetLink> = mongoose.models.ResetLink || mongoose.model<IResetLink>("ResetLink", resetLinkSchema)
 export default ResetLinkModel
 

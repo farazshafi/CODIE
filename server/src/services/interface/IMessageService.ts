@@ -1,4 +1,4 @@
-import { IMessage } from "../../models/messageModel";
+import { IMessage } from "../../models/MessageModel";
 
 
 export interface IMessageService {

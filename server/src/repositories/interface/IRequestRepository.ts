@@ -1,4 +1,4 @@
-import { IRequest } from "../../models/requestModel";
+import { IRequest } from "../../models/RequestModel";
 import { IMakeRequest } from "../../types/requestType";
 import { IBaseRepository } from "./IBaseRepository";
 

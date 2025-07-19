@@ -1,4 +1,4 @@
-import { IMessage } from "../models/messageModel";
+import { IMessage } from "../models/MessageModel";
 import { IMessageRepository } from "../repositories/interface/IMessageRepository";
 import { IMessageService } from "./interface/IMessageService";
 

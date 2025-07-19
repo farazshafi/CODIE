@@ -14,5 +14,5 @@ const discoverSchema: Schema = new Schema({
     views: { type: Number, default: 0 }
 }, { timestamps: true })
 
-export const DiscoverModel = mongoose.model<IDiscover>("Discover", discoverSchema)
+export const DiscoverModel = mongoose.models.Discover || mongoose.model<IDiscover>("Discover", discoverSchema)
 export default DiscoverModel

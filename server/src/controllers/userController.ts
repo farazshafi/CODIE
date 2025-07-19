@@ -3,7 +3,6 @@ import { GoogleAuthInput, LoginInput, UserInput } from "../validation/userValida
 import redis from "../config/redis"
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
-import { IUser } from "../models/userModel"
 import { IUserService } from "../services/interface/IUserService"
 import { IOtpService } from "../services/interface/IOtpServices"
 import crypto from "crypto"
@@ -201,30 +200,27 @@ export class UserController {
     googleRegisterAuth = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const validatedUser: GoogleAuthInput = req.body
-            const user = await this.userService.findUserByEmail(validatedUser.email)
+            let user = await this.userService.findUserByEmail(validatedUser.email)
 
             if (user && !user.googleId) {
                 res.status(409).json({ message: "An account with this email already exists" })
                 return
             }
 
-            let myUser: IUser;
-
             if (!user) {
-                const newUser = await this.userService.createUser({
+                const newUserPayload = {
                     name: validatedUser.name,
                     email: validatedUser.email,
                     googleId: validatedUser.googleId,
                     avatarUrl: validatedUser.avatarUrl ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcDdrIJuxsoeWIjwPqSfcL9PFqVdc5-F6Urm4CjOcfCMPH752K-36Xj0tjyazZqKWWk8g",
                     isAdmin: validatedUser.isAdmin ?? false,
                     isBlocked: validatedUser.isBlocked ?? false
-                });
-
-                myUser = newUser;
+                };
+                user = await this.userService.createUser(newUserPayload);
             }
 
 
-            const payload = { id: myUser._id, email: myUser.email }
+            const payload = { id: user!._id, email: user!.email }
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
@@ -238,11 +234,11 @@ export class UserController {
             res.status(200).json({
                 message: "Google Auth Success",
                 data: {
-                    name: myUser.name,
-                    email: myUser.email,
-                    avatar: myUser.avatarUrl,
-                    id: myUser._id,
-                    isAdmin: myUser.isAdmin
+                    name: user!.name,
+                    email: user!.email,
+                    avatar: user!.avatarUrl,
+                    id: user!._id,
+                    isAdmin: user!.isAdmin
                 },
                 accessToken
             })

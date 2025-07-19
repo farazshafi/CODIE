@@ -1,8 +1,8 @@
 
 
 export interface IUserSocketRepository {
-    add(userId: string, socketId: string): void;
-    remove(socketId: string): void;
-    getSocketId(userId: string): string | undefined;
-    getUserId(socketId: string): string | undefined;
+    add(userId: string, socketId: string): Promise<void>;
+    remove(socketId: string): Promise<void>;
+    getSocketId(userId: string): Promise<string | undefined>;
+    getUserId(socketId: string): Promise<string | undefined>;
 }

@@ -1,4 +1,4 @@
-import { IRequest } from "../../models/requestModel";
+import { IRequest } from "../../models/RequestModel";
 
 
 export interface IRequestService {

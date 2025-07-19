@@ -1,9 +1,8 @@
 import http from 'http';
-import { Server } from 'socket.io';
 import app from './app';
 import { ENV } from './config/env';
 import connectDB from './db';
-import { setupSocket } from './sockets/socketServer';
+import { SocketManager } from './sockets/SocketManager';
 
 const PORT = ENV.PORT;
 
@@ -12,14 +11,8 @@ const startServer = async () => {
         await connectDB();
 
         const server = http.createServer(app);
-        const io = new Server(server, {
-            cors: {
-                origin: "*",
-                methods: ["GET", "POST"]
-            }
-        });
-
-        setupSocket(io);
+        const socketManager = new SocketManager(server);
+        socketManager.initialize();
 
         server.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`.green);

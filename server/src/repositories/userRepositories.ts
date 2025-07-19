@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
-import { IUser } from '../models/userModel';
-import { BaseRepository } from './baseRepository';
+import { IUser } from '../models/UserModel';
+import { BaseRepository } from './BaseRepository';
 import { IUserRepository } from './interface/IUserRepository';
 import bcrypt from "bcryptjs"
 

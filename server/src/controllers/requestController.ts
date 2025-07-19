@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { IRequestService } from "../services/interface/IRequestService";
-import { IRequest } from "../models/requestModel";
 
 
 export class RequestController {

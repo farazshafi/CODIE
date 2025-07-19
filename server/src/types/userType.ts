@@ -1,4 +1,4 @@
-import { IUserBase } from "../models/userModel";
+import { IUserBase } from "../models/UserModel";
 
 
 export type createUserType = Omit<IUserBase, "isAdmin" | "isBlocked"> & {

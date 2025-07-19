@@ -4,6 +4,7 @@ export interface ApproveRequestData {
     roomId: string;
     requestId: string;
     userId?: string;
+    projectId?: string;
 }
 
 export interface ApproveUserResult {
@@ -11,6 +12,7 @@ export interface ApproveUserResult {
     error?: string;
     approvedUserId?: string;
     roomId?: string;
+    projectId?: string;
 }
 
 export interface RejectUserResult {

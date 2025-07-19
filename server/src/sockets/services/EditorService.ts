@@ -1,4 +1,4 @@
-import { IRoom } from "../../models/roomModel";
+import { IRoom } from "../../models/RoomModel";
 import { IProjectRepository } from "../../repositories/interface/IProjectRepository";
 import { IRoomRepository } from "../../repositories/interface/IRoomRepository";
 import { IOnlineUserRepository } from "../repositories/interface/IOnlineUserRepository";

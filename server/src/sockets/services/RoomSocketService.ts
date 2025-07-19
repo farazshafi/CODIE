@@ -50,7 +50,7 @@ export class RoomSocketService implements IRoomSocketService {
         await this.mailService.sendJoinRequest(getOwnderDetails.email, sender, projectName)
 
 
-        const ownerSocketId = this.userSocketRepository.getSocketId(room.owner.toString());
+        const ownerSocketId = await this.userSocketRepository.getSocketId(room.owner.toString());
         return {
             requestId: request._id as string,
             ownerSocketId
@@ -92,7 +92,8 @@ export class RoomSocketService implements IRoomSocketService {
         return {
             success: true,
             approvedUserId: requestedUser,
-            roomId: data.roomId
+            roomId: data.roomId,
+            projectId: room.projectId.toString()
         };
     }
 

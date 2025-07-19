@@ -1,5 +1,5 @@
-import { IResetLink } from "../../models/resetLinkModel";
-import { IUser } from "../../models/userModel";
+import { IResetLink } from "../../models/ResetLinkModel";
+import { IUser } from "../../models/UserModel";
 import { GoogleAuthInput, UserInput } from "../../validation/userValidation";
 
 
@@ -12,8 +12,8 @@ export interface IUserService {
     updateUserPassword(email: string, password: string): Promise<void>;
     deleteResetToken(email: string): Promise<void>;
     searchAllUsers(input: string, userId: string): Promise<IUser[]>;
-    findUsersWithPagination(filter: any, page: number, limit: number): Promise<IUser[]>;
-    countUsers(filter: any): Promise<number>;
+    findUsersWithPagination(filter: Record<string, unknown>, page: number, limit: number): Promise<IUser[]>;
+    countUsers(filter: Record<string, unknown>): Promise<number>;
     findUserById(userId: string): Promise<IUser>;
     blockUserById(userId: string): Promise<void>;
     unblockUserById(userId: string): Promise<void>;

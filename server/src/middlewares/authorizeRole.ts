@@ -1,6 +1,6 @@
 
 import { Request, Response, NextFunction } from "express";
-import { roomService } from "../container";
+import { roomService, projectService } from "../container";
 
 export const authorizeRole = (allowedRoles: string[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -8,16 +8,26 @@ export const authorizeRole = (allowedRoles: string[]) => {
         const projectId = req.body.projectId;
 
         try {
-            const role = await roomService.getUserRoleInProject(projectId, userId);
-
-            if (!allowedRoles.includes(role)) {
-                return res.status(403).json({ message: "Access denied: insufficient permissions." });
+            const project = await projectService.getProjectById(projectId);
+            if (!project) {
+                res.status(404).json({ message: "Project not found." });
+                return;
             }
 
-            next();
+            if (project.userId.toString() === userId) {
+                return next();
+            }
+
+            const role = await roomService.getUserRoleInProject(projectId, userId);
+
+            if (role && allowedRoles.includes(role)) {
+                return next();
+            }
+
+            res.status(403).json({ message: "Access denied: insufficient permissions." });
         } catch (err) {
             console.error("Role check failed", err);
-            return res.status(500).json({ message: "Internal server error while checking role." });
+            res.status(500).json({ message: "Internal server error while checking role." });
         }
     };
 };

@@ -1,28 +1,32 @@
 
+import redis from "../../config/redis";
 import { IUserSocketRepository } from "./interface/IUserSocketRepository";
 
 export class UserSocketRepository implements IUserSocketRepository {
-    private userSocketMap: Map<string, string> = new Map(); // userId -> socketId
-    private socketUserMap: Map<string, string> = new Map(); // socketId -> userId
+    private userSocketKey = "user:sockets";
+    private socketUserKey = "socket:users";
 
-    add(userId: string, socketId: string): void {
-        this.userSocketMap.set(userId, socketId);
-        this.socketUserMap.set(socketId, userId);
+    async add(userId: string, socketId: string): Promise<void> {
+        await redis.hset(this.userSocketKey, userId, socketId);
+        await redis.hset(this.socketUserKey, socketId, userId);
     }
 
-    remove(socketId: string): void {
-        const userId = this.socketUserMap.get(socketId);
+    async remove(socketId: string): Promise<void> {
+        const userId = await this.getUserId(socketId);
         if (userId) {
-            this.userSocketMap.delete(userId);
-            this.socketUserMap.delete(socketId);
+            await redis.hdel(this.userSocketKey, userId);
+            await redis.hdel(this.socketUserKey, socketId);
         }
     }
 
-    getSocketId(userId: string): string | undefined {
-        return this.userSocketMap.get(userId);
+    async getSocketId(userId: string): Promise<string | undefined> {
+        const socketId = await redis.hget(this.userSocketKey, userId);
+        
+        return socketId ?? undefined;
     }
 
-    getUserId(socketId: string): string | undefined {
-        return this.socketUserMap.get(socketId);
+    async getUserId(socketId:string): Promise<string | undefined> {
+        const userId = await redis.hget(this.socketUserKey, socketId);
+        return userId ?? undefined;
     }
 }

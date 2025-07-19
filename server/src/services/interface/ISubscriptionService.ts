@@ -1,4 +1,4 @@
-import { ISubscription } from "../../models/subscriptionModel";
+import { ISubscription } from "../../models/SubscriptionModel";
 import { CreateSubscriptionInput, UpdateSubscriptionInput } from "../../validation/subscriptionValidation";
 
 

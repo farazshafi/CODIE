@@ -20,7 +20,7 @@ export class AdminController {
             const userExist = await this.userService.findUserByEmail(credential.email)
 
             if (!userExist) {
-                res.status(401).json({ message: "User not exists" })
+                res.status(400).json({ message: "User not exists" })
                 return
             }
 
@@ -28,6 +28,7 @@ export class AdminController {
                 res.status(403).json({ message: 'Access denied. Admins only.' });
                 return
             }
+
 
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 

@@ -1,7 +1,7 @@
 import mongoose, { Model } from "mongoose"
-import Room, { IRoom } from "../models/roomModel"
+import Room, { IRoom } from "../models/RoomModel"
 import { CreateRoomType } from "../types/roomType"
-import { BaseRepository } from "./baseRepository"
+import { BaseRepository } from "./BaseRepository"
 import { IRoomRepository } from "./interface/IRoomRepository"
 
 export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepository {

@@ -3,7 +3,7 @@ import { IProjectRepository } from '../repositories/interface/IProjectRepository
 import { CreateProjectType } from '../types/projectType';
 import { HttpError } from '../utils/HttpError';
 import { IProjectService } from './interface/IProjectService';
-import { IProject } from '../models/projectModel';
+import { IProject } from '../models/ProjectModel';
 import { IRoomRepository } from '../repositories/interface/IRoomRepository';
 
 export class ProjectService implements IProjectService {
@@ -85,16 +85,25 @@ export class ProjectService implements IProjectService {
     }
 
     async deleteProject(projectId: string): Promise<{ message: string }> {
-        const isDeleted = await this.projectRepository.delete(projectId);
-        if (!isDeleted) {
-            throw new HttpError(404, "Project not found or already deleted.");
-        }
-        const completed = await this.roomRepository.findRoomByProjIdAndDlt(projectId)
-        if (!completed) {
-            throw new HttpError(404, "room not found or already deleted.");
+        const project = await this.projectRepository.findById(projectId);
+        if (!project) {
+            throw new HttpError(404, "Project not found.");
         }
 
-        return { message: "Project deleted successfully." };
+        const isProjectDeleted = await this.projectRepository.delete(projectId);
+        if (!isProjectDeleted) {
+            throw new HttpError(500, "Failed to delete the project.");
+        }
+
+        const room = await this.roomRepository.getRoomByProjectId(projectId);
+        if (room) {
+            const isRoomDeleted = await this.roomRepository.delete(room._id as string);
+            if (!isRoomDeleted) {
+                console.error(`Failed to delete room with ID: ${room._id} for project ID: ${projectId}`);
+            }
+        }
+
+        return { message: "Project and associated room deleted successfully." };
     }
 
     async getSavedCode(id: string): Promise<IProject> {
