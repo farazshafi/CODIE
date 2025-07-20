@@ -1,6 +1,4 @@
 import { Monaco } from "@monaco-editor/react";
-import { Type } from "lucide-react";
-
 export interface Theme {
     id: string;
     label: string;

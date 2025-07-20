@@ -4,21 +4,26 @@ import PageTransitionWrapper from '@/components/TransitionWrapper';
 import Navbar from '@/components/ui/navbar';
 
 export const getSubscriptions = async () => {
-    const backendUrl = process.env.API_BASE_URL!;
+    const backendUrl = process.env.API_BASE_URL;
+
+    if (!backendUrl) {
+        console.error("Missing API_BASE_URL");
+        return [];
+    }
 
     try {
         const res = await fetch(`${backendUrl}/subscription/active`, { cache: "no-cache" });
 
         if (!res.ok) {
-            console.error("Backend responded with:", res.status);
+            console.error("Backend responded with:", res.statusText);
             return [];
         }
 
         const data = await res.json();
-        return data;
+        return data ?? [];
 
     } catch (error) {
-        console.error("Failed to fetch subscriptions:", error);
+        console.error("Error fetching subscriptions:", error);
         return [];
     }
 };
