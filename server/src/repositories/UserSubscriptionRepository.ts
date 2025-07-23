@@ -1,5 +1,5 @@
 import mongoose, { Model } from "mongoose";
-import UserSubscriptionModel, { IUserSubscription } from "../models/userSubscriptionModel";
+import UserSubscriptionModel, { IUserSubscription } from "../models/UserSubscriptionModel";
 import { BaseRepository } from "./BaseRepository";
 import { IUserSubscriptionRepository } from "./interface/IUserSubscriptionRepository";
 

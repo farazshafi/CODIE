@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import ResetLinkModel, { IResetLink } from '../models/ResetLinkModel';
 import { ISubscription } from '../models/SubscriptionModel';
 import { IUser } from '../models/UserModel';

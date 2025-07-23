@@ -1,4 +1,4 @@
-import { IUserSubscription } from "../../models/userSubscriptionModel";
+import { IUserSubscription } from "../../models/UserSubscriptionModel";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IUserSubscriptionRepository extends IBaseRepository<IUserSubscription> {

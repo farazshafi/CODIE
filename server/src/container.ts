@@ -25,7 +25,7 @@ import { InvitationRepository } from './repositories/InvitationRepository';
 import { MessageRepository } from './repositories/MessageRepository';
 import { OtpRepository } from './repositories/OtpRepositories';
 import { ProjectRepository } from './repositories/ProjectRepositories';
-import { RequestRepositories } from './repositories/requestRepositories';
+import { RequestRepositories } from './repositories/RequestRepositories';
 import { RoomRepositories } from './repositories/RoomRepositories';
 import { SubscriptionRepository } from './repositories/SubscriptionRepository';
 import { UserRepository } from './repositories/UserRepositories';
@@ -46,7 +46,7 @@ import { EditorService } from './sockets/services/EditorService';
 import { RoomSocketService } from './sockets/services/RoomSocketService';
 import { UserSocketService } from './sockets/services/UserSocketService';
 import { UserSubscriptionRepository } from './repositories/UserSubscriptionRepository';
-import UserSubscriptionModel from './models/userSubscriptionModel';
+import UserSubscriptionModel from './models/UserSubscriptionModel';
 import { UserSubscriptionService } from './services/UserSubscriptionService';
 import { UserSubscriptionController } from './controllers/UserSubscriptionController';
 
