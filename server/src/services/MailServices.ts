@@ -8,7 +8,7 @@ export class MailService implements IMailService {
 
     async sendMail(to: string, otp: string): Promise<void> {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
                 to: to,
                 subject: "Your OTP for Codie Online Collabrative Editor",
@@ -23,7 +23,7 @@ export class MailService implements IMailService {
 
     async sendResetLink(to: string, link: string): Promise<void> {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
                 to: to,
                 subject: "Password Reset Link for Codie Online Collaborative Editor",
@@ -39,7 +39,7 @@ export class MailService implements IMailService {
 
     async sendJoinRequest(to: string, requesterEmail: string, projectName: string): Promise<void> {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
                 to: to,
                 subject: "New Collaboration Request on Codie Online Collaborative Editor",

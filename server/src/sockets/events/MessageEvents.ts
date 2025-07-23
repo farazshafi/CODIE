@@ -14,10 +14,10 @@ export class MessageEvents implements IEventHandler {
     }
 
     public register(socket: Socket): void {
-        socket.on("send-message", (data: ISentMessage) => this.saveMessage(data, socket));
+        socket.on("send-message", (data: ISentMessage) => this.saveMessage(data));
     }
 
-    private async saveMessage(data: ISentMessage, socket: Socket): Promise<void> {
+    private async saveMessage(data: ISentMessage): Promise<void> {
         const savedMessages = await this.messageService.createMessage(data);
         this.io.to(data.projectId).emit("recived-message", { ...savedMessages.toObject() });
     }

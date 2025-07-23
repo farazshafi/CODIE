@@ -25,7 +25,7 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
         return this.model.findOneAndUpdate({ email }, updateData, { new: true });
     }
 
-    async findMany(filter: any, skip: number, limit: number): Promise<IUser[]> {
+    async findMany(filter: Record<string, unknown>, skip: number, limit: number): Promise<IUser[]> {
         return this.model
             .find(filter)
             .skip(skip)
@@ -33,7 +33,7 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
             .select('name email isBlocked avatarUrl')
     }
 
-    async count(filter: any): Promise<number> {
+    async count(filter: Record<string, unknown>): Promise<number> {
         return this.model.countDocuments(filter);
     }
 

@@ -5,6 +5,6 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     findByEmail(email: string): Promise<IUser | null>;
     findByGoogleId(googleId: string): Promise<IUser | null>;
     findByEmailAndUpdate(email: string, updateData: Partial<IUser>): Promise<IUser | null>;
-    findMany(filter: any, skip: number, limit: number): Promise<IUser[]>;
-    count(filter: any): Promise<number>;
+    findMany(filter: Record<string, unknown>, skip: number, limit: number): Promise<IUser[]>;
+    count(filter: Record<string, unknown>): Promise<number>;
 }

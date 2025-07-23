@@ -28,21 +28,30 @@ export class RequestController {
     }
 
     getRequetsByRoom = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { roomId } = req.params
-            const data = await this.requestService.getAllRequetByRoomId(roomId)
+    try {
+        const { roomId } = req.params;
+        const data = await this.requestService.getAllRequetByRoomId(roomId);
 
+        const formattedData = data.map((request) => {
+            const sender =
+                typeof request.senderId === "object" &&
+                request.senderId !== null &&
+                "name" in request.senderId &&
+                "email" in request.senderId
+                    ? request.senderId
+                    : { _id: request.senderId, name: "", email: "" };
 
-            const formattedData = data.map((request) => ({
+            return {
                 id: request._id,
-                senderId: request.senderId._id,
-                name: (request.senderId as any).name,
-                email: (request.senderId as any).email
-            }))
+                senderId: sender._id,
+                name: sender.name,
+                email: sender.email,
+            };
+        });
 
-            res.status(201).json(formattedData);
-        } catch (err) {
-            next(err)
-        }
+        res.status(201).json(formattedData);
+    } catch (err) {
+        next(err);
     }
+}
 }

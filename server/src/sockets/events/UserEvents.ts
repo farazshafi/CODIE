@@ -20,10 +20,10 @@ export class UserEvents implements IEventHandler {
     }
 
     public register(socket: Socket): void {
-        socket.on("block-user", (data: { userId: string }) => this.handleBlockUser(data.userId, socket));
+        socket.on("block-user", (data: { userId: string }) => this.handleBlockUser(data.userId));
     }
 
-    private async handleBlockUser(userId: string, socket: Socket): Promise<void> {
+    private async handleBlockUser(userId: string): Promise<void> {
         const userSocket = await this.userSocketRepository.getSocketId(userId);
         if (!userSocket) return;
         this.io.to(userSocket).emit("user-blocked", { message: "You are Blocked!" });

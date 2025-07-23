@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { IDiscoverService } from "../services/interface/IDiscoverService";
 import mongoose from "mongoose";
-import { string } from "zod";
 
 
 export class DiscoverController {

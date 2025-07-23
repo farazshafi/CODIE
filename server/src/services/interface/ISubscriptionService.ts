@@ -10,7 +10,7 @@ export interface ISubscriptionService {
     findById(id: string): Promise<ISubscription | null>;
     blockSubscription(id: string): Promise<void>;
     unblockSubscription(id: string): Promise<void>;
-    findSubscriptionsWithPagination(filter: any, page: number, limit: number): Promise<ISubscription[]>;
-    countSubscription(filter: any): Promise<number>;
+    findSubscriptionsWithPagination(filter: Record<string, unknown>, page: number, limit: number): Promise<ISubscription[]>;
+    countSubscription(filter: Record<string, unknown>): Promise<number>;
     getSubscription(): Promise<ISubscription[]>
 }

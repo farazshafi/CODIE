@@ -75,7 +75,11 @@ export class AdminController {
             const pageSize = parseInt(limit as string);
             const searchQuery = search.toString();
 
-            const filter: any = {
+            const filter: {
+                isAdmin: boolean;
+                $or?: { [key: string]: { $regex: string; $options: string } }[];
+                isBlocked?: boolean;
+            } = {
                 isAdmin: false,
             };
 

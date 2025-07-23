@@ -28,13 +28,12 @@ export class UserService implements IUserService {
         });
 
         const freeSubscription: ISubscription = await this.subscriptionRepository.findOne({ name: "Free" })
-        console.log(freeSubscription)
-        if (!freeSubscription) {
-            throw new HttpError(404, "Free subscription not found")
-        }
 
         await this.userSubscriptionRepository.createSubscriptionWhenUserRegister(user.id, freeSubscription._id as string)
 
+        if (!freeSubscription) {
+            throw new HttpError(404, "Free subscription not found")
+        }
         return user
     }
 

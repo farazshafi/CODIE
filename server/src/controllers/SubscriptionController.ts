@@ -36,7 +36,10 @@ export class SubscriptionController {
             const pageSize = parseInt(limit as string);
             const searchQuery = search.toString();
 
-            const filter: any = {};
+            const filter: {
+                $or?: ({ name: { $regex: string; $options: string } } | { _id: mongoose.Types.ObjectId })[];
+                isVisible?: boolean;
+            } = {};
 
             if (searchQuery) {
                 const isValidObjectId = mongoose.Types.ObjectId.isValid(searchQuery);

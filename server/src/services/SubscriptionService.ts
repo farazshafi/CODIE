@@ -85,12 +85,12 @@ export class SubscriptionService implements ISubscriptionService {
         await this.subscriptionRepository.findByIdAndUpdate(id, { isVisible: true })
     }
 
-    async findSubscriptionsWithPagination(filter: any, page: number, limit: number): Promise<ISubscription[]> {
+    async findSubscriptionsWithPagination(filter: Record<string, unknown>, page: number, limit: number): Promise<ISubscription[]> {
         const skip = (page - 1) * limit;
         return this.subscriptionRepository.findMany(filter, skip, limit);
     }
 
-    async countSubscription(filter: any): Promise<number> {
+    async countSubscription(filter: Record<string, unknown>): Promise<number> {
         try {
             return this.subscriptionRepository.count(filter);
         } catch (error) {

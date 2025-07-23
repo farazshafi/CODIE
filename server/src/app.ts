@@ -14,8 +14,6 @@ import subscriptionRouter from "./routes/subscriptionRouter";
 import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
-import { isAdmin } from "./middlewares/isAdminMiddleware";
-
 
 const app = express();
 
@@ -41,7 +39,7 @@ app.use("/api/discover", discoverRouter)
 app.use("/api/userSubscription", userSubscriptionRouter)
 
 // Admin Routes
-app.use("/api/admin", isAdmin, adminRouter)
+app.use("/api/admin", adminRouter)
 
 // GraphQL Setup
 setupGraphQl(app);

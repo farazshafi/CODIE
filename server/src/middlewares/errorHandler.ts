@@ -3,11 +3,12 @@ import { ZodError } from "zod";
 import { HttpError } from "../utils/HttpError";
 
 export const errorHandler = (err: unknown, req: Request, res: Response, next: NextFunction): void => {
+    void next
     console.error(err);
 
     if (err instanceof ZodError) {
-        res.status(400).json({ 
-            message: "Validation failed", 
+        res.status(400).json({
+            message: "Validation failed",
             errors: err.errors.map(e => ({ field: e.path.join("."), message: e.message }))
         });
     } else if (err instanceof HttpError) {
