@@ -5,11 +5,15 @@ import { HttpError } from '../utils/HttpError';
 import { IProjectService } from './interface/IProjectService';
 import { IProject } from '../models/ProjectModel';
 import { IRoomRepository } from '../repositories/interface/IRoomRepository';
+import { ISubscriptionRepository } from '../repositories/interface/ISubscriptionRepository';
+import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
 
 export class ProjectService implements IProjectService {
     constructor(
         private readonly projectRepository: IProjectRepository,
-        private readonly roomRepository: IRoomRepository
+        private readonly roomRepository: IRoomRepository,
+        private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
     ) { }
 
     async createProject(data: CreateProjectType): Promise<IProject> {
@@ -24,11 +28,23 @@ export class ProjectService implements IProjectService {
                 throw new HttpError(400, "Project name already exists for this language.");
             }
 
+            // make sure he wont create project more than (x) given in plan, and store owner plan id
+            const userPlanId = await this.userSubscriptionRepository.findOne({ userId: new mongoose.Types.ObjectId(data.userId) })
+            console.log("checking".bgGreen, userPlanId)
+
+            const plan = await this.subscriptionRepository.findById(userPlanId.planId.toString())
+            console.log("user plan ", plan)
+            const totalProjects = (await this.projectRepository.find({ userId: data.userId })).length
+            if (totalProjects >= plan.maxPrivateProjects) {
+                throw new HttpError(400, "You have reached the maximum number of projects, Upgrade your plan.");
+            }
+
             return await this.projectRepository.create({
                 ...data,
                 userId: new mongoose.Types.ObjectId(data.userId)
             });
         } catch (error) {
+
             if (error instanceof HttpError) {
                 throw error;
             }

@@ -13,6 +13,8 @@ import adminRouter from "./routes/adminRouter";
 import subscriptionRouter from "./routes/subscriptionRouter";
 import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
+import userSubscriptionRouter from "./routes/userSubscriptionRouter";
+import { isAdmin } from "./middlewares/isAdminMiddleware";
 
 
 const app = express();
@@ -36,9 +38,10 @@ app.use("/api/request", requestRouter);
 app.use("/api/invitation", invitationRouter);
 app.use("/api/subscription", subscriptionRouter)
 app.use("/api/discover", discoverRouter)
+app.use("/api/userSubscription", userSubscriptionRouter)
 
 // Admin Routes
-app.use("/api/admin", adminRouter)
+app.use("/api/admin", isAdmin, adminRouter)
 
 // GraphQL Setup
 setupGraphQl(app);

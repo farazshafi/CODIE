@@ -1,13 +1,21 @@
+import mongoose from 'mongoose';
 import ResetLinkModel, { IResetLink } from '../models/ResetLinkModel';
+import { ISubscription } from '../models/SubscriptionModel';
 import { IUser } from '../models/UserModel';
+import { ISubscriptionRepository } from '../repositories/interface/ISubscriptionRepository';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
+import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
 import { HttpError } from '../utils/HttpError';
 import { UserInput, GoogleAuthInput } from '../validation/userValidation';
 import { IUserService } from './interface/IUserService';
 import { ObjectId } from 'mongodb';
 
 export class UserService implements IUserService {
-    constructor(private readonly userRepository: IUserRepository) { }
+    constructor(
+        private readonly userRepository: IUserRepository,
+        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly subscriptionRepository: ISubscriptionRepository,
+    ) { }
 
     async createUser(data: UserInput): Promise<IUser> {
         const existingUser = await this.userRepository.findByEmail(data.email);
@@ -15,10 +23,20 @@ export class UserService implements IUserService {
             throw new HttpError(409, "User already exists");
         }
 
-        return this.userRepository.create({
+        const user = await this.userRepository.create({
             ...data,
             password: data.password
         });
+
+        const freeSubscription: ISubscription = await this.subscriptionRepository.findOne({ name: "Free" })
+        console.log(freeSubscription)
+        if (!freeSubscription) {
+            throw new HttpError(404, "Free subscription not found")
+        }
+
+        await this.userSubscriptionRepository.createSubscriptionWhenUserRegister(user.id, freeSubscription._id as string)
+
+        return user
     }
 
     async findUserByEmail(email: string): Promise<IUser> {

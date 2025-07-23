@@ -21,7 +21,6 @@ export interface ISubscriptionBase {
 
 export interface ISubscription extends ISubscriptionBase, Document { }
 
-
 const SubscriptionSchema: Schema = new Schema({
     name: {
         type: String,

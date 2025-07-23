@@ -45,6 +45,10 @@ import { UserService } from './services/UserServices';
 import { EditorService } from './sockets/services/EditorService';
 import { RoomSocketService } from './sockets/services/RoomSocketService';
 import { UserSocketService } from './sockets/services/UserSocketService';
+import { UserSubscriptionRepository } from './repositories/UserSubscriptionRepository';
+import UserSubscriptionModel from './models/userSubscriptionModel';
+import { UserSubscriptionService } from './services/UserSubscriptionService';
+import { UserSubscriptionController } from './controllers/UserSubscriptionController';
 
 // Set up repositories
 export const projectRepository = new ProjectRepository(ProjectModel)
@@ -58,21 +62,23 @@ export const messageRepository = new MessageRepository(MessageModel)
 export const discoverRepository = new DiscoverRepository(DiscoverModel)
 export const onlineUserRepository = new OnlineUserRepository()
 export const userSocketRepository = new UserSocketRepository()
+export const userSubscriptionRepository = new UserSubscriptionRepository(UserSubscriptionModel)
 
 // Set up services
-export const projectService = new ProjectService(projectRepository, roomRepository);
-export const userService = new UserService(userRepository)
+export const projectService = new ProjectService(projectRepository, roomRepository, subscriptionRepository, userSubscriptionRepository);
+export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository)
 export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()
 export const otpService = new OtpService(otpRepository, mailService)
 export const roomService = new RoomServices(roomRepository, projectRepository)
-export const invitationService = new InvitationService(invitationRepository, mailService, userRepository)
+export const invitationService = new InvitationService(invitationRepository, mailService, userRepository, roomRepository, userSubscriptionRepository, subscriptionRepository)
 export const subscriptionService = new SubscriptionService(subscriptionRepository)
 export const messageService = new MessageService(messageRepository)
 export const discoverService = new DiscoverService(discoverRepository)
 export const editorService = new EditorService(onlineUserRepository, roomRepository, projectRepository)
-export const roomSocketService = new RoomSocketService(roomRepository, requestService, requestRepository, userSocketRepository, userRepository, mailService, projectRepository, invitationRepository)
+export const roomSocketService = new RoomSocketService(roomRepository, requestService, requestRepository, userSocketRepository, userRepository, mailService, projectRepository, invitationRepository, userSubscriptionRepository, subscriptionRepository)
 export const userSocketService = new UserSocketService(userSocketRepository)
+export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository)
 
 
 // Set up controller
@@ -85,3 +91,4 @@ export const adminController = new AdminController(userService)
 export const subscriptionController = new SubscriptionController(subscriptionService)
 export const messageController = new MessageController(messageService)
 export const discoverController = new DiscoverController(discoverService)
+export const userSubscriptionController = new UserSubscriptionController(userSubscriptionService)

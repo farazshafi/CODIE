@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from "react"
 import Split from "react-split"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, Mic, RotateCw, Send, SmilePlus } from "lucide-react"
+import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, RotateCw, } from "lucide-react"
 import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore"
-import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import Header from "../_component/Header"
 import EditorPanel from "../_component/EditorPanel"
@@ -13,7 +12,6 @@ import { LANGUAGE_CONFIG } from "../_constants"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
 import ChatArea from "../_component/ChatArea"
-import { useUserStore } from "@/stores/userStore"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
@@ -24,6 +22,10 @@ const Page = () => {
     const setProjectId = useEditorStore((state) => state.setProjectId)
     const userRole = useEditorStore((state) => state.userRole)
     const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
+    const [chatSupport, setChatSupport] = useState({
+        text: false,
+        voice: false
+    })
 
 
     // functions
@@ -70,7 +72,8 @@ const Page = () => {
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Header
-                onChatToggle={() => {
+                onChatToggle={(chatSupport) => {
+                    setChatSupport(chatSupport)
                     setShowChat((prev) => !prev)
                     setShowCollaborators(false)
                 }}
@@ -225,7 +228,7 @@ const Page = () => {
                         {/* RIGHT SIDE (Either Chat or Output) */}
                         <div className="h-full w-full overflow-hidden">
                             {showChat && userRole ? (
-                                <ChatArea userRole={userRole} />
+                                <ChatArea chatSupport={chatSupport} userRole={userRole} />
                             ) : (
                                 <div className="bg-slate-800 h-screen flex flex-col">
                                     <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">

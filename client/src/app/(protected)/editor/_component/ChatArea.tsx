@@ -1,12 +1,6 @@
 import { Input } from '@/components/ui/input'
-import { Mic, Send, SmilePlus } from 'lucide-react'
+import { Mic, MicOff, Send, SmilePlus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 import React, { useEffect, useRef, useState } from 'react'
 import { useSocket } from '@/context/SocketContext'
@@ -14,6 +8,7 @@ import { useUserStore } from '@/stores/userStore'
 import { useEditorStore } from '@/stores/editorStore'
 import { useMutationHook } from '@/hooks/useMutationHook'
 import { getChatMessagesApi } from '@/apis/messageApi'
+import { toast } from 'sonner'
 
 interface Message {
     _id?: string
@@ -26,15 +21,20 @@ interface Message {
 }
 
 interface ChatProps {
-    userRole: 'owner' | 'editor' | 'viewer'
+    userRole: 'owner' | 'editor' | 'viewer';
+    chatSupport: {
+        text: boolean,
+        voice: boolean
+    }
 }
 
-const ChatArea: React.FC<ChatProps> = ({ userRole }) => {
+const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
     //hooks & stores
     const { socket } = useSocket()
     const user = useUserStore((state) => state.user)
     const roomId = useEditorStore((state) => state.roomId)
     const projectId = useEditorStore((state) => state.projectId)
+    const ownerId = useEditorStore((state) => state.ownerId)
 
     // states
     const [messageText, setMessageText] = useState("")
@@ -64,6 +64,19 @@ const ChatArea: React.FC<ChatProps> = ({ userRole }) => {
 
         socket.emit("send-message", newMessage)
         setMessageText("")
+    }
+
+    const handleVoiceSend = () => {
+        if (chatSupport.voice) {
+            // handle voice feature
+        } else {
+            if (user?.id === ownerId) {
+                toast.info("Please upgrade your plan")
+                return
+            } else {
+                toast.info("Owner does not have access to this feature. Please contact the owner for an upgrade.")
+            }
+        }
     }
 
     //useEffects
@@ -156,8 +169,8 @@ const ChatArea: React.FC<ChatProps> = ({ userRole }) => {
                         }}
                     />
                     <div className="flex flex-row gap-x-5 item-center">
-                        <div className="bg-green px-3 py-2 rounded-md">
-                            <Mic />
+                        <div onClick={handleVoiceSend} className="bg-green px-3 py-2 rounded-md">
+                            {chatSupport.voice ? <Mic /> : <MicOff />}
                         </div>
                         <div
                             onClick={handleSend}

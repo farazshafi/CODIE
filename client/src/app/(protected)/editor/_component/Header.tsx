@@ -15,6 +15,7 @@ import {
     CircleSmall,
     Handshake,
     UserRoundPlus,
+    MessageSquareOff,
 
 } from "lucide-react";
 import Logo from "../../../../../public/logo.png";
@@ -42,6 +43,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 type SearchResultUser = {
     name: string;
@@ -59,7 +61,7 @@ const Header = ({
     onChatToggle,
     onCollaboratorsToggle,
 }: {
-    onChatToggle: () => void;
+    onChatToggle: (chatSupport: { text: boolean, voice: boolean }) => void;
     onCollaboratorsToggle: () => void;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -72,14 +74,15 @@ const Header = ({
     const [collabVersion, setCollabVersion] = useState(0);
     const [copyMessage, setCopyMessage] = useState("")
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    const [chatSupport, setChatSupport] = useState({ text: true, voice: true })
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
 
 
     const roomId = useEditorStore((state) => state.roomId)
     const setRoomId = useEditorStore((state) => state.setRoomId)
     const user = useUserStore((state) => state.user)
+    const storeOnwerId = useEditorStore((state) => state.setOwnerId)
     const { socket } = useSocket()
 
     const params = useParams()
@@ -105,9 +108,22 @@ const Header = ({
             setCollaborators(res.data.collaborators)
             setIsWantToCollab(true)
             setOwnerId(res.data.owner)
+            storeOnwerId(res.data.owner)
         },
         onError(error) {
             setIsWantToCollab(false)
+        },
+    })
+
+    const { mutate: getUserSubscription, isLoading: subscriptionLoading } = useMutationHook(getUserSubscriptionApi, {
+        onSuccess(data) {
+            console.log(data.text)
+            setChatSupport({
+                text: data.text,
+                voice: data.voice
+            })
+        }, onError(error) {
+            console.log("server error", error)
         },
     })
 
@@ -121,6 +137,14 @@ const Header = ({
         mutate(id)
     }
 
+    const handleSubscription = () => {
+        if (ownerId === user?.id) {
+            toast.info("Please upgrade Your Plan")
+        } else {
+            toast.info("Owner does not have access to this feature. Please contact the owner for an upgrade.")
+        }
+    }
+
     const handleInvitation = () => {
         setShowInvitationModal(true)
     }
@@ -128,6 +152,14 @@ const Header = ({
     const hanldeModalClose = () => {
         setShowInvitationModal(false)
     }
+
+    useEffect(() => {
+        if (ownerId) {
+            getUserSubscription(ownerId);
+        } else {
+            console.log("owner id is not there")
+        }
+    }, [ownerId]);
 
 
     const copyRoomId = async () => {
@@ -173,6 +205,7 @@ const Header = ({
             setTextSize(Number(storedSize));
         }
     }, [setFontChange])
+
 
     useEffect(() => {
         if (!socket) return
@@ -309,9 +342,10 @@ const Header = ({
                         {/* mesage */}
                         <div
                             className="bg-tertiary p-2 hover:scale-125 rounded-md"
-                            onClick={onChatToggle}
+                            onClick={chatSupport.text ? () => onChatToggle(chatSupport) : handleSubscription}
                         >
-                            <MessageSquare />
+                            {chatSupport.text ? <MessageSquare /> : <MessageSquareOff />}
+
                         </div>
 
                         <Contributers ownerId={ownerId} />

@@ -60,10 +60,18 @@ export default function Home() {
             }
         }
 
+        const handleSocketError = (error: string) => {
+            console.log("error in socket", error)
+            toast.error(error || "Socket Error")
+        }
+
         socket.on("invitation-accepted-success", fetchProjects)
+        socket.on("error", handleSocketError)
 
         return () => {
             socket.off("invitation-accepted-success", fetchProjects)
+            socket.off("error", handleSocketError)
+
         }
     }, [socket, refetchContributedProject])
 

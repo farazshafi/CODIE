@@ -10,6 +10,8 @@ import { IUserRepository } from '../../repositories/interface/IUserRepository';
 import { IMailService } from '../../services/interface/IMailService';
 import { IProjectRepository } from '../../repositories/interface/IProjectRepository';
 import { IInvitationRepository } from '../../repositories/interface/IInvitationRepository';
+import { IUserSubscriptionRepository } from '../../repositories/interface/IUserSubscriptionRepository';
+import { ISubscriptionRepository } from '../../repositories/interface/ISubscriptionRepository';
 
 export class RoomSocketService implements IRoomSocketService {
     constructor(
@@ -21,6 +23,8 @@ export class RoomSocketService implements IRoomSocketService {
         private readonly mailService: IMailService,
         private readonly projectRepository: IProjectRepository,
         private readonly invitationRepository: IInvitationRepository,
+        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly subscriptionRepository: ISubscriptionRepository,
     ) { }
 
     async handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string } | { error: string }> {
@@ -31,10 +35,19 @@ export class RoomSocketService implements IRoomSocketService {
             return { error: "Room not found" };
         }
 
-
         const existingRequest = await this.requestRepository.findRequestByUserAndRoom(userId, roomId);
         if (existingRequest) {
             return { error: "You have already sent a request to join this room." };
+        }
+
+
+        console.log("comming herere".bgGreen)
+        const currentContributers = room.collaborators.length - 1
+        const userSubscriptionId = (await this.userSubscriptionRepository.findOne({ userId: room.owner })).planId.toString()
+        const maxContributers = (await this.subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
+        if (currentContributers >= maxContributers) {
+            console.log("room is full".bgRed)
+            return { error: "Room is full" } 
         }
 
         const request = await this.requestService.createRequest({

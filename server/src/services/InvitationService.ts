@@ -5,13 +5,19 @@ import { IInvitationService } from "./interface/IInvitationService";
 import { HttpError } from "../utils/HttpError";
 import { IMailService } from "./interface/IMailService";
 import { IUserRepository } from "../repositories/interface/IUserRepository";
+import { IRoomRepository } from "../repositories/interface/IRoomRepository";
+import { IUserSubscriptionRepository } from "../repositories/interface/IUserSubscriptionRepository";
+import { ISubscriptionRepository } from "../repositories/interface/ISubscriptionRepository";
 
 
 export class InvitationService implements IInvitationService {
     constructor(
         private readonly invitationRepository: IInvitationRepository,
         private readonly mailService: IMailService,
-        private readonly userRepository: IUserRepository
+        private readonly userRepository: IUserRepository,
+        private readonly roomRepository: IRoomRepository,
+        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly subscriptionRepository: ISubscriptionRepository,
     ) { }
 
     async createInvitation(senderId: string, reciverId: string, roomId: string): Promise<IInvitation> {
@@ -25,6 +31,14 @@ export class InvitationService implements IInvitationService {
             const isExist = await this.isInvitaionExist(reciverId, roomId)
             if (isExist) {
                 throw new HttpError(400, "Already sended Invitation.");
+            }
+
+            const room = await this.roomRepository.findOne({ roomId })
+            const currentContributers = room.collaborators.length - 1
+            const userSubscriptionId = (await this.userSubscriptionRepository.findOne({ userId: room.owner })).planId.toString()
+            const maxContributers = (await this.subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
+            if (currentContributers >= maxContributers) {
+                throw new HttpError(400, "Maximum number of collaborators reached for this room. Please upgrade your plan");
             }
 
             const reciverMail = (await this.userRepository.findById(reciverId)).email

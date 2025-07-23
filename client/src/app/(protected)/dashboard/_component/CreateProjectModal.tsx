@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { createProjectApi, getProjectByRoomIdApi } from "@/apis/projectApi";
+import { createProjectApi } from "@/apis/projectApi";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/userStore";
 import { LANGUAGE_CONFIG } from "../../editor/_constants";
@@ -98,12 +98,16 @@ export default function CreateProjectModal({
       userId: user.id,
       userName: user.name,
     });
+    setIsJoinLoading(false)
+
   };
 
   useEffect(() => {
     if (!socket) return
 
     const handleSocketJoin = () => {
+      console.log("join request comes ")
+
       setIsJoinLoading(false)
       setOpen(false)
     }
