@@ -3,6 +3,7 @@ import { IDiscover } from "../models/DiscoverModel";
 import { IDiscoverService } from "./interface/IDiscoverService";
 import { IDiscoverRepository } from "../repositories/interface/IDiscoverRepository";
 import { HttpError } from "../utils/HttpError";
+import { generateCodeExplanation } from "../utils/geminiHelperl";
 
 interface FilterOptions {
     keyword: string;
@@ -104,6 +105,19 @@ export class DiscoverService implements IDiscoverService {
                 throw error
             }
             throw new HttpError(500, "server error while removing project form discoveies")
+        }
+    }
+
+    async getCodeExplanation(code: string) {
+        try {
+            const explanation = await generateCodeExplanation(code)
+            return explanation
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error)
+            throw error(500, "server Error")
         }
     }
 }

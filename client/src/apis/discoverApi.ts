@@ -1,4 +1,5 @@
 import API from "@/lib/axiosInstance";
+import { unknown } from "zod";
 
 interface DiscoverQuery {
   keyword?: string;
@@ -33,6 +34,16 @@ export const removeFromDiscoverApi = async (projectId: string) => {
     return response.data;
   } catch (error) {
     console.log("Error while sharing Discoveries");
+    throw error;
+  }
+};
+
+export const explainCodeApi = async (code: string) => {
+  try {
+    const response = await API.post(`/discover/explain`, { code });
+    return response.data;
+  } catch (error) {
+    console.log("Error while explaing code");
     throw error;
   }
 };

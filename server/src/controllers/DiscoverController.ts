@@ -52,4 +52,14 @@ export class DiscoverController {
             next(error)
         }
     }
+
+    generateExplanation = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { code }: { code: string } = req.body
+            const explanation = await this.discoverService.getCodeExplanation(code)
+            res.status(200).json(explanation)
+        } catch (error) {
+            next(error)
+        }
+    }
 }
