@@ -11,6 +11,5 @@ export class MessageRepository extends BaseRepository<IMessage> implements IMess
 
     async getMessagesByRoomId(roomId: string): Promise<IMessage[]> {
         return await this.model.find({ roomId }).sort({ createdAt: 1 }).lean();
-
     }
 }

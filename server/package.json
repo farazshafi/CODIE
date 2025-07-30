@@ -25,10 +25,12 @@
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
+    "@blackbox-vision/mui-audio-player": "^2.1.0",
     "@neondatabase/serverless": "^1.0.0",
     "apollo-server-express": "^3.13.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "colors": "^1.4.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

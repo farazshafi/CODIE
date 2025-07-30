@@ -6,7 +6,8 @@ export interface IMessageBase {
     senderId: string;
     senderName: string;
     senderRole: 'owner' | 'editor' | 'viewer';
-    content: string;
+    content: string; // message text
+    contentType: "text" | "audio"
 }
 export interface IMessage extends IMessageBase, Document { }
 
@@ -16,6 +17,7 @@ const messageSchema: Schema = new mongoose.Schema({
     senderId: { type: String, required: true },
     senderName: { type: String },
     content: { type: String, required: true },
+    contentType: { type: String, enum: ['text', 'audio'], default: "text", required: true },
     senderRole: { type: String, enum: ['owner', 'editor', 'viewer'], required: true },
 }, { timestamps: true });
 

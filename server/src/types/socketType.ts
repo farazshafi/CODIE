@@ -33,6 +33,9 @@ export interface ApproveInvitationResult {
 export interface ISentMessage {
     roomId: string; senderId: string; senderName: string; content: string; senderRole: "owner" | "editor" | "viewer", projectId: string
 }
+export interface ISentVoiceMessage {
+    roomId: string; senderId: string; base64:string; senderName: string; contentType: string; senderRole: "owner" | "editor" | "viewer", projectId: string
+}
 
 // project socket 
 
