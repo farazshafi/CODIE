@@ -75,4 +75,35 @@ export class MailService implements IMailService {
         }
     }
 
+    async sendPlanExpiryNotification(to: string, expiryDate: string): Promise<void> {
+        try {
+            await transporter.sendMail({
+                from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
+                to: to,
+                subject: "Your Plan Expiry Notice - Codie Online Collaborative Editor",
+                html: `<h1>Plan Expiry Reminder</h1>
+                       <p>Your current plan is set to expire on <b>${expiryDate}</b>.</p>
+                       <p>Please renew your subscription to continue enjoying uninterrupted service.</p>
+                       <p>If you have already renewed, please ignore this message.</p>`
+            });
+        } catch (error) {
+            console.error("Error sending plan expiry notification email: ", error);
+            throw new HttpError(401, "Failed to send plan expiry notification");
+        }
+    }
+
+    async sendCommonEmail(to: string, subject: string, content: string): Promise<void> {
+        try {
+            await transporter.sendMail({
+                from: `Codie Online Collabrative Editor <${ENV.EMAIL_USER}>`,
+                to: to,
+                subject: subject || "New Notification from Codie",
+                html: content
+            });
+        } catch (error) {
+            console.error("Error sending common email: ", error);
+            throw new HttpError(401, "Failed to send email");
+        }
+    }
+
 }

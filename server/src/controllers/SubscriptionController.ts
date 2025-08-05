@@ -151,6 +151,7 @@ export class SubscriptionController {
 
                 return {
                     name: sub.name,
+                    id: sub.id,
                     pricePerMonth: sub.pricePerMonth,
                     features,
                     notAvailable

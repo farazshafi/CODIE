@@ -47,4 +47,16 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     async findOne(filter: FilterQuery<T>): Promise<T | null> {
         return this.model.findOne(filter);
     }
+
+    async findOneAndUpdate(
+        filter: FilterQuery<T>,
+        update: Partial<T>,
+        options?: ModelUpdateOptions
+    ): Promise<T | null> {
+        return this.model.findOneAndUpdate(filter, update, { ...options, new: true });
+    }
+
+    async save(document: T): Promise<T> {
+        return document.save();
+    }
 }

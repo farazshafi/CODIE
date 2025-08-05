@@ -21,6 +21,15 @@ export const createSubscription = z.object({
     }),
 });
 
+export const verifySubscription = z.object({
+    razorpay_order_id: z.string(),
+    razorpay_payment_id: z.string(),
+    razorpay_signature: z.string(),
+    userId: z.string(),
+    planId: z.string()
+
+})
+
 export const updateSubscription = createSubscription.partial();
 
 export type UpdateSubscriptionInput = z.infer<typeof updateSubscription>;

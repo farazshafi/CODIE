@@ -49,6 +49,7 @@ import { UserSubscriptionRepository } from './repositories/UserSubscriptionRepos
 import UserSubscriptionModel from './models/UserSubscriptionModel';
 import { UserSubscriptionService } from './services/UserSubscriptionService';
 import { UserSubscriptionController } from './controllers/UserSubscriptionController';
+import { SubscriptionCron } from './crons/SubscriptionCron';
 
 // Set up repositories
 export const projectRepository = new ProjectRepository(ProjectModel)
@@ -78,7 +79,7 @@ export const discoverService = new DiscoverService(discoverRepository)
 export const editorService = new EditorService(onlineUserRepository, roomRepository, projectRepository)
 export const roomSocketService = new RoomSocketService(roomRepository, requestService, requestRepository, userSocketRepository, userRepository, mailService, projectRepository, invitationRepository, userSubscriptionRepository, subscriptionRepository)
 export const userSocketService = new UserSocketService(userSocketRepository)
-export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository)
+export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository, mailService, userRepository)
 
 
 // Set up controller
@@ -92,3 +93,6 @@ export const subscriptionController = new SubscriptionController(subscriptionSer
 export const messageController = new MessageController(messageService)
 export const discoverController = new DiscoverController(discoverService)
 export const userSubscriptionController = new UserSubscriptionController(userSubscriptionService)
+
+// crons
+export const subscriptionCron = new SubscriptionCron(userSubscriptionService)

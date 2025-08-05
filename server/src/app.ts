@@ -14,8 +14,11 @@ import subscriptionRouter from "./routes/subscriptionRouter";
 import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
+import { subscriptionCron } from "./container";
 
 const app = express();
+const cron = subscriptionCron
+cron.start()
 
 // Middlewares
 app.use(cors({
