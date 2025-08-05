@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
 import Loading from "@/components/Loading";
+import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 const Page = () => {
     const [otp, setOtp] = useState("");
@@ -19,9 +20,16 @@ const Page = () => {
 
     const router = useRouter();
     const setUser = useUserStore((state) => state.setUser);
+    const setSubscription = useUserStore((state) => state.setSubscription)
     const user = useUserStore((state) => state.user);
 
     const email = localStorage.getItem("tempMail") || "null"
+
+    const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
+        onSuccess(res) {
+            setSubscription(res)
+        }
+    })
 
     const {
         mutate: verifyOtp,
@@ -33,8 +41,10 @@ const Page = () => {
                 name: data.data.name,
                 email: data.data.email,
                 token: data.accessToken,
-                id: data.data.id
+                id: data.data.id,
+                isAdmin: data.data.isAdmin
             });
+            getSubscription(data.data.id)
             router.push("/dashboard");
             localStorage.removeItem("tempMail");
         },
@@ -62,7 +72,7 @@ const Page = () => {
         if (!email) {
             return
         }
-        verifyOtp({ email, otp })   
+        verifyOtp({ email, otp })
     };
 
     const handleResendOtp = () => {

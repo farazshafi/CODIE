@@ -2,11 +2,10 @@
 import React, { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Clock, Star, Trash2 } from 'lucide-react';
+import { Clock, Trash2 } from 'lucide-react';
 import SpotlightCard from './ui/SpotlightCard/SpotlightCard';
 import { IDiscover } from '@/app/(protected)/discover/page';
 import { useUserStore } from '@/stores/userStore';
-import { LANGUAGE_CONFIG } from '@/app/(protected)/editor/_constants';
 import SnippetModal from '@/app/(protected)/discover/_components/SnippetModal';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { removeFromDiscoverApi } from '@/apis/discoverApi';
@@ -25,7 +24,7 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
         }
     })
 
-    const handleDeleteSnippet = (id: string) => {
+    const handleDeleteSnippet = () => {
         removeSnippet(project._id)
     }
 
@@ -37,7 +36,8 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
 
                 <div className='flex flex-row items-center justify-between'>
                     <div className='flex'>
-                        <img className='rounded-lg' width={"40px"} src={LANGUAGE_CONFIG[project.projectId.projectLanguage].logoPath} alt="language-logo" />
+                        {/* <Image className='rounded-lg' width={"40px"} src={LANGUAGE_CONFIG[project.projectId.projectLanguage].logoPath} alt="language-logo" /> */}
+
                         <div className='flex flex-col justify-between ml-3'>
                             <div className='text-white py-1 px-2 w-fit rounded-sm bg-primary'>
                                 <p className='text-xs'>{project.projectId.projectLanguage}</p>
@@ -52,7 +52,7 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
                     <div className='gap-x-4 flex flex-row items-center'>
                         {user?.id === project.projectId.userId._id ?
                             (
-                                <Button onClick={() => handleDeleteSnippet(project._id)} className='bg-primary cursor-pointer hover:bg-black'>
+                                <Button onClick={handleDeleteSnippet} className='bg-primary cursor-pointer hover:bg-black'>
                                     <Trash2 />
                                 </Button>
                             ) : (

@@ -47,6 +47,7 @@ export default function CreateProjectModal({
   const { setLanguage } = useCodeEditorStore();
   const { socket } = useSocket()
   const user = useUserStore((state) => state.user);
+  const setSubscription = useUserStore((state) => state.setSubscription)
 
   const [projectName, setProjectName] = useState("");
   const [roomId, setRoomId] = useState("");
@@ -59,6 +60,10 @@ export default function CreateProjectModal({
   const { mutate, isLoading } = useMutationHook(createProjectApi, {
     onError(error) {
       toast.error(error?.response?.data?.message || "Failed while creating Project");
+      if (error?.response?.data?.message === "Your subscription has expired.") {
+        const subscriptionData = error.response.data.subscription
+        setSubscription(subscriptionData)
+      }
     },
     onSuccess(data) {
       router.push(`/editor/${data.data._id}`);

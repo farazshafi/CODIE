@@ -1,6 +1,6 @@
 "use client";
 import Navbar from "@/components/ui/navbar";
-import { FilePlus, HousePlus, Rocket } from "lucide-react";
+import { FilePlus, HousePlus, Lock, Rocket } from "lucide-react";
 import SpotlightCard from "@/components/ui/SpotlightCard/SpotlightCard";
 import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
@@ -25,6 +25,7 @@ export default function Home() {
     const [isRedirecting, setIsRedirecting] = useState(false);
     const { socket } = useSocket()
     const userId = user?.id;
+    const userSubscription = useUserStore((state) => state.subscription)
     const navbarRef = useRef<any>(null);
 
 
@@ -87,7 +88,37 @@ export default function Home() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-row justify-center gap-10">
-                        <CreateProjectModal refetchProject={refetch} title="Create a project" subtitle="Please enter the details below" language={true} trigger={<div> <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Create Project</p> </div> </SpotlightCard> </div>} />
+                        {
+                            userSubscription && data?.getProjectsByUserId?.length < userSubscription?.maxPrivateProjects ? (
+                                <CreateProjectModal
+                                    refetchProject={refetch}
+                                    title="Create a project"
+                                    subtitle="Please enter the details below"
+                                    language={true}
+                                    trigger={
+                                        <div>
+                                            <SpotlightCard
+                                                className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105"
+                                                spotlightColor="rgba(255, 255, 255, 0.4)"
+                                            >
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" />
+                                                    <p className="text-center text-xs sm:text-base mt-2">Create Project</p>
+                                                </div>
+                                            </SpotlightCard>
+                                        </div>
+                                    }
+                                />
+                            ) : (
+                                <div className="w-[100px] sm:w-[250px] text-white p-2 bg-gray-700 opacity-50 rounded-md cursor-not-allowed">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <Lock className="w-6 h-6 sm:w-12 sm:h-12 text-gray-400" />
+                                        <p className="text-center text-xs sm:text-base mt-2">Limit Reached</p>
+                                    </div>
+                                </div>
+                            )
+                        }
+
                         <CreateProjectModal title="Join a room" language={false} trigger={<div > <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Join Room</p> </div> </SpotlightCard> </div >} />
                         <Link href="/discover">
                             <SpotlightCard

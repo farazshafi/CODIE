@@ -6,6 +6,7 @@ export interface SubscriptionPlan {
     pricePerMonth: number;
     features: string[];
     notAvailable: string[];
+    id: string;
 }
 
 
@@ -25,12 +26,10 @@ const Subscription = ({ plan }: { plan: SubscriptionPlan[] }) => {
                                 <PricingPlan
                                     key={index}
                                     title={item.name}
-                                    price={`₹ ${item.pricePerMonth}/M`}
-                                    popular={false}
+                                    price={item.pricePerMonth}
+                                    planId={item.id}
                                     features={item.features}
                                     notAvailable={item.notAvailable}
-                                    buttonText="Get Started"
-                                    buttonLink="/register"
                                 />
                             ))
                         ) : (

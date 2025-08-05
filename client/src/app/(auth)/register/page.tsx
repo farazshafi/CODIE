@@ -15,10 +15,12 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, gProvider } from "../../../lib/firebaseSetup";
 import { userSchema } from "@/lib/validations/userSchema";
 import Loading from "@/components/Loading";
+import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 const Page = () => {
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
+  const setSubscription = useUserStore((state) => state.setSubscription)
   const user = useUserStore((state) => state.user);
 
   const [email, setEmail] = useState("");
@@ -29,7 +31,7 @@ const Page = () => {
   const [isPasswordHidden, setIsPasswordHidden] = useState(true)
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const { mutate, isLoading, isError, error } = useMutationHook(registerUserApi, {
+  const { mutate, isLoading } = useMutationHook(registerUserApi, {
     onSuccess: (data) => {
       toast.info(data.message || "OTP sent to email");
       localStorage.setItem("tempMail", email)
@@ -51,6 +53,12 @@ const Page = () => {
 
   });
 
+  const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
+    onSuccess(res) {
+      setSubscription(res)
+    }
+  })
+
   const { mutate: googleAuthMutate } = useMutationHook(googleAuthRegisterApi, {
     onSuccess: (data) => {
       toast.success(data.message || "Google Auth Success");
@@ -59,8 +67,10 @@ const Page = () => {
         name: data.data.name,
         token: data.accessToken,
         avatar: data.data.avatar,
-        id: data.data.id
+        id: data.data.id,
+        isAdmin: data.data.isAdmin,
       })
+      getSubscription(data.data.id)
       router.push("/dashboard")
     },
     onError: (e) => {

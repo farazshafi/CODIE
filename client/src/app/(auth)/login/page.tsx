@@ -2,26 +2,26 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Facebook } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { getResetLinkApi, googleAuthLoginApi, loginUserApi, sendResetLinkApi } from "@/apis/userApi";
+import { getResetLinkApi, googleAuthLoginApi, loginUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/userStore";
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from "firebase/auth";
 import { auth, gProvider } from "@/lib/firebaseSetup";
-import PageTransitionWrapper from "@/components/TransitionWrapper";
 import Loading from "@/components/Loading";
 import { loginSchema } from "@/lib/validations/userSchema";
-import { ZodSchema } from "zod";
+import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 
 const Page = () => {
     const router = useRouter()
     const setUser = useUserStore((state) => state.setUser)
+    const setSubscription = useUserStore((state) => state.setSubscription)
     const user = useUserStore((state) => state.user)
 
     const [email, setEmail] = useState("");
@@ -32,8 +32,13 @@ const Page = () => {
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetEmail, setResetEmail] = useState("");
 
+    const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
+        onSuccess(response) {
+            setSubscription(response)
+        }
+    })
 
-    const { mutate, isLoading, isSuccess } = useMutationHook(loginUserApi, {
+    const { mutate, isLoading } = useMutationHook(loginUserApi, {
         onSuccess: (data) => {
             if (data === undefined) return
             toast.success(data.message || "User Registred succesfully");
@@ -45,6 +50,7 @@ const Page = () => {
                 id: data.data.id,
                 isAdmin: data.data.isAdmin
             })
+            getSubscription(data.data.id)
             router.push("/dashboard")
         },
 
@@ -73,6 +79,7 @@ const Page = () => {
                 id: data.data.id,
                 isAdmin: data.data.isAdmin
             })
+            getSubscription(data.data.id)
             router.push("/dashboard")
         },
         onError: (e) => {
