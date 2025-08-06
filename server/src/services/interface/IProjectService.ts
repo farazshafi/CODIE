@@ -1,4 +1,5 @@
 
+import mongoose from "mongoose";
 import { IProject } from "../../models/ProjectModel";
 import { CreateProjectType } from "../../types/projectType";
 
@@ -11,4 +12,6 @@ export interface IProjectService {
     saveCode(id: string, updatedCode: string): Promise<IProject>;
     deleteProject(projectId: string): Promise<{ message: string }>;
     getSavedCode(id: string): Promise<IProject>;
+    getUsedLanguages(userId: mongoose.Types.ObjectId): Promise<{ name: string; count: number }[]>
+        ;
 }

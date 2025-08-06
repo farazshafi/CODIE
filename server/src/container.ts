@@ -66,12 +66,12 @@ export const userSocketRepository = new UserSocketRepository()
 export const userSubscriptionRepository = new UserSubscriptionRepository(UserSubscriptionModel)
 
 // Set up services
-export const projectService = new ProjectService(projectRepository, roomRepository, subscriptionRepository, userSubscriptionRepository);
 export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository)
 export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()
 export const otpService = new OtpService(otpRepository, mailService)
 export const roomService = new RoomServices(roomRepository, projectRepository)
+export const projectService = new ProjectService(projectRepository, roomRepository, subscriptionRepository, userSubscriptionRepository, roomService);
 export const invitationService = new InvitationService(invitationRepository, mailService, userRepository, roomRepository, userSubscriptionRepository, subscriptionRepository)
 export const subscriptionService = new SubscriptionService(subscriptionRepository)
 export const messageService = new MessageService(messageRepository)
@@ -83,7 +83,7 @@ export const userSubscriptionService = new UserSubscriptionService(userSubscript
 
 
 // Set up controller
-export const projectController = new ProjectController(projectService)
+export const projectController = new ProjectController(projectService, roomService)
 export const userController = new UserController(userService, otpService, mailService)
 export const requestController = new RequestController(requestService)
 export const roomController = new RoomController(roomService)

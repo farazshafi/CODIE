@@ -7,6 +7,7 @@ import { IProject } from '../models/ProjectModel';
 import { IRoomRepository } from '../repositories/interface/IRoomRepository';
 import { ISubscriptionRepository } from '../repositories/interface/ISubscriptionRepository';
 import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
+import { IRoomService } from './interface/IRoomService';
 
 export class ProjectService implements IProjectService {
     constructor(
@@ -14,6 +15,7 @@ export class ProjectService implements IProjectService {
         private readonly roomRepository: IRoomRepository,
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly roomService: IRoomService,
     ) { }
 
     async createProject(data: CreateProjectType): Promise<IProject> {
@@ -136,6 +138,31 @@ export class ProjectService implements IProjectService {
                 throw err;
             }
             throw new HttpError(500, "Failed to save code. Please try again.");
+        }
+    }
+
+    async getUsedLanguages(userId: mongoose.Types.ObjectId): Promise<{ name: string; count: number }[]> {
+        try {
+            const userProjects = await this.projectRepository.find({ userId })
+            const contributedProjects = await this.roomService.getContributedProjectsByUserId(String(userId));
+            userProjects.push(...contributedProjects);
+
+            const languageCount: Record<string, number> = {}
+            for (const project of userProjects) {
+                if (languageCount[project.projectLanguage]) {
+                    languageCount[project.projectLanguage] = languageCount[project.projectLanguage] + 1
+                } else {
+                    languageCount[project.projectLanguage] = 1
+                }
+            }
+            const language = Object.entries(languageCount).map(([name, count]) => ({ name, count }))
+            return language
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error)
+            throw new HttpError(500, "Error while getting used languages")
         }
     }
 }

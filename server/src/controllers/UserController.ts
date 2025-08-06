@@ -7,6 +7,7 @@ import { IUserService } from "../services/interface/IUserService"
 import { IOtpService } from "../services/interface/IOtpServices"
 import crypto from "crypto"
 import { IMailService } from "../services/interface/IMailService"
+import { updateUser } from "../types/userType"
 
 export class UserController {
     constructor(
@@ -187,7 +188,9 @@ export class UserController {
                     email: userExist.email,
                     avatar: userExist.avatarUrl,
                     id: userExist._id,
-                    isAdmin: userExist.isAdmin
+                    isAdmin: userExist.isAdmin,
+                    github: userExist.github,
+                    portfolio: userExist.portfolio,
                 },
                 accessToken
             })
@@ -294,7 +297,9 @@ export class UserController {
                     email: user.email,
                     avatar: user.avatarUrl,
                     id: user._id,
-                    isAdmin: user.isAdmin
+                    isAdmin: user.isAdmin,
+                    github: user.github,
+                    portfolio: user.portfolio,
                 },
                 accessToken
             })
@@ -355,6 +360,48 @@ export class UserController {
             const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
             res.status(200).json(userEmails);
 
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    updateUser = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = req.user.id
+            const userData = req.body
+            console.log("user data", userData)
+            const updatedUser = await this.userService.updateUser(userId, userData)
+            const response = {
+                name: updatedUser.name,
+                email: updatedUser.email,
+                avatar: updatedUser.avatarUrl,
+                id: updatedUser._id,
+                isAdmin: updatedUser.isAdmin,
+                github: updatedUser.github,
+                portfolio: updatedUser.portfolio,
+            }
+            res.status(200).json({ message: "user updated successfuly", response })
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    getUserData = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = req.user.id
+            const updatedUser = await this.userService.getUserData(userId)
+
+            const data = {
+                name: updatedUser.name,
+                email: updatedUser.email,
+                avatar: updatedUser.avatarUrl,
+                id: updatedUser._id,
+                isAdmin: updatedUser.isAdmin,
+                github: updatedUser.github,
+                portfolio: updatedUser.portfolio,
+            }
+
+            res.status(200).json(data)
         } catch (err) {
             next(err)
         }

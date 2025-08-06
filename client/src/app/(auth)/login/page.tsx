@@ -48,7 +48,9 @@ const Page = () => {
                 avatar: data.data.avatar,
                 token: data.accessToken,
                 id: data.data.id,
-                isAdmin: data.data.isAdmin
+                isAdmin: data.data.isAdmin,
+                github: data.data.github,
+                portfolio: data.data.portfolio
             })
             getSubscription(data.data.id)
             router.push("/dashboard")
@@ -77,7 +79,9 @@ const Page = () => {
                 token: data.accessToken,
                 avatar: data.data.avatar,
                 id: data.data.id,
-                isAdmin: data.data.isAdmin
+                isAdmin: data.data.isAdmin,
+                github: data.data.github,
+                portfolio: data.data.portfolio
             })
             getSubscription(data.data.id)
             router.push("/dashboard")

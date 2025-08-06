@@ -87,3 +87,23 @@ export const searchUsersApi = async (data: { email: string, userId: string }) =>
         throw err;
     }
 }
+
+export const updateUserApi = async (data: { name: string, github: string, portfolio: string, avatar: string }) => {
+    try {
+        const response = await API.put("/update_user", data);
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}
+
+export const getUserApi = async () => {
+    try {
+        const response = await API.get("/get_user");
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}

@@ -129,4 +129,27 @@ export class UserService implements IUserService {
         await this.userRepository.findByIdAndUpdate(userId, { isBlocked: false })
     }
 
+    async updateUser(userId: string, data: { name: string, portfolio: string, github: string, avatar: string }): Promise<IUser> {
+        return await this.userRepository.findByIdAndUpdate(userId, {
+            name: data.name,
+            github: data.github,
+            portfolio: data.portfolio,
+            avatarUrl: data.avatar
+        })
+    }
+
+    async getUserData(userId: string): Promise<IUser> {
+        try {
+            const userData = await this.userRepository.findById(userId)
+            if (!userData) throw new HttpError(404, "User Not found")
+            return userData
+        } catch (error) {
+            if (error instanceof error) {
+                throw error
+            }
+            console.log(error)
+            throw new HttpError(500, "server error while getting user data")
+        }
+    }
+
 }

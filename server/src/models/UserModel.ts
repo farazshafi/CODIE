@@ -10,6 +10,8 @@ export interface IUserBase {
     googleId?: string;
     avatarUrl: string;
     bio?: string;
+    github: string;
+    portfolio: string;
 }
 
 export interface IUser extends IUserBase, Document {
@@ -52,6 +54,14 @@ const userSchema: Schema = new mongoose.Schema(
             default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcDdrIJuxsoeWIjwPqSfcL9PFqVdc5-F6Urm4CjOcfCMPH752K-36Xj0tjyazZqKWWk8g"
         },
         bio: {
+            type: String,
+            default: null
+        },
+        github: {
+            type: String,
+            default: null
+        },
+        portfolio: {
             type: String,
             default: null
         }

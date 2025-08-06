@@ -1,8 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { IProjectService } from "../services/interface/IProjectService";
+import mongoose from "mongoose";
+import { IRoomService } from "../services/interface/IRoomService";
 
 export class ProjectController {
-  constructor(private readonly projectService: IProjectService) { }
+  constructor(
+    private readonly projectService: IProjectService,
+    private readonly roomService: IRoomService
+
+  ) { }
 
   createProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -91,4 +97,46 @@ export class ProjectController {
       next(err);
     }
   };
+
+  getUsedLangauges = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user.id
+      console.log("user is getting", userId)
+
+      const usedLangauges = await this.projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
+
+      res.status(200).json({ usedLangauges })
+
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  getProjects = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user.id
+
+      const projects = await this.projectService.getProjectsByUserId(userId)
+      
+      res.status(200).json(projects)
+
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  getContributedProjects = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user.id
+
+      const projects = await this.roomService.getContributedProjectsByUserId(userId)
+
+      res.status(200).json(projects)
+
+    } catch (error) {
+      next(error)
+    }
+  }
+
+
 }

@@ -1,4 +1,3 @@
-// src/sockets/services/RoomSocketService.ts
 import { IRoomRepository } from '../../repositories/interface/IRoomRepository';
 import { RequestData } from '../../types/roomTypes';
 import { IUserSocketRepository } from '../repositories/interface/IUserSocketRepository';

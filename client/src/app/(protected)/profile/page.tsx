@@ -1,33 +1,75 @@
-
-import React from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { GithubIcon, Code, Terminal, Globe } from "lucide-react";
+import { GithubIcon, Code, Terminal, Globe, PenLine } from "lucide-react";
 import { ProfileLanguageStats } from "@/components/profile/ProfileLanguageStats";
 import { ProfileActivity } from "@/components/profile/ProfileActivity";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import Navbar from "@/components/ui/navbar";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
+import { useUserStore } from "@/stores/userStore";
+import { useMutationHook } from "@/hooks/useMutationHook";
+import { getContributedProjectsApi, getProjectsByUserIdApi, getUsedLanguagesApi } from "@/apis/projectApi";
+import EditProfileModal from "./_components/EditProfileModal";
+import { getUserApi, updateUserApi } from "@/apis/userApi";
+import { toast } from "sonner";
+import Link from "next/link";
 
-const page = () => {
-    const user = {
-        name: "Faraz Shafi",
-        email: "farazshafi77@gmail.com",
-        avatar: "/lovable-uploads/9c807686-6dbf-4b02-9987-75e3350ca9a8.png",
-        status: "Online",
-        stats: {
-            totalCodeRuns: 20,
-            codeExecutions: 18,
-            averageRuntime: "1.2s",
-            starredSnippets: 15,
-            mostStarred: 8,
-            languages: [
-                { name: "JavaScript", count: 12 },
-                { name: "Python", count: 5 },
-                { name: "TypeScript", count: 3 },
-            ],
+const Page = () => {
+    const userSubscription = useUserStore((state) => state.subscription);
+    const user = useUserStore((state) => state.user);
+    const setUser = useUserStore((state) => state.setUser);
+
+    const [totalProjects, setTotalProjects] = useState(0);
+    const [totalContributedProj, setTotalContributedProj] = useState(0);
+    const [usedLanguages, setUsedLanguages] = useState<{ name: string; count: number }[]>([]);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const { mutate: getProjects } = useMutationHook(getProjectsByUserIdApi, {
+        onSuccess(data) {
+            setTotalProjects(data.length);
         },
+    });
+
+    const { mutate: getContributedProjects } = useMutationHook(getContributedProjectsApi, {
+        onSuccess(data) {
+            setTotalContributedProj(data.length);
+        },
+    });
+
+    const { mutate: getUsedLanguage } = useMutationHook(getUsedLanguagesApi, {
+        onSuccess(data) {
+            setUsedLanguages(data.usedLangauges);
+        },
+    });
+
+    const { mutate: getUserData } = useMutationHook(getUserApi, {
+        onSuccess(data) {
+            console.log("user data: ", data)
+            setUser({ ...user, ...data })
+        },
+    });
+
+    const { mutate: updateUser } = useMutationHook(updateUserApi, {
+        onSuccess(data) {
+            console.log(data)
+            getUserData({})
+            toast.success(data.message || "user updated successfully")
+        },
+    });
+
+    useEffect(() => {
+        if (!user) return;
+        getContributedProjects(user.id);
+        getProjects(user.id);
+        getUsedLanguage(user.id);
+    }, [user]);
+
+    if (!user) return null;
+
+    const handleSave = (updatedUser: { name: string, github: string, portfolio: string, avatar: string }) => {
+        updateUser(updatedUser)
     };
 
     return (
@@ -41,63 +83,91 @@ const page = () => {
                                 <Avatar className="h-24 w-24 ring-2 hover-scale">
                                     <AvatarImage src={user.avatar} alt={user.name} />
                                     <AvatarFallback className="bg-green text-black font-bold text-xl">
-                                        {user.name.split(" ").map(n => n[0]).join("")}
+                                        {user.name.split(" ").map((n) => n[0]).join("")}
                                     </AvatarFallback>
                                 </Avatar>
 
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h1 className="text-3xl font-bold text-white">{user.name}</h1>
-                                        <Badge className="bg-green text-black ml-2">{user.status}</Badge>
+                                        <Badge
+                                            className="bg-green text-black ml-2 cursor-pointer"
+                                            onClick={() => setIsEditModalOpen(true)}
+                                        >
+                                            <PenLine />
+                                            Edit
+                                        </Badge>
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-400 mt-1">
                                         <p>{user.email}</p>
                                     </div>
-                                    {/* <div className="flex mt-3 gap-2">
-                                    <Badge variant="outline" className="flex bg-black items-center gap-1 hover-scale">
-                                        <GithubIcon className="text-white" size={14} />
-                                        <span className="text-white">GitHub</span>
-                                    </Badge>
-                                    <Badge variant="outline" className="flex bg-black items-center gap-1 hover-scale">
-                                        <Globe className="text-white" size={14} />
-                                        <span className="text-white">Portfolio</span>
-                                    </Badge>
-                                </div> */}
+                                    <div className="flex mt-3 gap-2">
+                                        {user?.github && (
+                                            <Link target="_blank" href={user.github}>
+                                                <Badge variant="outline" className=" cursor-pointer flex bg-black items-center gap-1 hover-scale">
+                                                    <GithubIcon className="text-white" size={14} />
+                                                    <span className="text-white">GitHub</span>
+                                                </Badge>
+                                            </Link>
+                                        )}
+                                        {user?.portfolio && (
+                                            <Link target="_blank" href={user.portfolio}>
+                                                <Badge variant="outline" className=" cursor-pointer flex bg-black items-center gap-1 hover-scale">
+                                                    <Globe className="text-white" size={14} />
+                                                    <span className="text-white">Portfolio</span>
+                                                </Badge>
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            <button className="px-4 py-2 rounded-lg bg-green text-black font-medium hover:bg-green-dark transition-colors duration-300 animate-scale-in">
-                                Edit Profile
-                            </button>
+                            <div className="bg-tertiary p-3 rounded-md">
+                                <p className="text-3xl font-semibold text-white">{userSubscription?.name}</p>
+                                <div className="flex justify-between gap-x-5 mt-3 text-white">
+                                    {userSubscription?.startDate && (
+                                        <p>
+                                            Started at: <span className="font-semibold bg-green-500 p-1 rounded">{userSubscription.startDate.toString().slice(0, 10)}</span>
+                                        </p>
+                                    )}
+                                    {userSubscription?.endDate && (
+                                        <p>
+                                            Expiry: <span className="font-semibold bg-red-500 p-1 rounded">{userSubscription.endDate.toString().slice(0, 10)}</span>
+                                        </p>
+                                    )}
+                                </div>
+
+                                {userSubscription?.nextPlanId && (
+                                    <div className="flex justify-between gap-x-5 rounded border-2 p-2 text-black bg-white opacity-30 mt-4">
+                                        <p>Next plan scheduled at: </p>
+                                        <p>{userSubscription.endDate.toString().slice(0, 10)}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <ProfileStats
                                 icon={<Terminal className="mygreen" />}
-                                title="Total Code Runs"
-                                value={user.stats.totalCodeRuns}
-                                description="Code Executions"
-                                subValue={user.stats.codeExecutions}
+                                title="Projects"
+                                totalProjects={totalProjects}
+                                totalContributedProjects={totalContributedProj}
                             />
-
-                            <ProfileStats
-                                icon={<Code className="mygreen" />}
-                                title="Starred Snippets"
-                                value={user.stats.starredSnippets}
-                                description="Most Starred"
-                                subValue={user.stats.mostStarred}
-                            />
-
-                            <ProfileLanguageStats languages={user.stats.languages} />
+                            <ProfileStats icon={<Code className="mygreen" />} title="Starred Snippets" value={20} />
+                            {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
                         </div>
-
-                        <ProfileActivity />
                     </div>
                 </div>
             </PageTransitionWrapper>
 
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onSave={handleSave}
+                user={user}
+            />
         </>
     );
 };
 
-export default page;
+export default Page;

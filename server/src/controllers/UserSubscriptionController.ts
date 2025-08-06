@@ -21,7 +21,8 @@ export class UserSubscriptionController {
                 pricePerMonth: userPlan.pricePerMonth,
                 maxPrivateProjects: userPlan.maxPrivateProjects,
                 nextPlanId: userSubsription.nextPlan,
-                endDate: userSubsription.endDate
+                endDate: userSubsription.endDate,
+                startDate: userSubsription.startDate,
             })
         } catch (error) {
             next(error)

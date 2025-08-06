@@ -8,6 +8,8 @@ interface User {
     token?: string;
     id: string;
     isAdmin: boolean;
+    github?: string
+    portfolio?: string
 }
 
 interface ISubscription {
@@ -19,6 +21,7 @@ interface ISubscription {
     maxPrivateProjects: number;
     nextPlanId: string;
     endDate: Date;
+    startDate: Date;
 }
 
 interface userState {

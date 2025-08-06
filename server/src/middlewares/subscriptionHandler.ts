@@ -46,7 +46,8 @@ export const checkUserSubscriptoin = async (req: Request, res: Response, next: N
                 pricePerMonth: subscription.pricePerMonth,
                 maxPrivateProjects: subscription.maxPrivateProjects,
                 nextPlanId: getUserSub.nextPlan,
-                endDate: getUserSub.endDate
+                endDate: getUserSub.endDate,
+                startDate: getUserSub.startDate,
             }
         });
         return

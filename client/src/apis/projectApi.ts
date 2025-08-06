@@ -51,3 +51,33 @@ export const getCodeApi = async (id: string) => {
         throw error
     }
 }
+
+export const getUsedLanguagesApi = async () => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_used_languages/`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const getProjectsByUserIdApi = async () => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_projects/`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const getContributedProjectsApi = async () => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_contributed_projects/`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}

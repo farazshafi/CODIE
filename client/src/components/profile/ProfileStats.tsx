@@ -5,17 +5,17 @@ import PageTransitionWrapper from "../TransitionWrapper";
 interface ProfileStatsProps {
     icon: React.ReactNode;
     title: string;
-    value: number | string;
-    description: string;
-    subValue: number | string;
+    value?: number | string;
+    totalContributedProjects?: number;
+    totalProjects?: number
 }
 
 export const ProfileStats: React.FC<ProfileStatsProps> = ({
     icon,
     title,
     value,
-    description,
-    subValue,
+    totalContributedProjects,
+    totalProjects
 }) => {
     return (
         <Card
@@ -45,11 +45,20 @@ export const ProfileStats: React.FC<ProfileStatsProps> = ({
                 </div>
 
                 <div className="mt-2">
-                    <p className="text-3xl font-bold text-white">{value}</p>
-                    <div className="flex items-center justify-between mt-2">
-                        <p className="text-sm text-gray-400">{description}</p>
-                        <p className="text-sm font-medium mygreen">{subValue}</p>
-                    </div>
+                    {title === "Projects" ? (
+                        <div className="flex flex-col gap-y-3">
+                            <div className="w-full p-2 rounded-md flex justify-between border-2">
+                                <p className="text-sm">Total contributions</p>
+                                <p className="text-sm">{totalContributedProjects}</p>
+                            </div>
+                            <div className="w-full p-2 rounded-md flex justify-between border-2">
+                                <p className="text-sm">Total Projects</p>
+                                <p>{totalProjects}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-3xl font-bold text-white">{value}</p>
+                    )}
                 </div>
             </PageTransitionWrapper>
         </Card>

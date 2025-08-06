@@ -15,22 +15,6 @@ interface ProfileLanguageStatsProps {
 export const ProfileLanguageStats: React.FC<ProfileLanguageStatsProps> = ({ languages }) => {
     const totalCount = languages.reduce((acc, lang) => acc + lang.count, 0);
 
-    const getLanguageColor = (language: string) => {
-        const colors: Record<string, string> = {
-            JavaScript: "#f7df1e",
-            TypeScript: "#3178c6",
-            Python: "#3776ab",
-            Java: "#b07219",
-            "C++": "#f34b7d",
-            Ruby: "#701516",
-            Go: "#00ADD8",
-            Rust: "#dea584",
-            PHP: "#4F5D95",
-            Swift: "#F05138",
-        };
-
-        return colors[language] || "#4ADE80";
-    };
 
     return (
         <PageTransitionWrapper animation="slide">

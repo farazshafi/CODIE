@@ -14,5 +14,8 @@ projectRouter.delete('/delete_project/:id', authenticate, protect, projectContro
 projectRouter.get('/project_by_room_id/:roomId', authenticate, protect, projectController.getProjectByRoomId);
 projectRouter.put("/save_code", authenticate, protect, validate(updateCodeSchema), authorizeRole(["editor"]), projectController.saveCode)
 projectRouter.get("/get_code/:id", authenticate, protect, projectController.getSavedCode)
+projectRouter.get("/get_used_languages", authenticate, protect, projectController.getUsedLangauges)
+projectRouter.get("/get_projects", authenticate, protect, projectController.getProjects)
+projectRouter.get("/get_contributed_projects", authenticate, protect, projectController.getContributedProjects)
 
 export default projectRouter

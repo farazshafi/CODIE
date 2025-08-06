@@ -44,6 +44,17 @@ export const setNewPasswordSchema = z.object({
         .regex(/[@$!%*?&]/, "Password must contain at least one special character (@, $, !, %, *, ?, &)")
 })
 
+export const updateUser = z.object({
+    name: z.string(),
+    avatar: z.string().url().optional(),
+    github: z.string().refine(val => val === "" || z.string().url().safeParse(val).success, {
+        message: "Invalid url"
+    }).optional(),
+    portfolio: z.string().refine(val => val === "" || z.string().url().safeParse(val).success, {
+        message: "Invalid url"
+    }).optional(),
+})
+
 export type UserInput = z.infer<typeof userSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

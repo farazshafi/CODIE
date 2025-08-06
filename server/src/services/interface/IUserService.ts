@@ -17,4 +17,6 @@ export interface IUserService {
     findUserById(userId: string): Promise<IUser>;
     blockUserById(userId: string): Promise<void>;
     unblockUserById(userId: string): Promise<void>;
+    updateUser(userId: string, data: { name: string, portfolio: string, github: string, avatar: string }): Promise<IUser>;
+    getUserData(userId: string): Promise<IUser>;
 }
