@@ -172,7 +172,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                 <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
                 <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
                 <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
-                <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>About</Link>
+                <Link href="/starred" className={isActive("/starred") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>starred</Link>
             </div>
 
             <button
@@ -188,7 +188,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                     <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
                     <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
                     <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
-                    <Link href="/about" className={isActive("/about") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>About</Link>
+                    <Link href="/starred" className={isActive("/starred") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>starred</Link>
 
                     <div className="text-black">
                         {/* Profile Dropdown */}

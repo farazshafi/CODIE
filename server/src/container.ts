@@ -50,6 +50,10 @@ import UserSubscriptionModel from './models/UserSubscriptionModel';
 import { UserSubscriptionService } from './services/UserSubscriptionService';
 import { UserSubscriptionController } from './controllers/UserSubscriptionController';
 import { SubscriptionCron } from './crons/SubscriptionCron';
+import { StarredRepository } from './repositories/StarredRepository';
+import StarredModel from './models/StarredModel';
+import { StarredService } from './services/StarredService';
+import { StarredController } from './controllers/StarredController';
 
 // Set up repositories
 export const projectRepository = new ProjectRepository(ProjectModel)
@@ -64,6 +68,7 @@ export const discoverRepository = new DiscoverRepository(DiscoverModel)
 export const onlineUserRepository = new OnlineUserRepository()
 export const userSocketRepository = new UserSocketRepository()
 export const userSubscriptionRepository = new UserSubscriptionRepository(UserSubscriptionModel)
+export const starredRepository = new StarredRepository(StarredModel)
 
 // Set up services
 export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository)
@@ -80,7 +85,7 @@ export const editorService = new EditorService(onlineUserRepository, roomReposit
 export const roomSocketService = new RoomSocketService(roomRepository, requestService, requestRepository, userSocketRepository, userRepository, mailService, projectRepository, invitationRepository, userSubscriptionRepository, subscriptionRepository)
 export const userSocketService = new UserSocketService(userSocketRepository)
 export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository, mailService, userRepository)
-
+export const starredService = new StarredService(starredRepository)
 
 // Set up controller
 export const projectController = new ProjectController(projectService, roomService)
@@ -93,6 +98,7 @@ export const subscriptionController = new SubscriptionController(subscriptionSer
 export const messageController = new MessageController(messageService)
 export const discoverController = new DiscoverController(discoverService)
 export const userSubscriptionController = new UserSubscriptionController(userSubscriptionService)
+export const starredController = new StarredController(starredService)
 
 // crons
 export const subscriptionCron = new SubscriptionCron(userSubscriptionService)

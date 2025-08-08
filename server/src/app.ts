@@ -15,6 +15,7 @@ import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
 import { subscriptionCron } from "./container";
+import starredRouter from "./routes/StarredRouter";
 
 const app = express();
 const cron = subscriptionCron
@@ -40,6 +41,7 @@ app.use("/api/invitation", invitationRouter);
 app.use("/api/subscription", subscriptionRouter)
 app.use("/api/discover", discoverRouter)
 app.use("/api/userSubscription", userSubscriptionRouter)
+app.use("/api/starred", starredRouter)
 
 // Admin Routes
 app.use("/api/admin", adminRouter)

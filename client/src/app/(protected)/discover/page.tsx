@@ -20,6 +20,7 @@ export interface IDiscover {
             _id: string;
             name: string;
         };
+        _id: string;
     },
     like: number,
     _id: string,
@@ -37,6 +38,7 @@ const Page = () => {
 
     const { mutate, isLoading } = useMutationHook(findDiscoveriesApi, {
         onSuccess(data) {
+            
             setDiscoveries(data.discoveries);
             setTotalPage(data.totalPages);
             setCurrentPage(data.currentPage);
@@ -139,7 +141,7 @@ const Page = () => {
                     <div className='mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-5'>
                         {isLoading && discoveries.length === 0
                             ? Array(6).fill(0).map((_, index) => <SnippetCardSkeleton key={index} />)
-                            : discoveries.map((item, index) => <SnippetCard onDelete={handleDeleteSnippet} project={item} key={index} />)
+                            : discoveries.map((item, index) => <SnippetCard isStarred={false} onDelete={handleDeleteSnippet} project={item} key={index} />)
                         }
 
                         {discoveries.length === 0 && (

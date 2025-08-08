@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Clock, Trash2 } from 'lucide-react';
+import { Clock, Star, Trash2 } from 'lucide-react';
 import SpotlightCard from './ui/SpotlightCard/SpotlightCard';
 import { IDiscover } from '@/app/(protected)/discover/page';
 import { useUserStore } from '@/stores/userStore';
@@ -10,12 +10,21 @@ import SnippetModal from '@/app/(protected)/discover/_components/SnippetModal';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { removeFromDiscoverApi } from '@/apis/discoverApi';
 import { toast } from 'sonner';
+import { getStarredSnippetsApi, removeSnippetApi, starSnippetApi } from '@/apis/starredApi';
+import Loading from './Loading';
 
+interface snippetCardPros {
+    project: IDiscover;
+    onDelete: (id: string) => void;
+    isStarred: boolean;
+    onUnstarHanlder?: (projectId: string) => void;
+}
 
-const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id: string) => void }) => {
+const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder }: snippetCardPros) => {
 
     const user = useUserStore((state) => state.user)
     const [open, setOpen] = useState(false)
+    const [starred, setStarred] = useState<string[]>([])
 
     const { mutate: removeSnippet } = useMutationHook(removeFromDiscoverApi, {
         onSuccess(data) {
@@ -24,13 +33,48 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
         }
     })
 
+    const { mutate: unStarrSnippet, isLoading: unstarring } = useMutationHook(removeSnippetApi, {
+        onSuccess(data) {
+            toast.success(data.message || "Snippet removed")
+            getStarredSnippet({})
+        }
+    })
+
+    const { mutate: starSnippet, isLoading: starring } = useMutationHook(starSnippetApi, {
+        onSuccess(data) {
+            toast.success(data.message || "Snippet is starred")
+            getStarredSnippet({})
+        },
+        onError(error) {
+            console.log(error)
+            toast.info(error.response.data.message || "Cannot Star")
+        },
+    })
+
+    const { mutate: getStarredSnippet } = useMutationHook(getStarredSnippetsApi, {
+        onSuccess(data) {
+            console.log("raw data", data);
+            const starredIds = Array.isArray(data)
+                ? data.map((item) => item?.projectId?._id)
+                : [];
+            setStarred(starredIds)
+        }
+    })
+
     const handleDeleteSnippet = () => {
         removeSnippet(project._id)
     }
 
+    useEffect(() => {
+        getStarredSnippet({})
+    }, [])
+
+    if (starring) return <Loading fullScreen={false} text='Starring your item...'></Loading>
+    if (unstarring) return <Loading fullScreen={false} text='Removing your item...'></Loading>
+
     return (
 
-        <div className='rounded-lg p-5 transform transition-transform duration-300 hover:scale-105'>
+        <div className='rounded-lg p-5 transform transition-transform duration-300 hover:scale-105 text-white'>
             <SpotlightCard spotlightColor="rgba(77, 79, 79, 0.3)"
             >
 
@@ -49,20 +93,28 @@ const SnippetCard = ({ project, onDelete }: { project: IDiscover, onDelete: (id:
                         </div>
                     </div>
 
-                    <div className='gap-x-4 flex flex-row items-center'>
-                        {user?.id === project.projectId.userId._id ?
-                            (
-                                <Button onClick={handleDeleteSnippet} className='bg-primary cursor-pointer hover:bg-black'>
-                                    <Trash2 />
-                                </Button>
-                            ) : (
-                                <>
-                                    {/* <Button className='bg-green cursor-pointer hover:bg-green-600'>
-                                        <Star />
-                                    </Button> */}
-                                </>
-                            )}
-                    </div>
+                    {!isStarred && <div className='gap-x-4 flex flex-row items-center'>
+                        {user?.id === project.projectId.userId._id && (
+                            <Button onClick={handleDeleteSnippet} className='bg-primary cursor-pointer hover:bg-black'>
+                                <Trash2 />
+                            </Button>
+                        )}
+
+                        {starred.includes(project.projectId._id) ?
+                            <Button onClick={() => unStarrSnippet(project.projectId._id)} className='bg-black cursor-pointer hover:bg-gray-800'>
+                                <Star fill="currentColor" color="white" />
+                            </Button>
+                            : <Button onClick={() => starSnippet(project.projectId._id)} className='bg-green cursor-pointer hover:bg-green-600'>
+                                <Star />
+                            </Button>}
+
+                    </div>}
+                    {isStarred && onUnstarHanlder && <div className='gap-x-4 flex flex-row items-center'>
+
+                        <Button onClick={() => onUnstarHanlder(project.projectId._id)} className='bg-primary cursor-pointer hover:bg-black'>
+                            <Trash2 />
+                        </Button>
+                    </div>}
                 </div>
                 <div className='mt-5'>
                     <p className='font-bold text-lg'>{project.projectId.projectName}</p>
