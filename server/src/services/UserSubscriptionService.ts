@@ -8,6 +8,7 @@ import * as crypto from "crypto";
 import { IUserSubscription } from "../models/UserSubscriptionModel";
 import { IMailService } from "./interface/IMailService";
 import { IUserRepository } from "../repositories/interface/IUserRepository";
+import { IPaymentService } from "./interface/IPaymentService";
 
 
 export class UserSubscriptionService implements IUserSubscriptionService {
@@ -16,6 +17,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         private readonly subscriptionRepo: ISubscriptionRepository,
         private readonly mailService: IMailService,
         private readonly userRepository: IUserRepository,
+        private readonly paymentService: IPaymentService,
     ) { }
 
     async findUserSubscription(userId: string): Promise<ISubscription> {
@@ -59,7 +61,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
     }
 
     async verifyPaymentAndUpdateUserSubscription(razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string,
-        userId: string, planId: string): Promise<IUserSubscription> {
+        userId: string, planId: string, amount: number): Promise<IUserSubscription> {
         try {
             const sign = `${razorpay_order_id}|${razorpay_payment_id}`;
             const expectedSign = crypto
@@ -68,8 +70,25 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                 .digest("hex");
 
             if (razorpay_signature !== expectedSign) {
+                await this.paymentService.createPayment({
+                    userId: new mongoose.Types.ObjectId(userId),
+                    subscriptionId: new mongoose.Types.ObjectId(planId),
+                    amount,
+                    currency: "INR",
+                    paymentStatus: "failed",
+                    transactionId: razorpay_payment_id,
+                });
                 throw new HttpError(400, "Invalid payment signature");
             }
+
+            await this.paymentService.createPayment({
+                userId: new mongoose.Types.ObjectId(userId),
+                subscriptionId: new mongoose.Types.ObjectId(planId),
+                amount,
+                currency: "INR",
+                paymentStatus: "completed",
+                transactionId: razorpay_payment_id,
+            });
 
             const currUserSUb = await this.userSubscriptionRepo.findOne({ userId })
             const user = await this.userRepository.findById(userId)

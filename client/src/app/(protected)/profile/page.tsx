@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { GithubIcon, Code, Terminal, Globe, PenLine } from "lucide-react";
 import { ProfileLanguageStats } from "@/components/profile/ProfileLanguageStats";
-import { ProfileActivity } from "@/components/profile/ProfileActivity";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import Navbar from "@/components/ui/navbar";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
@@ -15,6 +14,9 @@ import EditProfileModal from "./_components/EditProfileModal";
 import { getUserApi, updateUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import Link from "next/link";
+import PaymentHistory from "./_components/PaymentHistory";
+import { getStarredSnippetsApi } from "@/apis/starredApi";
+import Loading from "@/components/Loading";
 
 const Page = () => {
     const userSubscription = useUserStore((state) => state.subscription);
@@ -25,6 +27,7 @@ const Page = () => {
     const [totalContributedProj, setTotalContributedProj] = useState(0);
     const [usedLanguages, setUsedLanguages] = useState<{ name: string; count: number }[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [totalStarredSnippet, setTotalStarredSnippet] = useState(0)
 
     const { mutate: getProjects } = useMutationHook(getProjectsByUserIdApi, {
         onSuccess(data) {
@@ -37,6 +40,12 @@ const Page = () => {
             setTotalContributedProj(data.length);
         },
     });
+
+    const { mutate: getStarredSnippets, isLoading: snippetsLoading } = useMutationHook(getStarredSnippetsApi, {
+        onSuccess(data) {
+            setTotalStarredSnippet(data.length)
+        },
+    })
 
     const { mutate: getUsedLanguage } = useMutationHook(getUsedLanguagesApi, {
         onSuccess(data) {
@@ -64,6 +73,7 @@ const Page = () => {
         getContributedProjects(user.id);
         getProjects(user.id);
         getUsedLanguage(user.id);
+        getStarredSnippets({})
     }, [user]);
 
     if (!user) return null;
@@ -153,9 +163,13 @@ const Page = () => {
                                 totalProjects={totalProjects}
                                 totalContributedProjects={totalContributedProj}
                             />
-                            <ProfileStats icon={<Code className="mygreen" />} title="Starred Snippets" value={20} />
+                            {snippetsLoading ? <Loading text="Fetching..."/> :
+                                <ProfileStats icon={<Code className="mygreen" />} title="Starred Snippets" value={totalStarredSnippet} />
+                            }
                             {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
                         </div>
+
+                        <PaymentHistory />
                     </div>
                 </div>
             </PageTransitionWrapper>

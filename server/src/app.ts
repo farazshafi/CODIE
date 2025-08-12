@@ -14,6 +14,7 @@ import subscriptionRouter from "./routes/subscriptionRouter";
 import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
+import paymentRouter from "./routes/paymentRouter";
 import { subscriptionCron } from "./container";
 import starredRouter from "./routes/StarredRouter";
 
@@ -45,6 +46,7 @@ app.use("/api/starred", starredRouter)
 
 // Admin Routes
 app.use("/api/admin", adminRouter)
+app.use("/api/payment", paymentRouter)
 
 // GraphQL Setup
 setupGraphQl(app);

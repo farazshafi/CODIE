@@ -48,9 +48,9 @@ export class UserSubscriptionController {
 
     verifyPaymentAndUpdateUserSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId } = req.body
+            const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId, amount } = req.body
 
-            const userSub = await this.userSubscriptionService.verifyPaymentAndUpdateUserSubscription(razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId)
+            const userSub = await this.userSubscriptionService.verifyPaymentAndUpdateUserSubscription(razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId, amount)
 
             res.status(201).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
 

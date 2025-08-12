@@ -7,7 +7,6 @@ import { IUserService } from "../services/interface/IUserService"
 import { IOtpService } from "../services/interface/IOtpServices"
 import crypto from "crypto"
 import { IMailService } from "../services/interface/IMailService"
-import { updateUser } from "../types/userType"
 
 export class UserController {
     constructor(

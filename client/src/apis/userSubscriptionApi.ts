@@ -48,3 +48,14 @@ export const downgradeToFreePlanApi = async (data: { userId: string }) => {
     }
 
 }
+
+export const saveFailedPaymentApi = async (data: { userId: string, planId: string, razorpayId: string, amount: number }) => {
+    try {
+        const response = await API.post(`/payment/failed_payment`, data)
+        return response.data
+    } catch (error) {
+        console.log("Error while saving failed payment subscription", error)
+        throw error
+    }
+
+}

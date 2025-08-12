@@ -1,11 +1,11 @@
 "use client"
-import { verifySubscriptionApi, subscribeToPlanApi, getUserSubscriptionApi, downgradeToFreePlanApi } from '@/apis/userSubscriptionApi';
+import { verifySubscriptionApi, subscribeToPlanApi, getUserSubscriptionApi, downgradeToFreePlanApi, saveFailedPaymentApi } from '@/apis/userSubscriptionApi';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { useUserStore } from '@/stores/userStore';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 import ConfirmationModal from './ConfirmationModal';
-import { useSubscription } from '@apollo/client';
+import Loading from './Loading';
 
 type PaymentBtnProps = { amount: number, currency: string, planId: string, planName: string }
 
@@ -17,13 +17,13 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
+  const { isLoading: subscriptionLoading, mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
     onSuccess(res) {
       setSubscription(res)
     }
   })
 
-  const { mutate: verifySubscription } = useMutationHook(verifySubscriptionApi, {
+  const { isLoading: verifing, mutate: verifySubscription } = useMutationHook(verifySubscriptionApi, {
     onSuccess(data) {
       getSubscription(user?.id)
       setIsModalOpen(false)
@@ -35,7 +35,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
     },
   })
 
-  const { mutate: downgradeToFreePlan } = useMutationHook(downgradeToFreePlanApi, {
+  const { isLoading: downgrading, mutate: downgradeToFreePlan } = useMutationHook(downgradeToFreePlanApi, {
     onSuccess(data) {
       getSubscription(user?.id)
       toast.success(data.message)
@@ -43,7 +43,14 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
     }
   })
 
-  const { mutate: subscribe } = useMutationHook(subscribeToPlanApi, {
+  const { isLoading: savingFailedPayment, mutate: saveFailedPayment } = useMutationHook(saveFailedPaymentApi, {
+    onSuccess(data) {
+      toast.info(data.message)
+
+    }
+  })
+
+  const { isLoading: subscribing, mutate: subscribe } = useMutationHook(subscribeToPlanApi, {
     onSuccess(data) {
       try {
         const { id: order_id, amount, currency } = data
@@ -60,7 +67,8 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               userId: user?.id,
-              planId
+              planId,
+              amount
             }
             verifySubscription(verifyData)
           },
@@ -75,6 +83,25 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
         }
 
         const paymentObject = new window.Razorpay(options);
+
+
+        paymentObject.on('payment.failed', function (response: any) {
+          const { payment_id } = response.error.metadata;
+
+          console.log("Payment failed", response);
+
+          toast.error("Payment failed. Please try again.");
+
+          saveFailedPayment({
+            userId: user?.id,
+            planId: planId,
+            razorpayId: payment_id,
+            amount
+          })
+        });
+
+
+
         paymentObject.open();
       } catch (error) {
         console.log("Payment initationj failed", error)
@@ -136,6 +163,14 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
       document.body.removeChild(script);
     };
   }, []);
+
+  if (subscribing || verifing || downgrading || savingFailedPayment || subscriptionLoading) {
+    if (subscribing) return <Loading fullScreen={true} text='Subscribing...' />
+    if (verifing) return <Loading fullScreen={true} text='Verifing...' />
+    if (downgrading) return <Loading fullScreen={true} text='Downgrading...' />
+    if (savingFailedPayment) return <Loading fullScreen={true} text='Saving Failed Payment...' />
+    if (subscriptionLoading) return <Loading text='Fetching Subscriptions...' />
+  }
 
   return (
     <>

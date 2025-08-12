@@ -170,9 +170,8 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
             <div className="hidden md:flex gap-10">
                 <Link href="/dashboard" className={isActive("/dashboard") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
                 <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
-                <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
-                <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
                 <Link href="/starred" className={isActive("/starred") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>starred</Link>
+                <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
             </div>
 
             <button
@@ -186,7 +185,6 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                 <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
                     <Link href="/dashboard" className={isActive("/dashboard") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Home</Link>
                     <Link href="/discover" className={isActive("/discover") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Discover</Link>
-                    <Link href="/profile" className={isActive("/profile") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Profile</Link>
                     <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>Plan</Link>
                     <Link href="/starred" className={isActive("/starred") ? "text-green-400 font-bold cursor-pointer" : "cursor-pointer"}>starred</Link>
 
