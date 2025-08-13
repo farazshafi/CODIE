@@ -36,6 +36,17 @@ export default function CreateSubscriptionModal({
             onCreate()
             onClose();
             reset();
+        },
+        onError: (e) => {
+            const errors = e?.response?.data?.errors;
+            let message = "Login failed";
+            if (Array.isArray(errors)) {
+                message = errors.map(err => err.message).join("\n");
+            } else if (e?.response?.data?.message) {
+                message = e.response.data.message;
+            }
+
+            toast.error(message);
         }
     })
 
@@ -46,6 +57,17 @@ export default function CreateSubscriptionModal({
             onClose();
             reset();
             router.push('/admin/subscription');
+        },
+        onError: (e) => {
+            const errors = e?.response?.data?.errors;
+            let message = "Login failed";
+            if (Array.isArray(errors)) {
+                message = errors.map(err => err.message).join("\n");
+            } else if (e?.response?.data?.message) {
+                message = e.response.data.message;
+            }
+
+            toast.error(message);
         }
     });
 

@@ -1,10 +1,11 @@
 import { z } from "zod";
 
+
 export const createSubscription = z.object({
     name: z.enum(['Free', 'Pro', 'Team', 'Enterprise']),
     pricePerMonth: z.number().nonnegative(),
-    maxPrivateProjects: z.number().int(),
-    maxCollaborators: z.number().int(),
+    maxPrivateProjects: z.number().int().min(1, "Atleast 1 private project is required"),
+    maxCollaborators: z.number().int().min(1, "Atleast 1 contributer is required"),
 
     chatSupport: z.object({
         text: z.boolean(),
@@ -17,7 +18,7 @@ export const createSubscription = z.object({
     }),
 
     limits: z.object({
-        codeExecutionsPerDay: z.number().int(),
+        codeExecutionsPerDay: z.number().int().min(5, "Atleast 5 code execution is required"),
     }),
 });
 

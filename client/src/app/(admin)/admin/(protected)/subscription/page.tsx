@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CreateSubscriptionModal, { CreateSubscriptionType } from './_components/CreateSubscriptionModal';
 
-const page = () => {
+const Page = () => {
     const [openModal, setOpenModal] = useState(false);
     const { subscriptions, fetchAllSubscriptions, handleSuspendActive, setCurrentPage, totalPages, currentPage, setFilterStatus, setSearchInput, handleDeleteSubscription } = useSubscriptionData()
     const [editData, setEditData] = useState<CreateSubscriptionType & { id: string } | null>(null);
@@ -66,4 +66,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page

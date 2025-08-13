@@ -33,7 +33,10 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContrib
     const { mutate: shareDiscover } = useMutationHook(shareDiscoverApi, {
         onSuccess(data) {
             toast.success(data.message)
-        }
+        },
+        onError(error) {
+            toast.info(error.response.data.message || "Can't share , Server Error")
+        },
     })
     const { mutate: removeFromProject } = useMutationHook(removeFromProjectApi, {
         onSuccess(data) {

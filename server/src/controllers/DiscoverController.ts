@@ -10,10 +10,11 @@ export class DiscoverController {
 
     shareToDiscover = async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const userId = req.user.id
             const { projectId } = req.body
             if (!projectId) res.status(400).json({ message: "Project Id is Required" })
 
-            await this.discoverService.create(new mongoose.Types.ObjectId(projectId))
+            await this.discoverService.create(new mongoose.Types.ObjectId(projectId), userId)
             res.status(201).json({ message: "Shared to Discover" })
         } catch (error) {
             next(error)

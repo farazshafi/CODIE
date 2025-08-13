@@ -4,6 +4,7 @@ import { IDiscoverService } from "./interface/IDiscoverService";
 import { IDiscoverRepository } from "../repositories/interface/IDiscoverRepository";
 import { HttpError } from "../utils/HttpError";
 import { generateCodeExplanation } from "../utils/geminiHelperl";
+import { IProjectRepository } from "../repositories/interface/IProjectRepository";
 
 interface FilterOptions {
     keyword: string;
@@ -29,15 +30,29 @@ interface PopulatedProject {
 }
 
 export class DiscoverService implements IDiscoverService {
-    constructor(private readonly discoverRepo: IDiscoverRepository) { }
+    constructor(
+        private readonly discoverRepo: IDiscoverRepository,
+        private readonly projectRepo: IProjectRepository,
+    ) { }
 
-    async create(projectId: Types.ObjectId): Promise<IDiscover> {
+    async create(projectId: Types.ObjectId, userId: string): Promise<IDiscover> {
         try {
+            const projectOwner = (await this.projectRepo.findById(String(projectId))).userId
+            if (String(projectOwner) !== userId) {
+                throw new HttpError(400, "Only Owner can share snippet")
+            }
+
+            const existingSnippet = await this.discoverRepo.findOne({ projectId })
+            if (existingSnippet) {
+                throw new HttpError(409, "Snippet Already Shared to discovery!")
+            }
+
             return await this.discoverRepo.create({ projectId });
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error;
             }
+            console.log(error)
             throw new HttpError(500, "Server error cannot share to discover");
         }
     }

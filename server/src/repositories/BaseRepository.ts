@@ -1,4 +1,4 @@
-import { Model, Document, FilterQuery } from 'mongoose';
+import { Model, Document, FilterQuery, ClientSession } from 'mongoose';
 import { IBaseRepository, ModelUpdateOptions } from './interface/IBaseRepository';
 import { DeepPartial } from '../types/SubscriptionType';
 
@@ -19,8 +19,8 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
         return updated;
     }
 
-    async delete(id: string): Promise<boolean> {
-        const result = await this.model.findByIdAndDelete(id);
+    async delete(id: string, session?: ClientSession): Promise<boolean> {
+        const result = await this.model.findByIdAndDelete(id, session ? { session } : undefined);
         return !!result;
     }
 
@@ -65,10 +65,11 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
         return result.deletedCount ?? 0;
     }
 
-    async deleteOne(filter: FilterQuery<T>): Promise<boolean> {
-        const result = await this.model.deleteOne(filter);
+    async deleteOne(filter: FilterQuery<T>, session?: ClientSession): Promise<boolean> {
+        const result = await this.model.deleteOne(filter, { session });
         return result.deletedCount === 1;
     }
+
 
     async count(filter: Record<string, unknown>): Promise<number> {
         return this.model.countDocuments(filter);

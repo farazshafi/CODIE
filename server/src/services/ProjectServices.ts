@@ -8,6 +8,7 @@ import { IRoomRepository } from '../repositories/interface/IRoomRepository';
 import { ISubscriptionRepository } from '../repositories/interface/ISubscriptionRepository';
 import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
 import { IRoomService } from './interface/IRoomService';
+import { IDiscoverRepository } from '../repositories/interface/IDiscoverRepository';
 
 export class ProjectService implements IProjectService {
     constructor(
@@ -16,6 +17,7 @@ export class ProjectService implements IProjectService {
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly userSubscriptionRepository: IUserSubscriptionRepository,
         private readonly roomService: IRoomService,
+        private readonly discoverRepository: IDiscoverRepository,
     ) { }
 
     async createProject(data: CreateProjectType): Promise<IProject> {
@@ -108,18 +110,38 @@ export class ProjectService implements IProjectService {
             throw new HttpError(404, "Project not found.");
         }
 
-        const isProjectDeleted = await this.projectRepository.delete(projectId);
-        if (!isProjectDeleted) {
-            throw new HttpError(500, "Failed to delete the project.");
-        }
-
-        const room = await this.roomRepository.getRoomByProjectId(projectId);
-        if (room) {
-            const isRoomDeleted = await this.roomRepository.delete(room._id as string);
-            if (!isRoomDeleted) {
-                console.error(`Failed to delete room with ID: ${room._id} for project ID: ${projectId}`);
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            const room = await this.roomRepository.getRoomByProjectId(projectId);
+            if (room) {
+                const isRoomDeleted = await this.roomRepository.delete(room._id as string, session);
+                if (!isRoomDeleted) {
+                    throw new HttpError(500, `Failed to delete room with ID: ${room._id} for project ID: ${projectId}`);
+                }
             }
+
+            const snippet = await this.discoverRepository.findOne({ projectId });
+            if (snippet) {
+                await this.discoverRepository.deleteOne({ projectId }, session);
+            }
+
+            const isProjectDeleted = await this.projectRepository.delete(projectId, session);
+            if (!isProjectDeleted) {
+                throw new HttpError(500, "Failed to delete the project.");
+            }
+
+            await session.commitTransaction();
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            if (error instanceof HttpError) {
+                throw error;
+            }
+            throw new HttpError(500, "Transaction failed. All changes rolled back.");
         }
+        session.endSession();
+
 
         return { message: "Project and associated room deleted successfully." };
     }
