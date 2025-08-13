@@ -165,4 +165,43 @@ export class ProjectService implements IProjectService {
             throw new HttpError(500, "Error while getting used languages")
         }
     }
+
+    async adminDashboardProjectData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
+        try {
+            const totalProjects = await this.projectRepository.count({});
+
+            const now = new Date();
+            const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+            const projectsThisMonth = await this.projectRepository.count({ createdAt: { $gte: startOfThisMonth } });
+
+            const projectsLastMonth = await this.projectRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+
+            let change = '0%';
+            let positive = true;
+            if (projectsLastMonth > 0) {
+                const percentChange = ((projectsThisMonth - projectsLastMonth) / projectsLastMonth) * 100;
+                change = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%`;
+                positive = percentChange >= 0;
+            } else if (projectsThisMonth > 0) {
+                change = '+100%';
+                positive = true;
+            }
+
+            const icon = 'Projects';
+
+            return {
+                title: 'Total Projects',
+                value: totalProjects.toLocaleString(),
+                icon,
+                change,
+                positive
+            };
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Server error while getting dashboard user data");
+        }
+    }
+
 }

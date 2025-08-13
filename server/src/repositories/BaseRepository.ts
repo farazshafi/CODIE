@@ -59,14 +59,18 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     async save(document: T): Promise<T> {
         return document.save();
     }
-    
+
     async deleteMany(filter: FilterQuery<T>): Promise<number> {
         const result = await this.model.deleteMany(filter);
         return result.deletedCount ?? 0;
     }
-    
+
     async deleteOne(filter: FilterQuery<T>): Promise<boolean> {
         const result = await this.model.deleteOne(filter);
         return result.deletedCount === 1;
+    }
+
+    async count(filter: Record<string, unknown>): Promise<number> {
+        return this.model.countDocuments(filter);
     }
 }

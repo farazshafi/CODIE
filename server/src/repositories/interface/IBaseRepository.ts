@@ -19,5 +19,6 @@ export interface IBaseRepository<T extends Document> {
     findOneAndUpdate(filter: FilterQuery<T>, update: Partial<T>, options?: ModelUpdateOptions): Promise<T | null>;
     save(document: T): Promise<T>;
     deleteMany(filter: FilterQuery<T>): Promise<number>;
-    deleteOne(filter: FilterQuery<T>): Promise<boolean>
+    deleteOne(filter: FilterQuery<T>): Promise<boolean>;
+    count(filter: Record<string, unknown>): Promise<number>
 }

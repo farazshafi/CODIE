@@ -6,11 +6,15 @@ import { LoginInput } from "../validation/userValidation"
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtTokenUtil"
 import bcrypt from "bcryptjs"
 import { IUserService } from "../services/interface/IUserService"
+import { IProjectService } from "../services/interface/IProjectService"
+import { IPaymentService } from "../services/interface/IPaymentService"
 
 
 export class AdminController {
     constructor(
         private readonly userService: IUserService,
+        private readonly projectService: IProjectService,
+        private readonly paymentService: IPaymentService,
     ) { }
 
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -142,6 +146,36 @@ export class AdminController {
                 res.status(200).json({ message: "User Unblocked Successfully" })
                 return
             }
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getDashboardData = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userData = await this.userService.adminDashboardUserData()
+            const projectData = await this.projectService.adminDashboardProjectData()
+            const paymentData = await this.paymentService.adminDashboardPaymenttData()
+            res.status(200).json({ userData, projectData, paymentData })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getPaymentData = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const paymentData = await this.paymentService.getPaymentDataAdmin()
+            res.status(200).json(paymentData)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    updatePaymentStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id, status } = req.body
+            const paymentData = await this.paymentService.updatePaymentStatus(id, status)
+            res.status(200).json(paymentData)
         } catch (error) {
             next(error)
         }

@@ -152,4 +152,48 @@ export class UserService implements IUserService {
         }
     }
 
+    async adminDashboardUserData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
+        try {
+            const totalUsers = await this.userRepository.count({ isAdmin: false });
+
+            const now = new Date();
+            const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+            const usersThisMonth = await this.userRepository.count({
+                isAdmin: false,
+                createdAt: { $gte: startOfThisMonth }
+            });
+
+            const usersLastMonth = await this.userRepository.count({
+                isAdmin: false,
+                createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth }
+            });
+
+            let change = '0%';
+            let positive = true;
+            if (usersLastMonth > 0) {
+                const percentChange = ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
+                change = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%`;
+                positive = percentChange >= 0;
+            } else if (usersThisMonth > 0) {
+                change = '+100%';
+                positive = true;
+            }
+
+            const icon = 'Users';
+
+            return {
+                title: 'Total Users',
+                value: totalUsers.toLocaleString(),
+                icon,
+                change,
+                positive
+            };
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Server error while getting dashboard user data");
+        }
+    }
+
 }

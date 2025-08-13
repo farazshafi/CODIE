@@ -19,4 +19,5 @@ export interface IUserService {
     unblockUserById(userId: string): Promise<void>;
     updateUser(userId: string, data: { name: string, portfolio: string, github: string, avatar: string }): Promise<IUser>;
     getUserData(userId: string): Promise<IUser>;
+    adminDashboardUserData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }>
 }

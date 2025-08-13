@@ -57,4 +57,71 @@ export class PaymentService implements IPaymentService {
             throw new HttpError(500, "Server Error , While getting user payments")
         }
     }
+
+    async adminDashboardPaymenttData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
+        try {
+            const totalCompletedAmountAgg = await this.paymentRepository.getModel().aggregate([
+                { $match: { paymentStatus: "completed" } },
+                { $group: { _id: null, totalAmount: { $sum: "$amount" } } }
+            ]);
+            const totalCompletedAmount = totalCompletedAmountAgg[0]?.totalAmount || 0;
+
+            const now = new Date();
+            const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+            const paymentThisMonth = await this.paymentRepository.count({ createdAt: { $gte: startOfThisMonth } });
+
+            const paymentLastMonth = await this.paymentRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+
+            let change = '0%';
+            let positive = true;
+            if (paymentLastMonth > 0) {
+                const percentChange = ((paymentThisMonth - paymentLastMonth) / paymentLastMonth) * 100;
+                change = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%`;
+                positive = percentChange >= 0;
+            } else if (paymentThisMonth > 0) {
+                change = '+100%';
+                positive = true;
+            }
+
+            const icon = 'Payment';
+
+            return {
+                title: 'Total Payment',
+                value: totalCompletedAmount.toLocaleString(),
+                icon,
+                change,
+                positive
+            };
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Server error while getting dashboard user data");
+        }
+    }
+
+    async getPaymentDataAdmin(): Promise<IPayment[]> {
+        try {
+            return await this.paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"])
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Server error while getting payment data");
+        }
+    }
+
+    async updatePaymentStatus(id: string, status: "completed" | "failed"): Promise<IPayment> {
+        try {
+            const payment = await this.paymentRepository.findOneAndUpdate({ _id: id }, { paymentStatus: status })
+            if (!payment) {
+                throw new HttpError(404, "Payment with id is not found!")
+            }
+            return payment
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            throw new HttpError(500, "Server error while getting payment data");
+        }
+    }
 }
