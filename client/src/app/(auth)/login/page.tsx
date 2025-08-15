@@ -181,7 +181,7 @@ const Page = () => {
                     {/* Left Section */}
                     <div className="text-white md:text-left flex flex-col justify-between md:items-start">
                         <h2 className="text-xl sm:text-3xl">Welcome Back, <br />
-                            <span className="mygreen font-semibold">Let's Code!</span></h2>
+                            <span className="mygreen font-semibold">Let&apos;s Code!</span></h2>
                         <h1 className="text-4xl sm:text-5xl font-bold mt-6 leading-tight">
                             Join the Future<br />
                             of Coding Together.
@@ -256,7 +256,7 @@ const Page = () => {
 
                         {/* Signup Link */}
                         <div className="mt-4 text-center text-sm text-gray-600">
-                            Don't have an account?
+                            Don&apos;t have an account?
                             <Link href={"/register"}>
                                 <p className="mygreen inline ml-2 font-medium hover:underline">
                                     Sign up

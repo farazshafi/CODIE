@@ -54,8 +54,8 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
     onSuccess(data) {
       try {
         const { id: order_id, amount, currency } = data
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        const options: RazorpayOptions = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string,
           amount,
           currency,
           name: "<CODIE> Online collabrative code editor",
@@ -85,7 +85,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
         const paymentObject = new window.Razorpay(options);
 
 
-        paymentObject.on('payment.failed', function (response: any) {
+        paymentObject.on('payment.failed', function (response: RazorpayPaymentFailedResponse) {
           const { payment_id } = response.error.metadata;
 
           console.log("Payment failed", response);
@@ -192,12 +192,12 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
           content={
             userSubscription?.pricePerMonth < amount ? (
               <p>
-                You're upgrading to a higher plan. <strong>No refunds</strong> will be issued if you proceed.
+                You&apos;re upgrading to a higher plan. <strong>No refunds</strong> will be issued if you proceed.
                 The new premium features will become available <strong>only after your current plan expires</strong>.Do you still want to continue?
               </p>
             ) : userSubscription?.pricePerMonth > amount ? (
               <p>
-                You're downgrading your subscription. <strong>New limitations will apply</strong> after your current plan ends.Are you sure you want to downgrade?
+                You&apos;re downgrading your subscription. <strong>New limitations will apply</strong> after your current plan ends.Are you sure you want to downgrade?
               </p>
             ) : (
               <p>Are you sure you want to continue with this action?</p>

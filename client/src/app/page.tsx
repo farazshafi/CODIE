@@ -1,6 +1,5 @@
 import CodeAnimation from '@/components/codeAnimation'
 import FeatureCard from '@/components/featureCard'
-import PricingPlan from '@/components/pricingPlan'
 import Subscription from '@/components/Subscription'
 import PageTransitionWrapper from '@/components/TransitionWrapper'
 import { Button } from '@/components/ui/button'

@@ -64,7 +64,7 @@ const CodeAnimation = () => {
                                     <span>
                                         {line.split("'").map((part, i) => (
                                             <React.Fragment key={i}>
-                                                {i % 2 === 0 ? part : <span className="text-green-400">'{part}'</span>}
+                                                {i % 2 === 0 ? part : <span className="text-green-400">&apos;{part}&apos;</span>}
                                             </React.Fragment>
                                         ))}
                                     </span>

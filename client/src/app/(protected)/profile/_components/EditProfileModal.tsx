@@ -9,7 +9,12 @@ type EditModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data) => void;
-  user: any
+  user: {
+    name?: string;
+    avatar?: string;
+    github?: string;
+    portfolio?: string;
+  }
 }
 
 const EditProfileModal = ({ isOpen, onClose, onSave, user }: EditModalProps) => {
@@ -20,7 +25,7 @@ const EditProfileModal = ({ isOpen, onClose, onSave, user }: EditModalProps) => 
     portfolio: user?.portfolio || "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };

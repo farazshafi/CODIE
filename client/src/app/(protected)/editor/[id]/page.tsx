@@ -30,6 +30,7 @@ const Page = () => {
 
     // functions
     const handleReset = () => {
+        console.log(showCollaborators)
         const defaultCode = LANGUAGE_CONFIG[language].defaultCode
         if (editor) editor.setValue(defaultCode)
         localStorage.removeItem(`editor-code-${language}`)
@@ -38,6 +39,7 @@ const Page = () => {
     const handleRun = async () => {
         await runCode()
         const result = getExecutionResult()
+        console.log("code exicution result: ", result)
     }
 
     const handleCopy = () => {

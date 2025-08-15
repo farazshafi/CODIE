@@ -21,4 +21,6 @@ const SectionTitle: React.FC<SectionTitleProps> = React.memo(({ title, tagColor 
     );
 });
 
+SectionTitle.displayName = "SectionTitle";
+
 export default SectionTitle;

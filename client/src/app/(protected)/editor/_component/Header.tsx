@@ -45,17 +45,6 @@ import {
 } from "@/components/ui/tooltip"
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
-type SearchResultUser = {
-    name: string;
-    email: string;
-    _id: string;
-};
-
-type Collaborator = {
-    user: SearchResultUser;
-    role: string;
-    _id: string;
-};
 
 const Header = ({
     onChatToggle,
@@ -68,10 +57,8 @@ const Header = ({
     const [textSize, setTextSize] = useState(16);
     const [textIsOpened, setTextIsOpened] = useState(false)
     const [isWantToCollab, setIsWantToCollab] = useState(false)
-    const [collaborators, setCollaborators] = useState<Collaborator[]>([])
     const [showInvitationModal, setShowInvitationModal] = useState(false)
     const [ownerId, setOwnerId] = useState("")
-    const [collabVersion, setCollabVersion] = useState(0);
     const [copyMessage, setCopyMessage] = useState("")
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [chatSupport, setChatSupport] = useState({ text: true, voice: true })
@@ -105,17 +92,17 @@ const Header = ({
     const { mutate: getRoomByProjectId } = useMutationHook(getRoomByProjectIdApi, {
         onSuccess(res) {
             setRoomId(res.data.roomId)
-            setCollaborators(res.data.collaborators)
             setIsWantToCollab(true)
             setOwnerId(res.data.owner)
             storeOnwerId(res.data.owner)
         },
         onError(error) {
+            console.log("room getting error: ",error)
             setIsWantToCollab(false)
         },
     })
 
-    const { mutate: getUserSubscription, isLoading: subscriptionLoading } = useMutationHook(getUserSubscriptionApi, {
+    const { mutate: getUserSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
             console.log(data.text)
             setChatSupport({
@@ -197,7 +184,7 @@ const Header = ({
 
     useEffect(() => {
         getRoomByProjectId(id)
-    }, [isWantToCollab, collabVersion])
+    }, [isWantToCollab])
 
     useEffect(() => {
         const storedSize = localStorage.getItem("editor-font-size");
@@ -288,7 +275,7 @@ const Header = ({
             {/* Mobile Dropdown */}
             {isOpen && (
                 <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
-                    <div className="bg-tertiary rounded-md" onClick={onChatToggle}>
+                    <div className="bg-tertiary rounded-md" onClick={() => onChatToggle(chatSupport)}>
                         <div className="flex items-center gap-2 p-2">
                             <MessageSquare />
                             <p>Chat</p>

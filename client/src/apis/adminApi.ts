@@ -1,5 +1,3 @@
-
-import { string } from "zod";
 import API from "../lib/axiosInstance";
 
 export const loginAdminApi = async (userData: { email: string, password: string }) => {

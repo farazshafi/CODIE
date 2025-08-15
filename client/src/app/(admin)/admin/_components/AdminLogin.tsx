@@ -11,11 +11,6 @@ import { loginAdminApi } from '@/apis/adminApi';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/stores/userStore';
 
-interface LoginErrors {
-    email?: string;
-    password?: string;
-}
-
 const AdminLogin = () => {
     const router = useRouter()
     const user = useUserStore((state) => state.user)
@@ -26,7 +21,7 @@ const AdminLogin = () => {
 
 
 
-    const { mutate, isLoading, error: errors } = useMutationHook(loginAdminApi, {
+    const { mutate, isLoading } = useMutationHook(loginAdminApi, {
         onSuccess: (data) => {
             toast.success(data.message || "User Registred succesfully");
             setUser({

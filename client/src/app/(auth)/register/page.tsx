@@ -7,7 +7,7 @@ import Logo from "../../../../public/logo-light.png";
 import Link from "next/link";
 import { googleAuthRegisterApi, registerUserApi } from "@/apis/userApi";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { Eye, EyeOff, Facebook } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import { useUserStore } from "@/stores/userStore";
@@ -149,7 +149,7 @@ const Page = () => {
         <div className="text-white md:text-left flex flex-col justify-between md:items-start">
           <h2 className="text-2xl text-left sm:text-3xl">
             Create Your Account &<br />
-            Start Coding Together!"
+            Start Coding Together!
           </h2>
           <h1 className="text-4xl sm:text-5xl font-bold mt-6 leading-tight">
             Real-Time <br />

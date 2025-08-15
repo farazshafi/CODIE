@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-type Options = {
+type Options<TData, TVariables, TError> = {
     successMessage?: string;
     errorMessage?: string;
-    onSuccess?: (data: any, variable?: any) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (data: TData, variables?: TVariables) => void;
+    onError?: (error: TError) => void;
 };
 
-export const useMutationHook = (
-    apiFunction: (data: any) => Promise<any>,
-    options?: Options
-) => {
+export function useMutationHook<TData, TVariables = void, TError = unknown>(
+    apiFunction: (data: TVariables) => Promise<TData>,
+    options?: Options<TData, TVariables, TError>
+) {
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [data, setData] = useState<any>(null);
-    const [error, setError] = useState<any>(null);
+    const [data, setData] = useState<TData | null>(null);
+    const [error, setError] = useState<TError | null>(null);
 
-    const mutate = async (inputData: any) => {
+    const mutate = async (inputData: TVariables) => {
         setIsLoading(true);
         setIsError(false);
         setIsSuccess(false);
@@ -35,11 +35,15 @@ export const useMutationHook = (
             }
 
             options?.onSuccess?.(response, inputData);
-        } catch (err: any) {
-            setError(err);
+        } catch (err) {
+            setError(err as TError);
             setIsError(true);
 
-            options?.onError?.(err);
+            if (options?.errorMessage) {
+                toast.error(options.errorMessage);
+            }
+
+            options?.onError?.(err as TError);
         } finally {
             setIsLoading(false);
         }
@@ -53,4 +57,4 @@ export const useMutationHook = (
         data,
         error,
     };
-};
+}

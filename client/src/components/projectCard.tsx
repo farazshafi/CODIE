@@ -6,7 +6,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Ellipsis, Share, Star, Trash } from 'lucide-react';
+import { Ellipsis, Share, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { deleteProjectApi } from '@/apis/projectApi';
 import { toast } from 'sonner';

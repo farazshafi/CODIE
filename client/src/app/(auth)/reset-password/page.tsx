@@ -14,7 +14,6 @@ import { EyeIcon, EyeOff } from "lucide-react";
 const Page = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [password, setPassword] = useState("");
-    const [isRemembered, setIsRemembered] = useState(false)
     const [hidePassword, setHidePassword] = useState(true)
 
     const searchParams = useSearchParams()

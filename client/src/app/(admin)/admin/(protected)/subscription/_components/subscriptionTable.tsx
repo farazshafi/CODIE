@@ -3,7 +3,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button';
 import { CircleEllipsis, Pencil, Trash2 } from 'lucide-react';
 import { CreateSubscriptionInput } from '@/lib/validations/subscriptionValidation';
-import { useSubscriptionData } from '../_hook/useSubscriptionData';
 
 
 interface SubscriptionTableProps {

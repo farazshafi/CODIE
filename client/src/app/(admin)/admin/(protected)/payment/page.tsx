@@ -1,6 +1,5 @@
 "use client";
 import { getPaymentDataApi, updatePaymentStatusApi } from "@/apis/adminApi";
-import Pagination from "@/components/ui/Pagination";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +29,7 @@ const PaymentPage = () => {
     })
 
     const { mutate: updateStatus } = useMutationHook(updatePaymentStatusApi, {
-        onSuccess(data) {
+        onSuccess() {
             toast.success("Updated Status")
             getPaymentData({})
         }

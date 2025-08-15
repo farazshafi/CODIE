@@ -29,6 +29,20 @@ type NavbarProps = {
 
 }
 
+type RequestData = {
+    _id: string;
+    roomId: string;
+    senderId?: { name: string };
+    reciverId?: { name: string };
+};
+
+type InvitationData = {
+    _id: string;
+    roomId: string;
+    senderId?: { name: string };
+};
+
+
 const Navbar = forwardRef((props: NavbarProps, ref) => {
     const { refetchProjects } = props;
 
@@ -262,7 +276,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                             </TabsList>
 
                             <TabsContent value="sent">
-                                {sendedData.length > 0 ? sendedData.map((item: any) => (
+                                {sendedData.length > 0 ? sendedData.map((item: RequestData) => (
                                     <DropdownMenuItem key={item._id}>
                                         <p className="text-sm"> You made a request to <span className="mygreen font-bold">{item?.reciverId?.name}</span> to join in room: <span className="font-bold mygreen">{item.roomId}</span></p>
                                     </DropdownMenuItem>
@@ -272,7 +286,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
 
                             <TabsContent className="space-y-3.5" value="received">
                                 {recivedData.length > 0 ? (
-                                    recivedData.map((item: any) => (
+                                    recivedData.map((item: RequestData) => (
                                         <DropdownMenuItem key={item._id} className="flex flex-col items-start">
                                             <p className="text-sm mb-2">
                                                 <span className="mygreen font-bold">{item?.senderId?.name}</span> Requested to join in room: <span className="font-bold mygreen">{item.roomId}</span>
@@ -288,7 +302,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                                         </DropdownMenuItem>
                                     ))
                                 ) : recivedInvitation.length > 0 ? (
-                                    recivedInvitation.map((item: any) => (
+                                    recivedInvitation.map((item: InvitationData) => (
                                         <DropdownMenuItem key={item._id} className="flex flex-col items-start">
                                             <p className="text-sm mb-2">
                                                 <span className="mygreen font-bold">{item?.senderId?.name}</span> Invited you to join in room: <span className="font-bold mygreen">{item.roomId}</span>
@@ -356,4 +370,6 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         </nav>
     );
 })
+
+Navbar.displayName = "Navbar";
 export default Navbar;

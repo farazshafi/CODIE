@@ -1,6 +1,5 @@
 import { useSocket } from "@/context/SocketContext";
 import { useEffect } from "react";
-import { toast } from "sonner";
 
 export default function useNotificationSocketListner(onNotificationReceived: () => void, refetchProjects: () => void) {
     const { socket } = useSocket()

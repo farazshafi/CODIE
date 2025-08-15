@@ -28,7 +28,8 @@ export const useSubscriptionData = () => {
     })
 
     const { mutate: updateBlockStatus } = useMutationHook(blockUnblockSubscribeApi, {
-        onSuccess(response) {
+        onSuccess(res) {
+            toast.success(res.message || "Updated subscription status")
             fetchAllSubscriptions()
         },
         onError(erro) {

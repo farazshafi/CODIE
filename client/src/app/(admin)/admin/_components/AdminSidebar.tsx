@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { LayoutGrid, Users, Settings, Package, BarChart, LogOut, Code2, Banknote, HandCoins } from 'lucide-react';
+import { LayoutGrid, Users, Banknote, HandCoins, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';

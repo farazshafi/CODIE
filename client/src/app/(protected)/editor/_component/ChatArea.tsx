@@ -145,6 +145,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
             contentType: "text",
         });
         setMessageText("");
+        console.log("audio contects", audioContext)
     }, [socket, user, roomId, projectId, messageText, userRole]);
 
     const handleVoiceWarning = useCallback(() => {

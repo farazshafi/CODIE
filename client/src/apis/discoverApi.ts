@@ -1,5 +1,4 @@
 import API from "@/lib/axiosInstance";
-import { unknown } from "zod";
 
 interface DiscoverQuery {
   keyword?: string;

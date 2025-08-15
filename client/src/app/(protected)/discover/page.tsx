@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Search, SlidersHorizontal, Tag } from 'lucide-react';
+import { Search, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Navbar from '@/components/ui/navbar';
 import SnippetCard from '@/components/snippetCard';

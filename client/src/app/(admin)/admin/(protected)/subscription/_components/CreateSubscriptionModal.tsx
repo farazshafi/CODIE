@@ -84,8 +84,7 @@ export default function CreateSubscriptionModal({
     //useeffect
     useEffect(() => {
         if (editData) {
-            const { id, ...rest } = editData;
-            reset(rest)
+            reset(editData);
         } else {
             reset();
         }
