@@ -59,7 +59,7 @@ export class UserController {
 
             await redis.del(redisKey)
 
-            const payload = { id: newUser._id, email: newUser.email }
+            const payload = { id: newUser._id, email: newUser.email, isAdmin: newUser.isAdmin }
 
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
@@ -168,7 +168,7 @@ export class UserController {
                 return
             }
 
-            const payload = { id: userExist._id, email: userExist.email }
+            const payload = { id: userExist._id, email: userExist.email, isAdmin: userExist.isAdmin }
 
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
@@ -222,7 +222,7 @@ export class UserController {
             }
 
 
-            const payload = { id: user!._id, email: user!.email }
+            const payload = { id: user!._id, email: user!.email, isAdmin: user!.isAdmin }
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
@@ -277,7 +277,7 @@ export class UserController {
                 return
             }
 
-            const payload = { id: user._id, email: user.email }
+            const payload = { id: user._id, email: user.email, isAdmin: user.isAdmin }
 
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)

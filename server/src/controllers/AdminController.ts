@@ -41,7 +41,7 @@ export class AdminController {
                 return
             }
 
-            const payload = { id: userExist._id, email: userExist.email }
+            const payload = { id: userExist._id, email: userExist.email, isAdmin: userExist.isAdmin }
 
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
