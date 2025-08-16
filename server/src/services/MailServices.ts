@@ -47,7 +47,7 @@ export class MailService implements IMailService {
                        <p>A ${requesterEmail} has requested to collaborate on the project: <b>${projectName}</b>.</p>
                        <p>Requester Email: <b>${requesterEmail}</b></p>
                        <p>Please review the request and take the necessary action.</p>
-                    <p>For more details, visit: <a href="http://localhost:3000/dashboard">Check Notifications</a></p>,`
+                    <p>For more details, visit: <a href="${process.env.CLIENT_URL}/dashboard">Check Notifications</a></p>,`
             });
 
         } catch (error) {
@@ -65,7 +65,7 @@ export class MailService implements IMailService {
                 html: `<h1>You're Invited!</h1>
                        <p>${invitationFrom} has invited you to contribute to their project on Codie Online Collaborative Editor.</p>
                        <p>To accept the invitation and start collaborating, please visit the following link:</p>
-                       <p><a href="http://localhost:3000/dashboard">Accept Invitation</a></p>
+                       <p><a href="${process.env.CLIENT_URL}/dashboard">Accept Invitation</a></p>
                        <p>If you did not expect this invitation, you can safely ignore this email.</p>`
             });
 

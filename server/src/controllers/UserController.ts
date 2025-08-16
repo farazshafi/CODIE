@@ -127,7 +127,7 @@ export class UserController {
             const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
             await this.userService.savePasswordResetToken(email, hashedToken, new Date(Date.now() + 3600000)); // 1h
 
-            const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`
+            const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}&email=${email}`
 
             await this.mailService.sendResetLink(email, resetLink)
 

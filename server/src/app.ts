@@ -24,7 +24,7 @@ cron.start()
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:3000", "https://studio.apollographql.com"],
+  origin: [`${process.env.CLIENT_URL}`, `${process.env.GRAPHQL_API}`],
   credentials: true
 }));
 app.use(cookieParser())
