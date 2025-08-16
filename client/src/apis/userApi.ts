@@ -15,6 +15,15 @@ export const loginUserApi = async (userData: { email: string, password: string }
     return response.data;
 }
 
+export const logoutUserApi = async () => {
+    const response = await API.get("/logout");
+    if (response.data?.isBlocked) {
+        toast.error("Uer is Blocked")
+        return
+    }
+    return response.data;
+}
+
 export const verifyOtpApi = async (userData: { email: string, otp: string }) => {
     try {
         const response = await API.post("/verify-otp", userData);

@@ -8,18 +8,26 @@ import Logo from "../../../../../public/logo.png"
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/stores/userStore';
 import Loading from '@/components/Loading';
+import { useMutationHook } from '@/hooks/useMutationHook';
+import { logoutAdminApi } from '@/apis/adminApi';
 
 const AdminSidebar = () => {
     const currentPath = usePathname()
     const router = useRouter()
+
+    const { mutate: logoutAdmin } = useMutationHook(logoutAdminApi, {
+        onSuccess() {
+            logout();
+            router.push("/admin/login");
+        }
+    })
 
     const logout = useUserStore((state) => state.logout)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleLogout = () => {
         setIsLoading(true);
-        logout();
-        router.push("/admin/login");
+        logoutAdmin()
         setIsLoading(false)
     }
 

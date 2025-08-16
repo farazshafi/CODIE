@@ -5,6 +5,11 @@ export const loginAdminApi = async (userData: { email: string, password: string 
     return response.data;
 }
 
+export const logoutAdminApi = async () => {
+    const response = await API.get("/admin/logout");
+    return response.data;
+}
+
 export const allUsersApi = async ({ page = "1", limit = "1", search = "", status = "all" }: { page: string, limit: string, search: string, status: string }) => {
     const response = await API.get(`/admin/users?page=${page}&limit=${limit}&search=${search}&status=${status}`);
     return response.data;

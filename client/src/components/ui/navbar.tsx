@@ -23,6 +23,8 @@ import { getAllRecivedRequestApi, getAllSendedRequestApi } from "@/apis/requestA
 import useNotificationSocketListner from "@/hooks/useNotificationSocketListner";
 import { getRecivedInvitationsApi } from "@/apis/invitationApi";
 import { useSocket } from "@/context/SocketContext";
+import { logoutUserApi } from "@/apis/userApi";
+import { toast } from "sonner";
 
 type NavbarProps = {
     refetchProjects(): void;
@@ -70,13 +72,20 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         }
     };
 
+    const { mutate: logoutUser } = useMutationHook(logoutUserApi, {
+        onSuccess() {
+            logout();
+            router.push("/login");
+            toast.success("Thank you for your Support!")
+        }
+    })
+
     useNotificationSocketListner(updateNotificationData, refetchProjects);
 
     //functions
     const handleLogout = () => {
         setIsLoading(true);
-        logout();
-        router.push("/login");
+        logoutUser()
         setIsLoading(false);
     };
 

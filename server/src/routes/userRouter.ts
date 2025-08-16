@@ -10,6 +10,7 @@ const router = Router()
 
 router.post("/register", validate(userSchema), userController.createUser)
 router.post("/login", validate(loginSchema), userController.loginUser)
+router.get("/logout", authenticate, protect, userController.logoutUser)
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", validate(emailSchema), userController.resendOtp);
 router.post("/reset-link", validate(emailSchema), userController.resetLink);

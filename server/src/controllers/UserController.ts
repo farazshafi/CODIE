@@ -7,6 +7,7 @@ import { IUserService } from "../services/interface/IUserService"
 import { IOtpService } from "../services/interface/IOtpServices"
 import crypto from "crypto"
 import { IMailService } from "../services/interface/IMailService"
+import jwt from "jsonwebtoken"
 
 export class UserController {
     constructor(
@@ -194,6 +195,31 @@ export class UserController {
                 accessToken
             })
 
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    logoutUser = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const token = req.headers.authorization?.split(" ")[1]
+
+            const decoded = jwt.decode(token)
+            console.log("decoded token data", decoded)
+
+            if (!decoded || !decoded.exp) {
+                res.status(400).json({ message: "Invalid token" });
+                return
+            }
+
+            const expiresAt = decoded.exp
+            const ttl = expiresAt - Math.floor(Date.now() / 1000);
+            console.log("checking ttl: is grater than 0",ttl)
+            if (ttl > 0) {
+                await redis.setex(`blacklist:${token}`, ttl, "true")
+            }
+
+            res.json({ message: "Logged out successfully" });
         } catch (err) {
             next(err)
         }
