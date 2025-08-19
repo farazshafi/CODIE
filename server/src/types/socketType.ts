@@ -43,7 +43,7 @@ export interface JoinProjectData { projectId: string, userId: string }
 
 export interface leaveProjectData { projectId: string, userId: string, userName: string }
 
-export interface updateCodeData { projectId: string, code: string, userId: string }
+export interface updateCodeData { projectId: string, code: string, userId: string, range: string }
 
 export interface updateRoleData { userId: string, role: "viewer" | "editor", projectId: string }
 
