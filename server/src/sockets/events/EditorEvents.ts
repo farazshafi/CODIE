@@ -25,8 +25,6 @@ export class EditorEvents implements IEventHandler {
     private editorService: IEditorService;
     private userSocketRepository: IUserSocketRepository;
     private onlineUserRepository: IOnlineUserRepository;
-    private ttl = 60;
-    private gracePeriod = 3; // seconds to avoid race on expiry
 
     constructor(
         io: Server,
@@ -47,7 +45,7 @@ export class EditorEvents implements IEventHandler {
         socket.on('notify-role-change', (data: updateRoleData) => this.handleUpdateRole(data, socket));
 
         // lock system
-        socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'auto' | 'manual' }) => this.handleLockRequest(data, socket));
+        socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'manual' }) => this.handleLockRequest(data, socket));
         socket.on('lock:release', (data: { projectId: string, userId: string, ranges: string[] }) => this.handleLockRelease(data, socket));
     }
 
@@ -76,7 +74,7 @@ export class EditorEvents implements IEventHandler {
         const lockKey = `lineLocks:${projectId}`;
         const allLocks = await redis.hgetall(lockKey);
         for (const [range, owner] of Object.entries(allLocks)) {
-            if (owner === userId) {
+            if (owner.startsWith(userId)) {
                 await redis.hdel(lockKey, range);
                 client.to(projectId).emit('lock:released', { range, userId });
             }
@@ -93,7 +91,7 @@ export class EditorEvents implements IEventHandler {
         const { userId, projectId, code, range } = data;
         const lockKey = `lineLocks:${projectId}`;
         const owner = await redis.hget(lockKey, range);
-        if (owner && owner !== userId) {
+        if (owner && !owner.startsWith(userId)) {
             client.emit('error', { message: 'Line locked by another user' });
             return;
         }
@@ -130,7 +128,7 @@ export class EditorEvents implements IEventHandler {
     }
 
     /** Handle lock request with multiple ranges and merging */
-    private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'auto' | 'manual' }, socket: Socket) {
+    private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
         const { projectId, userId, ranges, type } = data;
         const lockKey = `lineLocks:${projectId}`;
 
@@ -167,10 +165,6 @@ export class EditorEvents implements IEventHandler {
             }
 
             await redis.hset(lockKey, `${range[0]}-${range[1]}`, `${userId}|${type}`);
-            if (type === 'auto') {
-                await redis.expire(lockKey, this.ttl + this.gracePeriod);
-            }
-
             grantedRanges.push(`${range[0]}-${range[1]}`);
         }
 
