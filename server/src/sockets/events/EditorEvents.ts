@@ -88,7 +88,8 @@ export class EditorEvents implements IEventHandler {
     }
 
     private async handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
-        const { userId, projectId, code, range } = data;
+        console.log("updated requested Data".bgYellow, data)
+        const { userId, projectId, content, range } = data;
         const lockKey = `lineLocks:${projectId}`;
         const owner = await redis.hget(lockKey, range);
         if (owner && !owner.startsWith(userId)) {
@@ -97,6 +98,7 @@ export class EditorEvents implements IEventHandler {
         }
 
         const room = await this.editorService.getRoomByProjectId(projectId);
+        console.log("comming here,room: ", room ? "room ind" : "null")
         if (!room) {
             client.emit('error', { message: 'Room not found' });
             return;
@@ -106,8 +108,10 @@ export class EditorEvents implements IEventHandler {
         const collaborator = room.collaborators.find(c => c.user._id.equals(userId));
         const role = isOwner ? 'owner' : collaborator?.role;
 
+
         if (role === 'owner' || role === 'editor') {
-            client.to(projectId).emit('code-update', { code, userId });
+            client.to(projectId).emit('code-update', { content, userId, range });
+            console.log("sended back updated code")
         }
     }
 
@@ -125,10 +129,12 @@ export class EditorEvents implements IEventHandler {
         }
         socket.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
         socket.to(targetSocketId).emit('refetch-permission');
+        console.log("role upated")
     }
 
     /** Handle lock request with multiple ranges and merging */
     private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
+        console.log("lock request comes Data:", data)
         const { projectId, userId, ranges, type } = data;
         const lockKey = `lineLocks:${projectId}`;
 
@@ -138,6 +144,8 @@ export class EditorEvents implements IEventHandler {
             const [owner, lockType] = val.split('|');
             existingLocks.push({ range: parseRange(rangeStr), owner, type: lockType });
         }
+
+        console.log("existing locks:", existingLocks)
 
         const grantedRanges: string[] = [];
 
@@ -172,6 +180,8 @@ export class EditorEvents implements IEventHandler {
             socket.emit('lock:granted', { range: r, userId, type });
             socket.to(projectId).emit('lock:granted', { range: r, userId, type });
         });
+
+        console.log("Granded ragnes: ", grantedRanges)
     }
 
     /** Release multiple locks */

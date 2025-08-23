@@ -32,7 +32,7 @@ export const deleteProjectApi = async (projectId: string) => {
     }
 }
 
-export const saveCodeApi = async (data: { code: string }) => {
+export const saveCodeApi = async (data: { projectId:string ,code: string }) => {
     try {
         const response = await API.put(`${API_BASE_URL}/save_code`, data)
         return response.data

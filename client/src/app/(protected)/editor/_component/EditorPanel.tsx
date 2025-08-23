@@ -1,140 +1,141 @@
-import React, { useEffect, useState } from "react";
-import { Editor } from "@monaco-editor/react";
-import { defineMonacoThemes, LANGUAGE_CONFIG } from "../_constants";
+"use client";
+import { useEffect, useRef, useCallback, useState } from "react";
+import Editor, { OnMount } from "@monaco-editor/react";
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
-import debounce from "lodash.debounce"
-import { useMutationHook } from "@/hooks/useMutationHook";
-import { useParams } from "next/navigation";
-import { toast } from "sonner";
-import { getCodeApi, saveCodeApi } from "@/apis/projectApi";
-import { useSocket } from "@/context/SocketContext";
-import { useEditor } from "@/hooks/useEditor";
+import debounce from "lodash.debounce";
 import { useUserStore } from "@/stores/userStore";
-import { checkIsEligibleToEditApi } from "@/apis/roomApi";
-import Loading from "@/components/Loading";
 import { useEditorStore } from "@/stores/editorStore";
+import { useSocket } from "@/context/SocketContext";
+import { useMutationHook } from "@/hooks/useMutationHook";
+import { getCodeApi, saveCodeApi } from "@/apis/projectApi";
+import { checkIsEligibleToEditApi } from "@/apis/roomApi";
 
-const EditorPanel = () => {
-  const params = useParams()
-  const id = params.id
+export default function CodeEditor() {
+  const { language, theme, fontSize } = useCodeEditorStore();
+  const user = useUserStore((state) => state.user);
+  const ownerId = useEditorStore((state) => state.ownerId);
+  const roomId = useEditorStore((state) => state.roomId);
+  const projectId = useEditorStore((state) => state.projectId);
+  const { socket } = useSocket();
 
-  const { socket } = useSocket()
-  const userId = useUserStore((state) => state.user)?.id
-  const roomId = useEditorStore((state) => state.roomId)
-  const { isProgrammaticChange } = useEditor(id as string)
-  const { language, theme, fontSize, editor, setFontSize, setEditor } = useCodeEditorStore();
-  const [isReadOnly, setIsReadOnly] = useState(false);
+  const editorRef = useRef<any>(null);
+  const [code, setCode] = useState<string>("");
+  const [isEditable, setIsEditable] = useState<boolean>(false);
 
-  const { mutate } = useMutationHook(saveCodeApi)
-  const { mutate: checkPermission, isLoading } = useMutationHook(checkIsEligibleToEditApi, {
+  /** ✅ API mutations */
+  const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
-      setIsReadOnly(!data.isAllowed)
+      setCode(data.data.projectCode || "");
     },
-  })
+  });
 
-  const debouncedSaveCode = debounce((value: string) => {
-    if (value) {
-      mutate({ projectId: params.id, code: value })
-    }
-  }, 3000);
+  const { mutate: checkPermission } = useMutationHook(checkIsEligibleToEditApi, {
+    onSuccess(data) {
+      setIsEditable(data.isAllowed || false);
+    },
+  });
 
-  const fetchCode = async () => {
-    try {
-      const code = await getCodeApi(id as string);
-      if (editor && code.data) {
-        editor.setValue(code.data.projectCode);
-      }
-    } catch (error) {
-      toast.error(error.message || "Errro while getting code!")
-    }
+  const { mutate: saveCode } = useMutationHook(saveCodeApi, {
+    onSuccess() {
+      console.log("Code saved successfully");
+    },
+  });
+
+  /** ✅ Fetch initial code and permission */
+  const fetchInitialData = useCallback(() => {
+    if (!projectId || !user || !roomId) return;
+    getCode(projectId);
+    checkPermission({ roomId, userId: user?.id });
+  }, [projectId, roomId, user?.id]);
+
+  /** ✅ Save full code (debounced) */
+  const debouncedSaveCode = useCallback(
+    debounce((updatedCode: string) => {
+      if (!projectId) return;
+      saveCode({ code: updatedCode, projectId });
+    }, 3000),
+    [projectId]
+  );
+
+  /** ✅ Socket check permission (for "refetch-permission" event) */
+  const socketCheckPermission = () => {
+    if (!roomId || !user) return;
+    checkPermission({ roomId, userId: user?.id });
   };
 
-  useEffect(() => {
-    if (id && editor) {
-      fetchCode();
-    }
-  }, [id, editor]);
+  /** ✅ Emit whole code with line info */
+  const emitCodeUpdate = useCallback(
+    debounce((lineNumber: number, fullCode: string) => {
+      if (!socket) return;
+      socket.emit("code-update", {
+        userId: user?.id,
+        projectId,
+        range: `${lineNumber}-${lineNumber}`, // Future use
+        content: fullCode, // Send full code
+      });
+    }, 500),
+    [socket, user?.id, projectId]
+  );
 
-  useEffect(() => {
-    const savedFontSize = localStorage.getItem("editor-font-size");
-    if (savedFontSize) setFontSize(parseInt(savedFontSize));
-  }, [setFontSize]);
+  /** ✅ On editor mount */
+  const handleEditorMount: OnMount = (editor) => {
+    editorRef.current = editor;
+  };
 
-  const handleEditorChange = (value: string | undefined) => {
-    if (!value || isProgrammaticChange.current || !roomId) return
-
-    socket?.emit("code-update", {
-      projectId: id,
-      code: value,
-      userId
-    })
+  /** ✅ On code change */
+  const handleChange = (value?: string) => {
+    if (!value) return;
+    setCode(value);
     debouncedSaveCode(value);
+
+    // Current cursor line (for range info)
+    const selection = editorRef.current?.getSelection();
+    if (selection) {
+      const lineNumber = selection.startLineNumber;
+      emitCodeUpdate(lineNumber, value);
+    }
   };
 
+  /** ✅ Listen for socket events */
   useEffect(() => {
-    if (id && userId && roomId) {
-      checkPermission({ projectId: id, userId, roomId });
-    }
-  }, [id, userId, roomId]);
+    if (!socket) return;
 
+    // When others send updated code, replace it
+    socket.on("code-update", (data: { content: string; userId: string }) => {
+      if (data.userId !== user?.id) {
+        setCode(data.content);
+      }
+    });
 
-  useEffect(() => {
-    if (!socket) return
-
-    const recheckPermission = () => {
-      checkPermission({ projectId: id, userId, roomId });
-    }
-
-    socket.on("refetch-permission", recheckPermission)
+    socket.on("refetch-permission", socketCheckPermission);
 
     return () => {
-      socket.off("refetch-permission", recheckPermission)
-    }
+      socket.off("code-update");
+      socket.off("refetch-permission", socketCheckPermission);
+    };
+  }, [socket, user?.id]);
 
-  }, []);
-
-
-  if (isLoading) {
-    return <Loading />
-  }
+  /** ✅ Initial fetch */
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   return (
-    <div className="relative h-screen">
-      {/* Editor */}
-      <div className="relative group rounded-xl overflow-hidden ring-1 ring-white/[0.05]">
-        <Editor
-          height="570px"
-          language={LANGUAGE_CONFIG[language].monacoLanguage}
-          onChange={handleEditorChange}
-          theme={theme}
-          beforeMount={defineMonacoThemes}
-          onMount={(editor) => setEditor(editor)}
-          options={{
-            readOnly: isReadOnly,
-            minimap: { enabled: false },
-            fontSize,
-            automaticLayout: true,
-            scrollBeyondLastLine: false,
-            padding: { top: 16, bottom: 16 },
-            renderWhitespace: "selection",
-            fontFamily: '"Fira Code", "Cascadia Code", Consolas, monospace',
-            fontLigatures: true,
-            cursorBlinking: "smooth",
-            smoothScrolling: true,
-            contextmenu: true,
-            renderLineHighlight: "all",
-            lineHeight: 1.6,
-            letterSpacing: 0.5,
-            roundedSelection: true,
-            scrollbar: {
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-            },
-          }}
-        />
-      </div>
+    <div className="w-full h-full">
+      <Editor
+        height="100vh"
+        theme={theme}
+        language={language}
+        value={code}
+        onMount={handleEditorMount}
+        onChange={handleChange}
+        options={{
+          readOnly: !isEditable,
+          fontSize,
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+        }}
+      />
     </div>
   );
-};
-
-export default EditorPanel;
+}
