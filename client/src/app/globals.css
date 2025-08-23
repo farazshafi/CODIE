@@ -250,3 +250,12 @@ html {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
+
+/* Add this to your global CSS or a dedicated editor CSS file */
+.monaco-editor .locked-range-current {
+  background-color: rgba(0, 255, 0, 0.2)
+}
+
+.monaco-editor .locked-range-other {
+  background-color: rgba(255, 0, 0, 0.2)
+}

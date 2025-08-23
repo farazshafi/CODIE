@@ -47,6 +47,8 @@ export class EditorEvents implements IEventHandler {
         // lock system
         socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'manual' }) => this.handleLockRequest(data, socket));
         socket.on('lock:release', (data: { projectId: string, userId: string, ranges: string[] }) => this.handleLockRelease(data, socket));
+        socket.on('get-locked-lines', (data: { projectId: string }) => this.handleGetLockedLines(data, socket));
+
     }
 
     public onDisconnect(socket: Socket): void {
@@ -70,9 +72,9 @@ export class EditorEvents implements IEventHandler {
     private async handleLeaveRoom(data: leaveProjectData, client: Socket): Promise<void> {
         const { projectId, userId } = data;
 
-        // Cleanup user locks on disconnect
         const lockKey = `lineLocks:${projectId}`;
         const allLocks = await redis.hgetall(lockKey);
+        console.log("user leaved !, clearing...data", allLocks)
         for (const [range, owner] of Object.entries(allLocks)) {
             if (owner.startsWith(userId)) {
                 await redis.hdel(lockKey, range);
@@ -88,7 +90,6 @@ export class EditorEvents implements IEventHandler {
     }
 
     private async handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
-        console.log("updated requested Data".bgYellow, data)
         const { userId, projectId, content, range } = data;
         const lockKey = `lineLocks:${projectId}`;
         const owner = await redis.hget(lockKey, range);
@@ -98,7 +99,6 @@ export class EditorEvents implements IEventHandler {
         }
 
         const room = await this.editorService.getRoomByProjectId(projectId);
-        console.log("comming here,room: ", room ? "room ind" : "null")
         if (!room) {
             client.emit('error', { message: 'Room not found' });
             return;
@@ -111,7 +111,6 @@ export class EditorEvents implements IEventHandler {
 
         if (role === 'owner' || role === 'editor') {
             client.to(projectId).emit('code-update', { content, userId, range });
-            console.log("sended back updated code")
         }
     }
 
@@ -122,24 +121,27 @@ export class EditorEvents implements IEventHandler {
             socket.emit('error', { message: 'user to update not in online' });
             return;
         }
-        const targetSocketId = await this.editorService.getSocketIdByUserId(userId, projectId);
+        const targetSocketId = await this.editorService.getSocketIdByUserId(userId, projectId); 
         if (!targetSocketId) {
             socket.emit('error', { message: 'targetted socket not found' });
             return;
         }
         socket.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
         socket.to(targetSocketId).emit('refetch-permission');
-        console.log("role upated")
+        console.log("upated role")
     }
 
     /** Handle lock request with multiple ranges and merging */
     private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
         console.log("lock request comes Data:", data)
-        const { projectId, userId, ranges, type } = data;
+        const { projectId, userId, type } = data;
+        const ranges = Array.isArray(data.ranges) ? data.ranges : [data.ranges];
+
         const lockKey = `lineLocks:${projectId}`;
 
         const existingLocksRaw = await redis.hgetall(lockKey);
         const existingLocks: { range: [number, number]; owner: string; type: string }[] = [];
+
         for (const [rangeStr, val] of Object.entries(existingLocksRaw)) {
             const [owner, lockType] = val.split('|');
             existingLocks.push({ range: parseRange(rangeStr), owner, type: lockType });
@@ -195,7 +197,26 @@ export class EditorEvents implements IEventHandler {
                 await redis.hdel(lockKey, range);
                 socket.emit('lock:released', { range, userId });
                 socket.to(projectId).emit('lock:released', { range, userId });
+                console.log("ranges: unlocked: ", ranges)
             }
         }
+
+    }
+
+    private async handleGetLockedLines(data: { projectId: string }, socket: Socket) {
+        const { projectId } = data;
+        console.log("backend need all locked lines: ", projectId)
+        const lockKey = `lineLocks:${projectId}`;
+
+        const existingLocksRaw = await redis.hgetall(lockKey);
+        const locks: { range: string; userId: string; type: string }[] = [];
+
+        for (const [range, val] of Object.entries(existingLocksRaw)) {
+            const [owner, lockType] = val.split('|');
+            locks.push({ range, userId: owner, type: lockType });
+        }
+
+        socket.emit('locked-lines', { projectId, locks });
+        console.log("we have send all the datas: ", { projectId, locks })
     }
 }

@@ -12,6 +12,8 @@ import { LANGUAGE_CONFIG } from "../_constants"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
 import ChatArea from "../_component/ChatArea"
+import { useSocket } from "@/context/SocketContext"
+import { useUserStore } from "@/stores/userStore"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
@@ -26,6 +28,10 @@ const Page = () => {
         text: false,
         voice: false
     })
+
+    const { socket } = useSocket()
+    const projectId = useEditorStore((sate) => sate.projectId)
+    const user = useUserStore((sate) => sate.user)
 
 
     // functions
@@ -70,6 +76,18 @@ const Page = () => {
     useEffect(() => {
         setProjectId(id as string)
     }, [id])
+
+    useEffect(() => {
+        if (!socket || !projectId || !user) return
+
+        return () => {
+            socket.emit("leave-project", {
+                userId: user.id,
+                projectId: projectId,
+                userName: user.name
+            })
+        }
+    }, [])
 
     return (
         <div className="h-screen flex flex-col overflow-hidden">

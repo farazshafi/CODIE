@@ -40,11 +40,7 @@ export const useOnlineUsers = (projectId: string | undefined) => {
         socket.on("user-left", handleUserLeft);
 
         return () => {
-            socket.emit("leave-project", {
-                userId: user.id,
-                projectId: projectId,
-                userName: user.name
-            })
+
             console.log("header disconnect: ")
             socket.off("online-users", handleOnlineUsers);
             socket.off("user-joined", handleUserJoin);
