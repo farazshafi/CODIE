@@ -90,14 +90,31 @@ export class EditorEvents implements IEventHandler {
     }
 
     private async handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
-        const { userId, projectId, content, range } = data;
+        console.log("Update requested Data".bgYellow, data);
+        const { userId, projectId, content, ranges } = data;
         const lockKey = `lineLocks:${projectId}`;
-        const owner = await redis.hget(lockKey, range);
-        if (owner && !owner.startsWith(userId)) {
-            client.emit('error', { message: 'Line locked by another user' });
-            return;
+
+        const allLocks = await redis.hgetall(lockKey);
+
+        // Check if any range conflicts with existing locks
+        for (const r of ranges) {
+            const editRange: [number, number] = r.includes('-')
+                ? parseRange(r)
+                : [Number(r), Number(r)];
+
+            for (const [lockedRangeStr, val] of Object.entries(allLocks)) {
+                const [ownerId] = val.split('|');
+                const lockedRange = parseRange(lockedRangeStr);
+
+                if (isOverlap(editRange, lockedRange) && ownerId !== userId) {
+                    client.emit('error', { message: `Lines ${r} are locked by another user` });
+                    console.log("line is locked!")
+                    return;
+                }
+            }
         }
 
+        // Fetch project room details
         const room = await this.editorService.getRoomByProjectId(projectId);
         if (!room) {
             client.emit('error', { message: 'Room not found' });
@@ -108,11 +125,15 @@ export class EditorEvents implements IEventHandler {
         const collaborator = room.collaborators.find(c => c.user._id.equals(userId));
         const role = isOwner ? 'owner' : collaborator?.role;
 
-
         if (role === 'owner' || role === 'editor') {
-            client.to(projectId).emit('code-update', { content, userId, range });
+            // Broadcast update with all ranges
+            client.to(projectId).emit('code-update', { content, userId, ranges });
+            console.log("Sent back updated code with ranges:", ranges);
+        } else {
+            client.emit('error', { message: 'You do not have permission to edit code' });
         }
     }
+
 
     private async handleUpdateRole(data: updateRoleData, socket: Socket): Promise<void> {
         const { userId, role, projectId } = data;
@@ -121,7 +142,7 @@ export class EditorEvents implements IEventHandler {
             socket.emit('error', { message: 'user to update not in online' });
             return;
         }
-        const targetSocketId = await this.editorService.getSocketIdByUserId(userId, projectId); 
+        const targetSocketId = await this.editorService.getSocketIdByUserId(userId, projectId);
         if (!targetSocketId) {
             socket.emit('error', { message: 'targetted socket not found' });
             return;
