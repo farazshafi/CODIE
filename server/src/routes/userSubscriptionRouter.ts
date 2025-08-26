@@ -13,4 +13,6 @@ userSubscriptionRouter.post("/subscribe", authenticate, protect, userSubscriptio
 userSubscriptionRouter.post("/verify_payment", authenticate, protect, validate(verifySubscription), userSubscriptionController.verifyPaymentAndUpdateUserSubscription)
 userSubscriptionRouter.post("/downgrade_to_free", authenticate, protect, userSubscriptionController.downgradeToFree)
 
+userSubscriptionRouter.get("/get_aiusage", authenticate, protect, userSubscriptionController.getUserAiUsage)
+
 export default userSubscriptionRouter

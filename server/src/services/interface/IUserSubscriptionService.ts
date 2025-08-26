@@ -8,5 +8,6 @@ export interface IUserSubscriptionService {
     applyDowngrade(): Promise<void>;
     sendExpiryReminder(): Promise<void>;
     getUserSubscription(userId: string): Promise<IUserSubscription>;
-    downgradeToFreePlan(userId: string): Promise<IUserSubscription>
+    downgradeToFreePlan(userId: string): Promise<IUserSubscription>;
+    getAiUsage(userId: string): Promise<number>
 }

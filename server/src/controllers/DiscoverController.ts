@@ -57,7 +57,9 @@ export class DiscoverController {
     generateExplanation = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { code }: { code: string } = req.body
-            const explanation = await this.discoverService.getCodeExplanation(code)
+            const userId = req.user.id
+
+            const explanation = await this.discoverService.getCodeExplanation(code, userId)
             res.status(200).json(explanation)
         } catch (error) {
             next(error)

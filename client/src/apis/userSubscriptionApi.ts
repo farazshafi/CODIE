@@ -59,3 +59,14 @@ export const saveFailedPaymentApi = async (data: { userId: string, planId: strin
     }
 
 }
+
+export const getUserAiUsageApi = async () => {
+    try {
+        const response = await API.get(`${BASE_URL}/get_aiusage`)
+        return response.data
+    } catch (error) {
+        console.log("Error while saving failed payment subscription", error)
+        throw error
+    }
+
+}

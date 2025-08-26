@@ -5,6 +5,7 @@ import { IDiscoverRepository } from "../repositories/interface/IDiscoverReposito
 import { HttpError } from "../utils/HttpError";
 import { generateCodeExplanation } from "../utils/geminiHelperl";
 import { IProjectRepository } from "../repositories/interface/IProjectRepository";
+import { IUserSubscriptionRepository } from "../repositories/interface/IUserSubscriptionRepository";
 
 interface FilterOptions {
     keyword: string;
@@ -33,6 +34,7 @@ export class DiscoverService implements IDiscoverService {
     constructor(
         private readonly discoverRepo: IDiscoverRepository,
         private readonly projectRepo: IProjectRepository,
+        private readonly userSubscriptionRepo: IUserSubscriptionRepository,
     ) { }
 
     async create(projectId: Types.ObjectId, userId: string): Promise<IDiscover> {
@@ -123,9 +125,18 @@ export class DiscoverService implements IDiscoverService {
         }
     }
 
-    async getCodeExplanation(code: string) {
+    async getCodeExplanation(code: string, userId: string) {
         try {
             const explanation = await generateCodeExplanation(code)
+            const subscription = await this.userSubscriptionRepo.findOne({ userId })
+
+            if (!subscription) {
+                throw new HttpError(404, "User subscription is not found!")
+            }
+
+            subscription.aiUsage += 1
+            await subscription.save()
+
             return explanation
         } catch (error) {
             if (error instanceof HttpError) {

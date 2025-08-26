@@ -71,4 +71,16 @@ export class UserSubscriptionController {
             next(error)
         }
     }
+
+    getUserAiUsage = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userId = req.user.id
+
+            const userSub = await this.userSubscriptionService.getAiUsage(userId)
+
+            res.status(201).json(userSub)
+        } catch (error) {
+            next(error)
+        }
+    }
 }

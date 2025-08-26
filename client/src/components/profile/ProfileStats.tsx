@@ -7,7 +7,8 @@ interface ProfileStatsProps {
     title: string;
     value?: number | string;
     totalContributedProjects?: number;
-    totalProjects?: number
+    totalProjects?: number;
+    totalAiUsage?: number;
 }
 
 export const ProfileStats: React.FC<ProfileStatsProps> = ({
@@ -15,7 +16,8 @@ export const ProfileStats: React.FC<ProfileStatsProps> = ({
     title,
     value,
     totalContributedProjects,
-    totalProjects
+    totalProjects,
+    totalAiUsage
 }) => {
     return (
         <Card
@@ -54,6 +56,10 @@ export const ProfileStats: React.FC<ProfileStatsProps> = ({
                             <div className="w-full p-2 rounded-md flex justify-between border-2">
                                 <p className="text-sm">Total Projects</p>
                                 <p>{totalProjects}</p>
+                            </div>
+                            <div className="w-full p-2 rounded-md flex justify-between border-2">
+                                <p className="text-sm">Total Ai Usage</p>
+                                <p>{totalAiUsage}</p>
                             </div>
                         </div>
                     ) : (

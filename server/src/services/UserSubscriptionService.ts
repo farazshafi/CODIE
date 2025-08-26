@@ -247,4 +247,20 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         }
     }
 
+    async getAiUsage(userId: string): Promise<number> {
+        try {
+            const userSubscription = (await this.userSubscriptionRepo.findOne({ userId }))
+            if (!userSubscription) {
+                throw new HttpError(404, "User subscription not found!")
+            }
+            return userSubscription.aiUsage
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error)
+            throw new HttpError(500, "Error Occured While getting Ai usage")
+        }
+    }
+
 }

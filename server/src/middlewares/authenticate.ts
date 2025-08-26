@@ -17,7 +17,6 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET)
 
         const isTokenBlacklisted = await redis.get(`blacklist:${token}`)
-        console.log("check is token".yellow, isTokenBlacklisted)
         if (isTokenBlacklisted) {
             res.status(401).json({ message: "Token is blacklisted" });
             return

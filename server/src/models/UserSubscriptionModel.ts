@@ -13,6 +13,7 @@ export interface IUserSubscriptionBase {
     };
     cancelledDate: Date | null;
     nextPlan: mongoose.Types.ObjectId | null;
+    aiUsage: number;
 }
 
 export interface IUserSubscription extends IUserSubscriptionBase, Document { }
@@ -31,7 +32,8 @@ const userSubscriptionSchema: Schema<IUserSubscription> = new Schema<IUserSubscr
         paymentMethod: { type: String, default: "Free" },
     },
     cancelledDate: { type: Date, default: null },
-    nextPlan: { type: Schema.Types.ObjectId, ref: "Subscription", default: null }
+    nextPlan: { type: Schema.Types.ObjectId, ref: "Subscription", default: null },
+    aiUsage: { type: Number, default: 0 }
 }, {
     timestamps: true
 });

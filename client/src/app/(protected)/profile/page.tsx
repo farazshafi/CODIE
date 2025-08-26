@@ -18,6 +18,7 @@ import PaymentHistory from "./_components/PaymentHistory";
 import { getStarredSnippetsApi } from "@/apis/starredApi";
 import Loading from "@/components/Loading";
 import ContributorsCircle from "./_components/ContributorsCircle";
+import { getUserAiUsageApi } from "@/apis/userSubscriptionApi";
 
 
 const contributors = [
@@ -54,10 +55,17 @@ const Page = () => {
     const [usedLanguages, setUsedLanguages] = useState<{ name: string; count: number }[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [totalStarredSnippet, setTotalStarredSnippet] = useState(0)
+    const [aiusage, setAiUsage] = useState(0)
 
     const { mutate: getProjects } = useMutationHook(getProjectsByUserIdApi, {
         onSuccess(data) {
             setTotalProjects(data.length);
+        },
+    });
+
+    const { mutate: getAiUsage } = useMutationHook(getUserAiUsageApi, {
+        onSuccess(data) {
+            setAiUsage(data);
         },
     });
 
@@ -100,6 +108,7 @@ const Page = () => {
         getProjects()
         getUsedLanguage();
         getStarredSnippets()
+        getAiUsage()
     }, [user]);
 
     if (!user) return null;
@@ -188,6 +197,7 @@ const Page = () => {
                                 title="Projects"
                                 totalProjects={totalProjects}
                                 totalContributedProjects={totalContributedProj}
+                                totalAiUsage={aiusage}
                             />
                             {snippetsLoading ? <Loading text="Fetching..." /> :
                                 <ProfileStats icon={<Code className="mygreen" />} title="Starred Snippets" value={totalStarredSnippet} />
