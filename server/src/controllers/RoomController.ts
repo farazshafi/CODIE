@@ -103,4 +103,16 @@ export class RoomController {
             next(error)
         }
     }
+
+    getAllContributorsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+           const userId = req.user.id
+            const contributers = await this.roomService.getAllContributorsForUser(userId)
+
+            res.status(200).json(contributers)
+            
+        } catch (error) {
+            next(error)
+        }
+    }
 }

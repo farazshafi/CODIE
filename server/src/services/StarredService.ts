@@ -22,7 +22,6 @@ export class StarredService implements IStarredService {
                     }
                 })
                 .lean();
-            console.log("Starred snippets: ", starredSnipets)
             if (!starredSnipets) {
                 throw new HttpError(404, "starred snippets not found ")
             }
@@ -44,7 +43,6 @@ export class StarredService implements IStarredService {
             }
 
             const starredSnipets = await this.starredRepo.create({ userId: new mongoose.Types.ObjectId(userId), projectId: new mongoose.Types.ObjectId(projectId) })
-            console.log("Starred snippets: ", starredSnipets)
             if (!starredSnipets) {
                 throw new HttpError(404, "cannot create snippets ")
             }

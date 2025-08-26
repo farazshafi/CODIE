@@ -18,6 +18,10 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
         })
     }
 
+    getModel(): Model<IRoom> {
+        return this.model
+    }
+
     async findRoomById(roomId: string): Promise<IRoom> {
         return await Room.findOne({ roomId }).populate("collaborators.user")
     }

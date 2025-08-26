@@ -60,3 +60,13 @@ export const removeFromProjectApi = async (data: { projectId: string, userId: st
         throw error
     }
 }
+
+export const getAllContributersForUserApi = async () => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_all_contributers`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}

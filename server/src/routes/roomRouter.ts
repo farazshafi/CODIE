@@ -14,5 +14,6 @@ roomRouter.get("/get_contributers/:projectId", authenticate, protect, roomContro
 roomRouter.post("/update_role", authenticate, protect, validate(updateRoleSchema), roomController.updateRole)
 roomRouter.post("/ceck_permission_to_edit", authenticate, protect, validate(checkPermissionSchema), roomController.checkPermission)
 roomRouter.put("/remove_from_project", authenticate, protect, validate(remove_from_project_Schema), roomController.removeUserFromContributers)
+roomRouter.get("/get_all_contributers", authenticate, protect, roomController.getAllContributorsForUser)
 
 export default roomRouter

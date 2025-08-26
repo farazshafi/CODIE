@@ -17,6 +17,32 @@ import Link from "next/link";
 import PaymentHistory from "./_components/PaymentHistory";
 import { getStarredSnippetsApi } from "@/apis/starredApi";
 import Loading from "@/components/Loading";
+import ContributorsCircle from "./_components/ContributorsCircle";
+
+
+const contributors = [
+    {
+        id: "1",
+        name: "Alice",
+        avatar: "https://i.pravatar.cc/150?img=1",
+        contributionCount: 3
+    },
+    {
+        id: "2",
+        name: "Bob",
+        avatar: "https://i.pravatar.cc/150?img=2",
+        contributionCount: 1
+    },
+    {
+        id: "3",
+        name: "Charlie",
+        avatar: "https://i.pravatar.cc/150?img=3",
+        contributionCount: 2
+    }
+];
+
+<ContributorsCircle contributors={contributors} />
+
 
 const Page = () => {
     const userSubscription = useUserStore((state) => state.subscription);
@@ -70,10 +96,10 @@ const Page = () => {
 
     useEffect(() => {
         if (!user) return;
-        getContributedProjects(user.id);
-        getProjects(user.id);
-        getUsedLanguage(user.id);
-        getStarredSnippets({})
+        getContributedProjects();
+        getProjects()
+        getUsedLanguage();
+        getStarredSnippets()
     }, [user]);
 
     if (!user) return null;
@@ -163,10 +189,15 @@ const Page = () => {
                                 totalProjects={totalProjects}
                                 totalContributedProjects={totalContributedProj}
                             />
-                            {snippetsLoading ? <Loading text="Fetching..."/> :
+                            {snippetsLoading ? <Loading text="Fetching..." /> :
                                 <ProfileStats icon={<Code className="mygreen" />} title="Starred Snippets" value={totalStarredSnippet} />
                             }
                             {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
+                        </div>
+
+                        <div className="py-10">
+                            <h1 className="text-2xl font-bold text-white mb-4">Top Contributors</h1>
+                            <ContributorsCircle />
                         </div>
 
                         <PaymentHistory />

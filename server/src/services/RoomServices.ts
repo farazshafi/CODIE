@@ -142,5 +142,45 @@ export class RoomServices implements IRoomService {
             console.log("cannot remove contributer from room", error)
         }
     }
+
+    async getAllContributorsForUser(userId: string): Promise<ContributorSummary[]> {
+        const rooms = await this.roomRepository.getModel()
+            .find({ owner: new mongoose.Types.ObjectId(userId) })
+            .populate({
+                path: "collaborators.user",
+                select: "name email avatar",
+            });
+
+        const contributorMap = new Map();
+
+   rooms.forEach(room => {
+    room.collaborators.forEach(collab => {
+        const user = collab.user as any;
+        if (!user) return;
+
+        if (user._id.toString() === room.owner.toString()) return;
+
+        if (!contributorMap.has(user._id.toString())) {
+            contributorMap.set(user._id.toString(), {
+                userId: user._id,
+                name: user.name,
+                avatar: user.avatar || "",
+                totalContributions: 0,
+                roles: [],
+            });
+        }
+
+        const contributor = contributorMap.get(user._id.toString());
+        contributor.totalContributions += 1;
+        contributor.roles.push({
+            projectId: room.projectId,
+            role: collab.role,
+        });
+    });
+});
+
+    return Array.from(contributorMap.values());
+}
+
 }
 

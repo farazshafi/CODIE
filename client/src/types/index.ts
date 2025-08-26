@@ -63,3 +63,14 @@ export interface ISendAndReciveRequest {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface ContributorSummary {
+  userId: mongoose.Types.ObjectId | string;
+  name: string;
+  avatar: string;
+  totalContributions: number;
+  roles: {
+    projectId: mongoose.Types.ObjectId | string;
+    role: "owner" | "editor" | "viewer";
+  }[];
+}

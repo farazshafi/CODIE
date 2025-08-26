@@ -15,4 +15,5 @@ export interface IRoomRepository extends IBaseRepository<IRoom> {
     findContributerRole(userId: string, projectId: string): Promise<"owner" | "editor" | "viewer">;
     findRoomByProjIdAndDlt(projectId: string): Promise<boolean>;
     getProjectIdByRoomId(roomId: string): Promise<IRoom>;
+    getModel(): Model<IRoom>;
 }

@@ -10,4 +10,5 @@ export interface IRoomService {
     getContributedProjectsByUserId(userId: string): Promise<IProject[]>;
     isEligibleToEdit(userId: string, roomId: string): Promise<boolean>;
     getUserRoleInProject(projectId: string, userId: string): Promise<string>;
+    getAllContributorsForUser(userId: string): Promise<ContributorSummary[]>
 }
