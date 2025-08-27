@@ -18,9 +18,10 @@ interface snippetCardPros {
     onDelete: (id: string) => void;
     isStarred: boolean;
     onUnstarHanlder?: (projectId: string) => void;
+    refetchSnippets: () => void
 }
 
-const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder }: snippetCardPros) => {
+const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSnippets }: snippetCardPros) => {
 
     const user = useUserStore((state) => state.user)
     const [open, setOpen] = useState(false)
@@ -33,17 +34,11 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder }: snippetC
         }
     })
 
-    const { mutate: unStarrSnippet, isLoading: unstarring } = useMutationHook(removeSnippetApi, {
-        onSuccess(data) {
-            toast.success(data.message || "Snippet removed")
-            getStarredSnippet({})
-        }
-    })
-
     const { mutate: starSnippet, isLoading: starring } = useMutationHook(starSnippetApi, {
         onSuccess(data) {
             toast.success(data.message || "Snippet is starred")
-            getStarredSnippet({})
+            getStarredSnippet()
+            refetchSnippets()
         },
         onError(error) {
             console.log(error)
@@ -66,11 +61,10 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder }: snippetC
     }
 
     useEffect(() => {
-        getStarredSnippet({})
+        getStarredSnippet()
     }, [])
 
     if (starring) return <Loading fullScreen={false} text='Starring your item...'></Loading>
-    if (unstarring) return <Loading fullScreen={false} text='Removing your item...'></Loading>
 
     return (
 
@@ -100,13 +94,10 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder }: snippetC
                             </Button>
                         )}
 
-                        {starred.includes(project.projectId._id) ?
-                            <Button onClick={() => unStarrSnippet(project.projectId._id)} className='bg-black cursor-pointer hover:bg-gray-800'>
-                                <Star fill="currentColor" color="white" />
-                            </Button>
-                            : <Button onClick={() => starSnippet(project.projectId._id)} className='bg-green cursor-pointer hover:bg-green-600'>
-                                <Star />
-                            </Button>}
+                        <Button onClick={() => starSnippet(project.projectId._id)} className={`bg-green cursor-pointer ${starred.includes(project.projectId._id) ? "bg-green-600 hover:bg-green-400" : "bg-black hover:bg-gray-500"}`}>
+                            <p>Stared <span>{project.starred}</span></p>
+                            <Star />
+                        </Button>
 
                     </div>}
                     {isStarred && onUnstarHanlder && <div className='gap-x-4 flex flex-row items-center'>

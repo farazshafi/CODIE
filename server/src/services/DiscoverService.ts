@@ -74,13 +74,12 @@ export class DiscoverService implements IDiscoverService {
                 .find()
                 .populate({
                     path: "projectId",
-                    select: "_id projectName projectCode projectLanguage userId",
+                    select: "_id projectName projectCode projectLanguage userId ",
                     populate: {
                         path: "userId",
                         select: "name"
                     }
-                })
-                .lean();
+                }).sort({ starred: -1 })
 
             const filtered = discoveries.filter((d) => {
                 const project = d.projectId as unknown as PopulatedProject;

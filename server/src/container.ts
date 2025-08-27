@@ -92,7 +92,7 @@ export const roomSocketService = new RoomSocketService(roomRepository, requestSe
 export const userSocketService = new UserSocketService(userSocketRepository)
 export const paymentService = new PaymentService(paymentRepository)
 export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository, mailService, userRepository, paymentService)
-export const starredService = new StarredService(starredRepository)
+export const starredService = new StarredService(starredRepository, discoverRepository)
 
 // Set up controller
 export const projectController = new ProjectController(projectService, roomService)

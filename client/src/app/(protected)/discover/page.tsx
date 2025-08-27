@@ -24,6 +24,7 @@ export interface IDiscover {
     },
     like: number,
     _id: string,
+    starred: number;
     views: number,
     createdAt: Date,
     updatedAt: Date
@@ -66,6 +67,15 @@ const Page = () => {
             limit: 6,
         });
     };
+
+    const refetchSnippets = () => {
+        mutate({
+            keyword,
+            language: selectedLanguage,
+            page: currentPage,
+            limit: 6,
+        });
+    }
 
     useEffect(() => {
         mutate({ keyword, language: selectedLanguage, page: 1, limit: 6 });
@@ -141,7 +151,7 @@ const Page = () => {
                     <div className='mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-5'>
                         {isLoading && discoveries.length === 0
                             ? Array(6).fill(0).map((_, index) => <SnippetCardSkeleton key={index} />)
-                            : discoveries.map((item, index) => <SnippetCard isStarred={false} onDelete={handleDeleteSnippet} project={item} key={index} />)
+                            : discoveries.map((item, index) => <SnippetCard refetchSnippets={refetchSnippets} isStarred={false} onDelete={handleDeleteSnippet} project={item} key={index} />)
                         }
 
                         {discoveries.length === 0 && (

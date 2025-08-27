@@ -3,11 +3,13 @@ import { IStarred } from "../models/StarredModel";
 import { IStarredRepository } from "../repositories/interface/IStarredRepository";
 import { HttpError } from "../utils/HttpError";
 import { IStarredService } from "./interface/IStarredService";
+import { IDiscoverRepository } from "../repositories/interface/IDiscoverRepository";
 
 
 export class StarredService implements IStarredService {
     constructor(
         private readonly starredRepo: IStarredRepository,
+        private readonly discoveryRepo: IDiscoverRepository
     ) { }
 
     async getUserStarredSnippets(userId: string): Promise<IStarred[]> {
@@ -46,6 +48,13 @@ export class StarredService implements IStarredService {
             if (!starredSnipets) {
                 throw new HttpError(404, "cannot create snippets ")
             }
+            const discoverySnippet = await this.discoveryRepo.findOne({ projectId })
+            if (!discoverySnippet) {
+                throw new HttpError(404, "Discovery snippet not found~!")
+            }
+            discoverySnippet.starred += 1
+            discoverySnippet.save()
+
             return starredSnipets
         } catch (error) {
             if (error instanceof HttpError) {
@@ -59,6 +68,20 @@ export class StarredService implements IStarredService {
     async removeSnippet(userId: string, projectId: string): Promise<boolean> {
         try {
             const result = await this.starredRepo.deleteOne({ userId, projectId })
+
+            if (!result) {
+                throw new HttpError(404, "Snippet not found ")
+            }
+
+            const discoverySnippet = await this.discoveryRepo.findOne({ projectId })
+            if (!discoverySnippet) {
+                throw new HttpError(404, "Discovery snippet not found~!")
+            }
+            if (discoverySnippet.starred > 0) {
+                discoverySnippet.starred -= 1
+                discoverySnippet.save()
+            }
+
             return result;
 
         } catch (error) {

@@ -13,7 +13,7 @@ const discoverSchema: Schema = new Schema({
     projectId: { type: mongoose.Types.ObjectId, ref: "Project", requied: true },
     like: { type: Number, default: 0 },
     views: { type: Number, default: 0 },
-    stared: { type: Number, default: 0 }
+    starred: { type: Number, default: 0 }
 }, { timestamps: true })
 
 export const DiscoverModel = mongoose.models.Discover || mongoose.model<IDiscover>("Discover", discoverSchema)
