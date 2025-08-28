@@ -18,7 +18,10 @@ export function useMutationHook<TData, TVariables = void, TError = unknown>(
     const [data, setData] = useState<TData | null>(null);
     const [error, setError] = useState<TError | null>(null);
 
-    const mutate = async (inputData: TVariables) => {
+    const mutate = async (
+        inputData: TVariables,
+        overrideOptions?: Options<TData, TVariables, TError>
+    ) => {
         setIsLoading(true);
         setIsError(false);
         setIsSuccess(false);
@@ -30,24 +33,25 @@ export function useMutationHook<TData, TVariables = void, TError = unknown>(
             setData(response);
             setIsSuccess(true);
 
-            if (options?.successMessage) {
-                toast(options.successMessage);
+            if (overrideOptions?.successMessage || options?.successMessage) {
+                toast(overrideOptions?.successMessage || options?.successMessage);
             }
 
-            options?.onSuccess?.(response, inputData);
+            (overrideOptions?.onSuccess || options?.onSuccess)?.(response, inputData);
         } catch (err) {
             setError(err as TError);
             setIsError(true);
 
-            if (options?.errorMessage) {
-                toast.error(options.errorMessage);
+            if (overrideOptions?.errorMessage || options?.errorMessage) {
+                toast.error(overrideOptions?.errorMessage || options?.errorMessage);
             }
 
-            options?.onError?.(err as TError);
+            (overrideOptions?.onError || options?.onError)?.(err as TError);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     return {
         mutate,

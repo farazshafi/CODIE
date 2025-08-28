@@ -28,6 +28,9 @@ export default function EditorPanel() {
   const [isEditable, setIsEditable] = useState<boolean>(false);
   const [locks, setLocks] = useState<{ [key: string]: string[] }>({});
 
+  const [remoteCursors, setRemoteCursors] = useState<{ [userId: string]: { line: number, name: string, color: string } }>({});
+
+
   /** ✅ API mutations */
   const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
@@ -57,10 +60,18 @@ export default function EditorPanel() {
 
   /** ✅ Fetch initial code and permission */
   const fetchInitialData = useCallback(() => {
-    if (!projectId || !user || !roomId) return;
+    if (!projectId || !user) return;
+
     getCode(projectId);
-    checkPermission({ roomId, userId: user?.id });
+
+    if (roomId) {
+      checkPermission({ roomId, userId: user?.id });
+    } else {
+      // No room → assume editable
+      setIsEditable(true);
+    }
   }, [projectId, roomId, user?.id]);
+
 
   /** ✅ Save full code (debounced) */
   const debouncedSaveCode = useCallback(
@@ -132,6 +143,18 @@ export default function EditorPanel() {
         }
       }
     });
+
+    editor.onDidChangeCursorPosition((e) => {
+      if (!socket || !user?.id) return;
+      socket.emit("cursor-update", {
+        projectId,
+        userId: user.id,
+        line: e.position.lineNumber
+      });
+    });
+
+
+
   };
 
   /** ✅ Check if line is locked by someone else */
@@ -152,9 +175,16 @@ export default function EditorPanel() {
   const handleChange = (value?: string) => {
     if (!value) return;
     setCode(value);
+
+    // Always save the code to DB
     debouncedSaveCode(value);
-    emitCodeUpdate(value);
+
+    // Emit code update only if there is a room
+    if (roomId) {
+      emitCodeUpdate(value);
+    }
   };
+
 
   /** ✅ Lock click */
   const handleLockClick = () => {
@@ -194,6 +224,75 @@ export default function EditorPanel() {
       ranges
     });
   };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("cursor-update", ({ userId, userName, color, line }) => {
+      if (userId === user?.id) return;
+      setRemoteCursors(prev => ({
+        ...prev,
+        [userId]: { line, name: userName, color }
+      }));
+    });
+
+    return () => {
+      socket.off("cursor-update");
+    };
+  }, [socket, user?.id]);
+
+  useEffect(() => {
+    if (!editorRef.current || !window.monaco) return;
+    const editor = editorRef.current;
+
+    const decorations = Object.entries(remoteCursors).map(([uid, { line, color }]) => ({
+      range: new window.monaco.Range(line, 1, line, 1),
+      options: {
+        className: "remote-cursor",
+        beforeContentClassName: "remote-cursor-label"
+      }
+    }));
+
+    decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, decorations);
+  }, [remoteCursors]);
+
+  useEffect(() => {
+    if (!editorRef.current || !window.monaco) return;
+    const editor = editorRef.current;
+
+    // Remove old widgets if needed
+    Object.keys(remoteCursors).forEach(uid => {
+      const widgetId = `cursor-label-${uid}`;
+      try {
+        editor.removeContentWidget({ getId: () => widgetId });
+      } catch { }
+    });
+
+    // Add widgets for each remote cursor
+    Object.entries(remoteCursors).forEach(([uid, { line, name, color }]) => {
+      const widgetId = `cursor-label-${uid}`;
+      editor.addContentWidget({
+        getId: () => widgetId,
+        getDomNode: () => {
+          const node = document.createElement('div');
+          node.style.background = color;
+          node.style.color = '#fff';
+          node.style.padding = '2px 6px';
+          node.style.borderRadius = '4px';
+          node.style.fontSize = '12px';
+          node.style.position = 'absolute';
+          node.innerText = name;
+          return node;
+        },
+        getPosition: () => ({
+          position: { lineNumber: line, column: 1 },
+          preference: [window.monaco.editor.ContentWidgetPositionPreference.ABOVE]
+        })
+      });
+    });
+  }, [remoteCursors]);
+
+
 
   /** ✅ Request initial locked lines */
   useEffect(() => {

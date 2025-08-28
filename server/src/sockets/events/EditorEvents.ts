@@ -135,7 +135,6 @@ export class EditorEvents implements IEventHandler {
 
         const room = await this.editorService.getRoomByProjectId(projectId);
         if (!room) {
-            client.emit('error', { message: 'Room not found' });
             return;
         }
 

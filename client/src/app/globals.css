@@ -251,11 +251,26 @@ html {
   animation: fade-in 0.2s ease-out;
 }
 
-/* Add this to your global CSS or a dedicated editor CSS file */
+/* Locked lines */
 .monaco-editor .locked-range-current {
-  background-color: rgba(0, 255, 0, 0.2)
+  background-color: rgba(0, 255, 0, 0.2);
 }
 
 .monaco-editor .locked-range-other {
-  background-color: rgba(255, 0, 0, 0.2)
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+.remote-cursor {
+  border-left: 2px solid red; /* will update dynamically with color if needed */
+}
+
+.remote-cursor-label::before {
+  content: attr(data-username);
+  background: #f0f0f0;
+  color: black;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  position: absolute;
+  transform: translateY(-100%);
 }
