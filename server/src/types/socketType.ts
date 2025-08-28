@@ -39,7 +39,7 @@ export interface ISentVoiceMessage {
 
 // project socket 
 
-export interface JoinProjectData { projectId: string, userId: string }
+export interface JoinProjectData { projectId: string, userId: string, userName: string }
 
 export interface leaveProjectData { projectId: string, userId: string, userName: string }
 
