@@ -87,7 +87,7 @@ export class EditorEvents implements IEventHandler {
         client.emit('user-info', { userId: data.userId, userName: data.userName, color });
         client.emit('online-users', onlineUsers);
         client.to(data.projectId).emit('online-users', onlineUsers);
-        client.to(data.projectId).emit('user-joined', { message: `A user Joined` });
+        client.to(data.projectId).emit('user-joined', { message: `${data.userName} Joined` });
 
         console.log(`User ${data.userName} joined with color ${color}`);
     }
@@ -112,6 +112,9 @@ export class EditorEvents implements IEventHandler {
         client.leave(projectId);
         client.to(projectId).emit('online-users', onlineUsers);
         client.to(projectId).emit('user-left', { message: `${data.userName} left the editor.` });
+
+        client.to(projectId).emit("cursor-remove", { userId });
+
     }
 
     private async handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
@@ -144,8 +147,6 @@ export class EditorEvents implements IEventHandler {
 
         if (role === 'owner' || role === 'editor') {
             client.to(projectId).emit('code-update', { content, userId, ranges });
-        } else {
-            client.emit('error', { message: 'You do not have permission to edit code' });
         }
     }
 
@@ -163,6 +164,7 @@ export class EditorEvents implements IEventHandler {
         }
         socket.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
         socket.to(targetSocketId).emit('refetch-permission');
+        console.log("refetch permission sedned".yellow)
     }
 
     private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {

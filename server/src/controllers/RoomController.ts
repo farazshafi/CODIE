@@ -83,6 +83,7 @@ export class RoomController {
             const { userId, roomId } = req.body
 
             const isEligibleToEdit: boolean = await this.roomService.isEligibleToEdit(userId, roomId)
+            console.log("check permision is Eligible, ", isEligibleToEdit)
 
             res.status(200).json({ isAllowed: isEligibleToEdit })
 
@@ -97,7 +98,7 @@ export class RoomController {
 
             await this.roomService.removeContributer(userId, projectId)
 
-            res.status(200).json({ message: "You successfully removed"})
+            res.status(200).json({ message: "You successfully removed" })
 
         } catch (error) {
             next(error)
@@ -106,11 +107,11 @@ export class RoomController {
 
     getAllContributorsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-           const userId = req.user.id
+            const userId = req.user.id
             const contributers = await this.roomService.getAllContributorsForUser(userId)
 
             res.status(200).json(contributers)
-            
+
         } catch (error) {
             next(error)
         }

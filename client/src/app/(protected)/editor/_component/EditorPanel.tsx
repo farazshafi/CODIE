@@ -29,6 +29,8 @@ export default function EditorPanel() {
   const [locks, setLocks] = useState<{ [key: string]: string[] }>({});
 
   const [remoteCursors, setRemoteCursors] = useState<{ [userId: string]: { line: number, name: string, color: string } }>({});
+  const isEditableRef = useRef(isEditable);
+
 
 
   /** ✅ API mutations */
@@ -122,6 +124,10 @@ export default function EditorPanel() {
     };
   }, [socket, lastValidCode, projectId]);
 
+  useEffect(() => {
+    isEditableRef.current = isEditable;
+  }, [isEditable]);
+
   /** ✅ On editor mount */
   const handleEditorMount: OnMount = (editor) => {
     editorRef.current = editor;
@@ -144,14 +150,25 @@ export default function EditorPanel() {
       }
     });
 
-    editor.onDidChangeCursorPosition((e) => {
+    const cursorListener = editor.onDidChangeCursorPosition((e) => {
       if (!socket || !user?.id) return;
+      if (!isEditableRef.current) {
+        console.log("User is a viewer, skipping cursor update");
+        return;
+      }
+
       socket.emit("cursor-update", {
         projectId,
         userId: user.id,
-        line: e.position.lineNumber
+        line: e.position.lineNumber,
       });
+      console.log("cursor-update sent");
     });
+
+    // ✅ Cleanup when component unmounts
+    return () => {
+      cursorListener.dispose();
+    };
 
 
 
@@ -349,19 +366,39 @@ export default function EditorPanel() {
 
   /** ✅ Handle remote code updates */
   useEffect(() => {
-    if (!socket || !roomId || !user) return;
+    if (!socket || !user) return;
     socket.on("code-update", (data: { content: string; userId: string }) => {
       if (data.userId !== user?.id) {
         setCode(data.content);
         setLastValidCode(data.content);
       }
     });
-    socket.on("refetch-permission", () => checkPermission({ roomId, userId: user?.id }));
     return () => {
       socket.off("code-update");
-      socket.off("refetch-permission");
     };
   }, [socket, user?.id]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleRefetchPermission = () => {
+      console.log("refetch-permission event received");
+      if (roomId && user?.id) {
+        console.log("Calling checkPermission with:", { roomId, userId: user.id });
+        checkPermission({ roomId, userId: user.id });
+      } else {
+        console.warn("RoomId or UserId missing when refetch-permission received");
+      }
+    };
+
+    socket.on("refetch-permission", handleRefetchPermission);
+
+    return () => {
+      socket.off("refetch-permission", handleRefetchPermission);
+    };
+  }, [socket]); // ✅ only depends on socket
+
+
 
   /** ✅ Highlight locked ranges */
   useEffect(() => {
@@ -384,6 +421,7 @@ export default function EditorPanel() {
     decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, decorations);
   }, [locks, user?.id]);
 
+
   /** ✅ Initial fetch */
   useEffect(() => {
     fetchInitialData();
@@ -391,10 +429,10 @@ export default function EditorPanel() {
 
   return (
     <div className="w-full h-full">
-      <div className="flex gap-x-4 my-3 mx-3">
+      {isEditable && <div className="flex gap-x-4 my-3 mx-3">
         <LockSelectionButton onLock={handleLockClick} />
         <UnlockButton onUnlock={handleUnlockClick} />
-      </div>
+      </div>}
       <Editor
         height="100vh"
         theme={theme}
