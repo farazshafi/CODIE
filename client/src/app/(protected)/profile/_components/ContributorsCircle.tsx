@@ -43,6 +43,7 @@ export default function ContributorsCircle() {
   return (
     <TooltipProvider>
       <div className="flex gap-4 p-6 rounded-xl shadow-lg bg-white ">
+        {contributors.length < 1 && <><p>There is no Contributers</p></>}
         {contributors.map((contributor) => (
           <Tooltip key={contributor.id}>
             <TooltipTrigger asChild>
