@@ -1,5 +1,6 @@
 import { IProject } from "../../models/ProjectModel";
 import { IRoom } from "../../models/RoomModel";
+import { ContributorSummary } from "../../types/roomTypes";
 
 
 export interface IRoomService {

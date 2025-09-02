@@ -3,7 +3,9 @@ import { IProject } from "../models/ProjectModel"
 import { IRoom } from "../models/RoomModel"
 import { IProjectRepository } from "../repositories/interface/IProjectRepository"
 import { IRoomRepository } from "../repositories/interface/IRoomRepository"
-import { CreateRoomType } from "../types/roomType"
+import { CreateRoomType } from "../types/roomType";
+import { ContributorSummary } from "../types/roomTypes";
+import { IUser } from "../models/UserModel";
 import { generateRoomId } from "../utils/generateRoomId"
 import { HttpError } from "../utils/HttpError"
 import { IRoomService } from "./interface/IRoomService"
@@ -144,43 +146,44 @@ export class RoomServices implements IRoomService {
     }
 
     async getAllContributorsForUser(userId: string): Promise<ContributorSummary[]> {
+        type PopulatedUser = Pick<IUser, '_id' | 'name' | 'email' | 'avatarUrl'>;
         const rooms = await this.roomRepository.getModel()
             .find({ owner: new mongoose.Types.ObjectId(userId) })
             .populate({
                 path: "collaborators.user",
-                select: "name email avatar",
+                select: "name email avatarUrl",
             });
 
         const contributorMap = new Map();
 
-   rooms.forEach(room => {
-    room.collaborators.forEach(collab => {
-        const user = collab.user as any;
-        if (!user) return;
+        rooms.forEach(room => {
+            room.collaborators.forEach(collab => {
+                const user = collab.user as unknown as PopulatedUser;
+                if (!user) return;
 
-        if (user._id.toString() === room.owner.toString()) return;
+                if (user._id.toString() === room.owner.toString()) return;
 
-        if (!contributorMap.has(user._id.toString())) {
-            contributorMap.set(user._id.toString(), {
-                userId: user._id,
-                name: user.name,
-                avatar: user.avatar || "",
-                totalContributions: 0,
-                roles: [],
+                if (!contributorMap.has(user._id.toString())) {
+                    contributorMap.set(user._id.toString(), {
+                        userId: user._id,
+                        name: user.name,
+                        avatar: user.avatarUrl || "",
+                        totalContributions: 0,
+                        roles: [],
+                    });
+                }
+
+                const contributor = contributorMap.get(user._id.toString());
+                contributor.totalContributions += 1;
+                contributor.roles.push({
+                    projectId: room.projectId,
+                    role: collab.role,
+                });
             });
-        }
-
-        const contributor = contributorMap.get(user._id.toString());
-        contributor.totalContributions += 1;
-        contributor.roles.push({
-            projectId: room.projectId,
-            role: collab.role,
         });
-    });
-});
 
-    return Array.from(contributorMap.values());
-}
+        return Array.from(contributorMap.values());
+    }
 
 }
 

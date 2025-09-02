@@ -1,5 +1,7 @@
 
 
+import mongoose from 'mongoose';
+
 export interface RequestData {
     roomId: string;
     userId: string;

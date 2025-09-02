@@ -6,7 +6,8 @@
       "skipLibCheck": true,
       "moduleResolution": "node",
       "sourceMap": true,
-      "outDir": "dist/src"
+      "rootDir": "src",
+      "outDir": "dist"
     },
     "lib": ["es2015"]
   }

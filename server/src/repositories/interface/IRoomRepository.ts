@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
 import { IRoom } from "../../models/RoomModel";
 import { CreateRoomType } from "../../types/roomType";
 import { IBaseRepository } from "./IBaseRepository";
