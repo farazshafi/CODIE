@@ -58,7 +58,7 @@ import { UserSubscriptionService } from './services/UserSubscriptionService';
 import { StarredService } from './services/StarredService';
 import { PaymentService } from './services/PaymentService';
 
-import { SubscriptionCron } from './crons/SubscriptionCron';
+
 
 // Set up repositories
 export const projectRepository = new ProjectRepository(ProjectModel)
@@ -108,5 +108,3 @@ export const userSubscriptionController = new UserSubscriptionController(userSub
 export const starredController = new StarredController(starredService)
 export const paymentController = new PaymentController(paymentService)
 
-// crons
-export const subscriptionCron = new SubscriptionCron(userSubscriptionService)

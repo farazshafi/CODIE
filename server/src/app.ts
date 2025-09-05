@@ -15,12 +15,11 @@ import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
 import paymentRouter from "./routes/paymentRouter";
-import { subscriptionCron } from "./container";
+import { scheduleSubscriptionJobs } from "./bullmq/schedulers/subscriptionScheduler";
 import starredRouter from "./routes/StarredRouter";
 
 const app = express();
-const cron = subscriptionCron
-cron.start()
+scheduleSubscriptionJobs()
 
 // Middlewares
 app.use(cors({
