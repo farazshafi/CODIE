@@ -26,5 +26,6 @@ const subscriptionWorker = new Worker(
     connection: redis,
   }
 );
+console.log("✅ Subscription Worker started");
 
 export default subscriptionWorker;

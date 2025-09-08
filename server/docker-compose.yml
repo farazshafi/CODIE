@@ -17,7 +17,7 @@ services:
   worker:
     build: .
     container_name: my-worker
-    command: node dist/worker.js
+    command: node dist/bullmq/workers/subscriptionWorker.js
     env_file:
       - .env
     depends_on:
