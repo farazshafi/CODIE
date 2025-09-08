@@ -15,11 +15,9 @@ import messageRouter from "./routes/messageRouter";
 import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
 import paymentRouter from "./routes/paymentRouter";
-import { scheduleSubscriptionJobs } from "./bullmq/schedulers/subscriptionScheduler";
 import starredRouter from "./routes/StarredRouter";
 
 const app = express();
-scheduleSubscriptionJobs()
 
 // Middlewares
 app.use(cors({

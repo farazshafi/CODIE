@@ -1,25 +1,26 @@
 import subscriptionQueue from "../queues/subscriptionQueue";
 
-export const scheduleSubscriptionJobs = () => {
-  subscriptionQueue.add(
+const scheduleSubscriptionJobs = async () => {
+  await subscriptionQueue.add(
     "applyDowngrade",
     {},
     {
-      repeat: {
-        pattern: "0 1 * * *", // Every day at 1 AM
-      },
+      jobId: "applyDowngrade",
+      repeat: { pattern: "0 1 * * *" }, // every day at 1 AM
     }
   );
 
-  subscriptionQueue.add(
+  await subscriptionQueue.add(
     "sendExpiryReminder",
     {},
     {
-      repeat: {
-        pattern: "0 1 * * *", // Every day at 1 AM
-      },
+      jobId: "sendExpiryReminder",
+      repeat: { pattern: "0 1 * * *" },
     }
   );
 
-  console.log("Subscription jobs scheduled");
+  console.log("✅ Subscription jobs scheduled");
+  process.exit(0);
 };
+
+scheduleSubscriptionJobs();

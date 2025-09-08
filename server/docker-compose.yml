@@ -1,38 +1,44 @@
 version: "3.9"
-
 services:
   app:
     build: .
-    container_name: my-app
-    command: npm run start
-    ports:
-      - "5000:5000"
+    deploy:
+      replicas: 3
+    networks:
+      - backend
     env_file:
       - .env
     depends_on:
       - redis
+      - worker
+
+  redis:
+    image: redis:alpine
     networks:
-      - app-network
+      - backend
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/bullmq/schedulers/subscriptionScheduler.js
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - redis
 
   worker:
-    build: .
-    container_name: my-worker
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: node dist/bullmq/workers/subscriptionWorker.js
     env_file:
       - .env
-    depends_on:
-      - redis
     networks:
-      - app-network
-
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
+      - backend
 
 networks:
-  app-network:
+  backend:
     driver: bridge
