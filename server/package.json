@@ -31,6 +31,7 @@
     "@apollo/server": "^4.11.3",
     "@blackbox-vision/mui-audio-player": "^2.1.0",
     "@neondatabase/serverless": "^1.0.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "apollo-server-express": "^3.13.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",

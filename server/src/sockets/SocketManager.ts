@@ -1,6 +1,7 @@
 
 import { Server, Socket } from 'socket.io';
 import http from 'http';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { UserSocketRepository } from './repositories/UserSocketRepository';
 import { OnlineUserRepository } from './repositories/OnlineUserRepository';
 import { EditorEvents } from './events/EditorEvents';
@@ -10,6 +11,7 @@ import { RequestEvents } from './events/RequestEvents';
 import { UserEvents } from './events/UserEvents';
 import { editorService, roomSocketService, messageService, userSocketService, userSocketRepository, onlineUserRepository } from '../container';
 import { IEventHandler } from './events/EventHandler';
+import redis from '../config/redis';
 
 export class SocketManager {
     private io: Server;
@@ -24,6 +26,12 @@ export class SocketManager {
                 methods: ["GET", "POST"]
             }
         });
+
+        const pubClient = redis.duplicate();
+        const subClient = redis.duplicate();
+
+        this.io.adapter(createAdapter(pubClient, subClient));
+
         this.userSocketRepository = userSocketRepository;
         this.onlineUserRepository = onlineUserRepository;
 
