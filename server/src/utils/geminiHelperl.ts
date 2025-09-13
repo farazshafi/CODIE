@@ -10,7 +10,7 @@ export const generateCodeExplanation = async (code: string) => {
                 contents: [
                     {
                         role: 'user',
-                        parts: [{ text: `Explain this code in simple English and make a sentance.Act as a mentor:\n\n${code}` }],
+                        parts: [{ text: `Explain this code in simple English and make a structured response.Act as a mentor:\n\n${code}` }],
                     },
                 ],
             },

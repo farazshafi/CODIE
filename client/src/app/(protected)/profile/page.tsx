@@ -21,30 +21,6 @@ import ContributorsCircle from "./_components/ContributorsCircle";
 import { getUserAiUsageApi } from "@/apis/userSubscriptionApi";
 
 
-const contributors = [
-    {
-        id: "1",
-        name: "Alice",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        contributionCount: 3
-    },
-    {
-        id: "2",
-        name: "Bob",
-        avatar: "https://i.pravatar.cc/150?img=2",
-        contributionCount: 1
-    },
-    {
-        id: "3",
-        name: "Charlie",
-        avatar: "https://i.pravatar.cc/150?img=3",
-        contributionCount: 2
-    }
-];
-
-<ContributorsCircle contributors={contributors} />
-
-
 const Page = () => {
     const userSubscription = useUserStore((state) => state.subscription);
     const user = useUserStore((state) => state.user);
@@ -97,7 +73,7 @@ const Page = () => {
     const { mutate: updateUser } = useMutationHook(updateUserApi, {
         onSuccess(data) {
             console.log(data)
-            getUserData({})
+            getUserData()
             toast.success(data.message || "user updated successfully")
         },
     });

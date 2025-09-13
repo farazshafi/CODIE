@@ -54,6 +54,7 @@ export default function ContributorsCircle() {
                     alt={contributor.name}
                     width={60}
                     height={60}
+                    unoptimized 
                     className="rounded-full border-2 border-green-500 hover:scale-110 transition-transform cursor-pointer"
                   />
                 ) : (
