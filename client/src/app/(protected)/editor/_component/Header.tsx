@@ -83,6 +83,7 @@ const Header = ({
             setIsWantToCollab(true)
             setRoomId(res.data.roomId)
             toast.message("Enabled collabration!")
+            
         },
         onError(error) {
             toast.error(error?.response?.data?.message || "Something went wrong!");

@@ -19,6 +19,8 @@ export default function EditorPanel() {
   const ownerId = useEditorStore((state) => state.ownerId);
   const roomId = useEditorStore((state) => state.roomId);
   const projectId = useEditorStore((state) => state.projectId);
+  const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled)
+  const isContributionEnabled = useEditorStore((state) => state.isContributionEnabled)
   const { socket } = useSocket();
 
   const editorRef = useRef<any>(null);
@@ -44,9 +46,11 @@ export default function EditorPanel() {
   const { mutate: checkPermission } = useMutationHook(checkIsEligibleToEditApi, {
     onSuccess(data) {
       setIsEditable(data.isAllowed || false);
+      setContributionEnabled()
     },
     onError(error) {
-      if (error.response.data.message === "Room Not found!") {
+      console.log("error: ", error)
+      if (error.response.data.message === "Room Not found!" || error.response.data.message === "User not found in collabrators") {
         setIsEditable(true);
       } else {
         setIsEditable(false);
@@ -78,9 +82,15 @@ export default function EditorPanel() {
   /** ✅ Save full code (debounced) */
   const debouncedSaveCode = useCallback(
     debounce((updatedCode: string) => {
-      if (!projectId || user?.id !== ownerId) return;
-      saveCode({ code: updatedCode, projectId });
-      setLastValidCode(updatedCode);
+      if (isContributionEnabled) {
+        if (!projectId || user?.id !== ownerId) return;
+        saveCode({ code: updatedCode, projectId });
+        setLastValidCode(updatedCode);
+      } else {
+        saveCode({ code: updatedCode, projectId });
+        setLastValidCode(updatedCode);
+      }
+
     }, 3000),
     [projectId]
   );
@@ -195,6 +205,7 @@ export default function EditorPanel() {
 
     // Always save the code to DB
     debouncedSaveCode(value);
+    console.log("changes comming... code edit", value)
 
     // Emit code update only if there is a room
     if (roomId) {
@@ -371,6 +382,10 @@ export default function EditorPanel() {
       if (data.userId !== user?.id) {
         setCode(data.content);
         setLastValidCode(data.content);
+
+        if (user?.id === ownerId) {
+          debouncedSaveCode(data.content);
+        }
       }
     });
     return () => {
