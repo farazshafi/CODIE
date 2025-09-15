@@ -8,7 +8,7 @@ export const errorHandler = (err: unknown, req: Request, res: Response, next: Ne
     console.error(err);
 
     if (err instanceof ZodError) {
-        res.status(HttpStatusCode.BadRequest).json({
+        res.status(HttpStatusCode.BAD_REQUEST).json({
             message: "Validation failed",
             errors: err.errors.map(e => ({ field: e.path.join("."), message: e.message }))
         });
