@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { IStarredService } from "../services/interface/IStarredService";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class StarredController {
@@ -12,7 +13,7 @@ export class StarredController {
             const userId = req.user.id
             const starredSnippets = await this.starredService.getUserStarredSnippets(userId)
 
-            res.status(200).json(starredSnippets)
+            res.status(HttpStatusCode.OK).json(starredSnippets)
         } catch (error) {
             next(error)
         }
@@ -24,7 +25,7 @@ export class StarredController {
             const { projectId } = req.body
             const starredSnippets = await this.starredService.starASnippet(userId, projectId)
 
-            res.status(200).json(starredSnippets)
+            res.status(HttpStatusCode.OK).json(starredSnippets)
         } catch (error) {
             next(error)
         }
@@ -36,9 +37,9 @@ export class StarredController {
             const { id } = req.params
             const starredSnippets = await this.starredService.removeSnippet(userId, id)
             if (starredSnippets) {
-                res.status(200).json(starredSnippets)
+                res.status(HttpStatusCode.OK).json(starredSnippets)
             } else {
-                res.status(400).json({ message: "Cannot delete Snippet" })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Cannot delete Snippet" })
             }
         } catch (error) {
             next(error)
@@ -49,7 +50,7 @@ export class StarredController {
         try {
             const { snippetId } = req.body
             const starredSnippets = await this.starredService.getSnippetById(snippetId)
-            res.status(200).json(starredSnippets)
+            res.status(HttpStatusCode.OK).json(starredSnippets)
         } catch (error) {
             next(error)
         }

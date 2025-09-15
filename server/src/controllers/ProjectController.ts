@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IProjectService } from "../services/interface/IProjectService";
 import mongoose from "mongoose";
 import { IRoomService } from "../services/interface/IRoomService";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class ProjectController {
   constructor(
@@ -18,7 +19,7 @@ export class ProjectController {
         ...projectData
       });
 
-      res.status(201).json({
+      res.status(HttpStatusCode.CREATED).json({
         message: "Project created successfully",
         data: newProject
       });
@@ -31,7 +32,7 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const project = await this.projectService.getProjectById(id);
-      res.status(200).json(project);
+      res.status(HttpStatusCode.OK).json(project);
     } catch (err) {
       next(err);
     }
@@ -40,7 +41,7 @@ export class ProjectController {
   getAllProjects = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const projects = await this.projectService.getAllProjects();
-      res.status(200).json(projects);
+      res.status(HttpStatusCode.OK).json(projects);
     } catch (err) {
       next(err);
     }
@@ -49,7 +50,7 @@ export class ProjectController {
   getProjectsByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projects = await this.projectService.getProjectsByUserId(req.user.id);
-      res.status(200).json(projects);
+      res.status(HttpStatusCode.OK).json(projects);
     } catch (err) {
       next(err);
     }
@@ -59,7 +60,7 @@ export class ProjectController {
     try {
       const { roomId } = req.params;
       const projectId = await this.projectService.getProjectByRoomId(roomId);
-      res.status(200).json({
+      res.status(HttpStatusCode.OK).json({
         message: "Project id found",
         projectId
       });
@@ -72,7 +73,7 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const updatedCode = await this.projectService.getSavedCode(id);
-      res.status(200).json({ success: true, data: updatedCode });
+      res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
     } catch (err) {
       next(err);
     }
@@ -82,7 +83,7 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const result = await this.projectService.deleteProject(id);
-      res.status(200).json(result);
+      res.status(HttpStatusCode.OK).json(result);
     } catch (err) {
       next(err);
     }
@@ -92,7 +93,7 @@ export class ProjectController {
     try {
       const { code, projectId } = req.body;
       const updatedCode = await this.projectService.saveCode(projectId, code);
-      res.status(200).json({ success: true, data: updatedCode });
+      res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
     } catch (err) {
       next(err);
     }
@@ -105,7 +106,7 @@ export class ProjectController {
 
       const usedLangauges = await this.projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
 
-      res.status(200).json({ usedLangauges })
+      res.status(HttpStatusCode.OK).json({ usedLangauges })
 
     } catch (error) {
       next(error)
@@ -117,8 +118,8 @@ export class ProjectController {
       const userId = req.user.id
 
       const projects = await this.projectService.getProjectsByUserId(userId)
-      
-      res.status(200).json(projects)
+
+      res.status(HttpStatusCode.OK).json(projects)
 
     } catch (error) {
       next(error)
@@ -131,7 +132,7 @@ export class ProjectController {
 
       const projects = await this.roomService.getContributedProjectsByUserId(userId)
 
-      res.status(200).json(projects)
+      res.status(HttpStatusCode.OK).json(projects)
 
     } catch (error) {
       next(error)

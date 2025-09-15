@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IDiscoverService } from "../services/interface/IDiscoverService";
 import mongoose from "mongoose";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class DiscoverController {
@@ -12,10 +13,10 @@ export class DiscoverController {
         try {
             const userId = req.user.id
             const { projectId } = req.body
-            if (!projectId) res.status(400).json({ message: "Project Id is Required" })
+            if (!projectId) res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Project Id is Required" })
 
             await this.discoverService.create(new mongoose.Types.ObjectId(projectId), userId)
-            res.status(201).json({ message: "Shared to Discover" })
+            res.status(HttpStatusCode.CREATED).json({ message: "Shared to Discover" })
         } catch (error) {
             next(error)
         }
@@ -37,7 +38,7 @@ export class DiscoverController {
 
             const discoveries = await this.discoverService.findDiscoveries(filter, pagination)
 
-            res.status(200).json({ discoveries })
+            res.status(HttpStatusCode.OK).json({ discoveries })
         } catch (error) {
             next(error)
         }
@@ -48,7 +49,7 @@ export class DiscoverController {
             const { id } = req.params
             await this.discoverService.removeProject(id)
 
-            res.status(200).json({ message: "removed from discovery" })
+            res.status(HttpStatusCode.OK).json({ message: "removed from discovery" })
         } catch (error) {
             next(error)
         }
@@ -60,7 +61,7 @@ export class DiscoverController {
             const userId = req.user.id
 
             const explanation = await this.discoverService.getCodeExplanation(code, userId)
-            res.status(200).json(explanation)
+            res.status(HttpStatusCode.OK).json(explanation)
         } catch (error) {
             next(error)
         }

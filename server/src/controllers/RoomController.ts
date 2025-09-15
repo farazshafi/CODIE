@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { IRoomService } from "../services/interface/IRoomService";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class RoomController {
@@ -13,7 +14,7 @@ export class RoomController {
             const ownderId = req?.user?.id
 
             const room = await this.roomService.createRoom(projectId, ownderId)
-            res.status(201).json({
+            res.status(HttpStatusCode.CREATED).json({
                 status: 'success',
                 message: 'Room created successfully',
                 data: {
@@ -31,11 +32,11 @@ export class RoomController {
             const room = await this.roomService.getRoomByProjectId(projectId)
 
             if (!room) {
-                res.status(404).json({ message: "Room Not Found" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
                 return
             }
 
-            res.status(201).json({
+            res.status(HttpStatusCode.OK).json({
                 status: 'success',
                 data: room
             });
@@ -50,11 +51,11 @@ export class RoomController {
             const room = await this.roomService.getRoomByProjectId(projectId)
 
             if (!room) {
-                res.status(404).json({ message: "Room Not Found" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
                 return
             }
 
-            res.status(201).json({
+            res.status(HttpStatusCode.OK).json({
                 status: 'success',
                 data: room.collaborators
             });
@@ -69,7 +70,7 @@ export class RoomController {
 
             await this.roomService.updateCollabratorRole(roomId, userId, role)
 
-            res.status(201).json({
+            res.status(HttpStatusCode.OK).json({
                 status: 'success',
                 message: "successfully updated role"
             });
@@ -85,7 +86,7 @@ export class RoomController {
             const isEligibleToEdit: boolean = await this.roomService.isEligibleToEdit(userId, roomId)
             console.log("check permision is Eligible, ", isEligibleToEdit)
 
-            res.status(200).json({ isAllowed: isEligibleToEdit })
+            res.status(HttpStatusCode.OK).json({ isAllowed: isEligibleToEdit })
 
         } catch (error) {
             next(error)
@@ -98,7 +99,7 @@ export class RoomController {
 
             await this.roomService.removeContributer(userId, projectId)
 
-            res.status(200).json({ message: "You successfully removed" })
+            res.status(HttpStatusCode.OK).json({ message: "You successfully removed" })
 
         } catch (error) {
             next(error)
@@ -110,7 +111,7 @@ export class RoomController {
             const userId = req.user.id
             const contributers = await this.roomService.getAllContributorsForUser(userId)
 
-            res.status(200).json(contributers)
+            res.status(HttpStatusCode.OK).json(contributers)
 
         } catch (error) {
             next(error)

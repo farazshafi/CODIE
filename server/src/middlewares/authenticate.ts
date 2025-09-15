@@ -2,12 +2,13 @@ import jwt from "jsonwebtoken"
 import { ENV } from "../config/env"
 import { Request, Response, NextFunction } from "express"
 import redis from "../config/redis"
+import { HttpStatusCode } from "../utils/httpStatusCodes"
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        res.status(401).json({ message: "Unauthorized" })
+        res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Unauthorized" })
         return
     }
 
@@ -18,16 +19,16 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
         const isTokenBlacklisted = await redis.get(`blacklist:${token}`)
         if (isTokenBlacklisted) {
-            res.status(401).json({ message: "Token is blacklisted" });
+            res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Token is blacklisted" });
             return
         }
         req.user = decoded
         next()
     } catch (error) {
         if (error instanceof Error) {
-            res.status(401).json({ message: error.message });
+            res.status(HttpStatusCode.UNAUTHORIZED).json({ message: error.message });
         } else {
-            res.status(401).json({ message: "Invalid or expired Token" });
+            res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Invalid or expired Token" });
         }
     }
 }

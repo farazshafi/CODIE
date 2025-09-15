@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { IRequestService } from "../services/interface/IRequestService";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class RequestController {
@@ -9,7 +10,7 @@ export class RequestController {
         try {
             const { id } = req.params
             const data = await this.requestService.getAllSendedRequest(id)
-            res.status(201).json({
+            res.status(HttpStatusCode.CREATED).json({
                 data
             });
         } catch (err) {
@@ -21,7 +22,7 @@ export class RequestController {
         try {
             const { id } = req.params
             const data = await this.requestService.getAllRecivedRequest(id)
-            res.status(201).json(data);
+            res.status(HttpStatusCode.CREATED).json(data);
         } catch (err) {
             next(err)
         }
@@ -49,7 +50,7 @@ export class RequestController {
             };
         });
 
-        res.status(201).json(formattedData);
+        res.status(HttpStatusCode.CREATED).json(formattedData);
     } catch (err) {
         next(err);
     }

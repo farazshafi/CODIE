@@ -1,5 +1,7 @@
 
 
+
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 import { NextFunction, Request, Response } from "express"
 import { LoginInput } from "../validation/userValidation"
 
@@ -26,12 +28,12 @@ export class AdminController {
             const userExist = await this.userService.findUserByEmail(credential.email)
 
             if (!userExist) {
-                res.status(400).json({ message: "User not exists" })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User not exists" })
                 return
             }
 
             if (!userExist.isAdmin) {
-                res.status(403).json({ message: 'Access denied. Admins only.' });
+                res.status(HttpStatusCode.FORBIDDEN).json({ message: 'Access denied. Admins only.' });
                 return
             }
 
@@ -39,7 +41,7 @@ export class AdminController {
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 
             if (!isPasswordCorrect) {
-                res.status(401).json({ message: "Invalid password or email" })
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Invalid password or email" })
                 return
             }
 
@@ -55,7 +57,7 @@ export class AdminController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Login Success",
                 data: {
                     name: userExist.name,
@@ -80,7 +82,7 @@ export class AdminController {
             console.log("decoded token data", decoded)
 
             if (!decoded || !decoded.exp) {
-                res.status(400).json({ message: "Invalid token" });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid token" });
                 return
             }
 
@@ -132,7 +134,7 @@ export class AdminController {
 
             const totalUsers = await this.userService.countUsers(filter);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Users fetched successfully",
                 data: users.map(user => ({
                     id: user._id,
@@ -160,17 +162,17 @@ export class AdminController {
 
             const user = this.userService.findUserById(userId)
             if (!user) {
-                res.status(404).json({ message: "User not found" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not found" })
                 return
             }
 
             if (status === "suspend") {
                 await this.userService.blockUserById(userId)
-                res.status(200).json({ message: "User Blocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
                 return
             } else if (status === "active") {
                 await this.userService.unblockUserById(userId)
-                res.status(200).json({ message: "User Unblocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
                 return
             }
         } catch (error) {
@@ -183,7 +185,7 @@ export class AdminController {
             const userData = await this.userService.adminDashboardUserData()
             const projectData = await this.projectService.adminDashboardProjectData()
             const paymentData = await this.paymentService.adminDashboardPaymenttData()
-            res.status(200).json({ userData, projectData, paymentData })
+            res.status(HttpStatusCode.OK).json({ userData, projectData, paymentData })
         } catch (error) {
             next(error)
         }
@@ -192,7 +194,7 @@ export class AdminController {
     getPaymentData = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const paymentData = await this.paymentService.getPaymentDataAdmin()
-            res.status(200).json(paymentData)
+            res.status(HttpStatusCode.OK).json(paymentData)
         } catch (error) {
             next(error)
         }
@@ -202,7 +204,7 @@ export class AdminController {
         try {
             const { id, status } = req.body
             const paymentData = await this.paymentService.updatePaymentStatus(id, status)
-            res.status(200).json(paymentData)
+            res.status(HttpStatusCode.OK).json(paymentData)
         } catch (error) {
             next(error)
         }

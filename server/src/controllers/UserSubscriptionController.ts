@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IUserSubscriptionService } from "../services/interface/IUserSubscriptionService";
 import { razorpayInstance } from "../config/razorpay";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class UserSubscriptionController {
@@ -14,7 +15,7 @@ export class UserSubscriptionController {
             const userPlan = await this.userSubscriptionService.findUserSubscription(userId)
             const userSubsription = await this.userSubscriptionService.getUserSubscription(userId)
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 text: userPlan.chatSupport.text,
                 voice: userPlan.chatSupport.voice,
                 id: userPlan.id, name: userPlan.name,
@@ -39,7 +40,7 @@ export class UserSubscriptionController {
             }
 
             const { id } = await razorpayInstance.orders.create(options)
-            res.status(200).json({ id, amount, currency })
+            res.status(HttpStatusCode.OK).json({ id, amount, currency })
 
         } catch (error) {
             next(error)
@@ -52,7 +53,7 @@ export class UserSubscriptionController {
 
             const userSub = await this.userSubscriptionService.verifyPaymentAndUpdateUserSubscription(razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId, amount)
 
-            res.status(201).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
+            res.status(HttpStatusCode.OK).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
 
         } catch (error) {
             next(error)
@@ -62,11 +63,11 @@ export class UserSubscriptionController {
     downgradeToFree = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { userId } = req.body
-            if (!userId) res.status(400).json({ message: "UserId required!" })
+            if (!userId) res.status(HttpStatusCode.BAD_REQUEST).json({ message: "UserId required!" })
 
             const userSub = await this.userSubscriptionService.downgradeToFreePlan(userId)
 
-            res.status(201).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
+            res.status(HttpStatusCode.OK).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
         } catch (error) {
             next(error)
         }
@@ -78,7 +79,7 @@ export class UserSubscriptionController {
 
             const userSub = await this.userSubscriptionService.getAiUsage(userId)
 
-            res.status(201).json(userSub)
+            res.status(HttpStatusCode.OK).json(userSub)
         } catch (error) {
             next(error)
         }

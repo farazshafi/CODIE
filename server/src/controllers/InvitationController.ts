@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { IInvitationService } from "../services/interface/IInvitationService";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class InvitationController {
@@ -13,7 +14,7 @@ export class InvitationController {
 
             await this.invitationService.createInvitation(senderId, reciverId, roomId)
 
-            res.status(201).json({ message: "Invitation created successfully" })
+            res.status(HttpStatusCode.CREATED).json({ message: "Invitation created successfully" })
         } catch (error) {
             next(error)
         }
@@ -25,7 +26,7 @@ export class InvitationController {
 
             const recivedInvitation = await this.invitationService.getAllRecivedInvitationByUserId(userId)
 
-            res.status(201).json(recivedInvitation)
+            res.status(HttpStatusCode.CREATED).json(recivedInvitation)
         } catch (error) {
             next(error)
         }

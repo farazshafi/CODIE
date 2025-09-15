@@ -8,6 +8,7 @@ import { IOtpService } from "../services/interface/IOtpServices"
 import crypto from "crypto"
 import { IMailService } from "../services/interface/IMailService"
 import jwt from "jsonwebtoken"
+import { HttpStatusCode } from "../utils/httpStatusCodes"
 
 export class UserController {
     constructor(
@@ -22,7 +23,7 @@ export class UserController {
             const userExist = await this.userService.findUserByEmail(validatedUser.email)
 
             if (userExist) {
-                res.status(400).json({ message: "User already exists" })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User already exists" })
                 return
             }
 
@@ -31,7 +32,7 @@ export class UserController {
             const redisKey = `pendingUser:${validatedUser.email}`
             await redis.set(redisKey, JSON.stringify(validatedUser), 'EX', 300)
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "OTP sent to email. Please verify to complete registration."
             })
 
@@ -50,7 +51,7 @@ export class UserController {
             const userDataStr = await redis.get(redisKey)
 
             if (!userDataStr) {
-                res.status(400).json({ message: "No pending registration found or expired." })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "No pending registration found or expired." })
                 return
             }
 
@@ -72,7 +73,7 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(201).json({
+            res.status(HttpStatusCode.CREATED).json({
                 message: "User registered successfully",
                 data: {
                     name: newUser.name,
@@ -95,13 +96,13 @@ export class UserController {
             const userDataStr = await redis.get(redisKey)
 
             if (!userDataStr) {
-                res.status(400).json({ message: "No pending registration found or expired." })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "No pending registration found or expired." })
                 return
             }
 
             await this.otpService.generateAndSendOtp(email)
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "OTP resent to email. Please verify to complete registration."
             })
         } catch (error) {
@@ -115,11 +116,11 @@ export class UserController {
 
             const user = await this.userService.findUserByEmail(email)
             if (!user) {
-                res.status(404).json({ message: "User Not Found!" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User Not Found!" })
                 return
             }
             if (user.googleId) {
-                res.status(400).json({ message: "Password reset is not available for Google accounts." })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Password reset is not available for Google accounts." })
                 return
             }
 
@@ -133,7 +134,7 @@ export class UserController {
             await this.mailService.sendResetLink(email, resetLink)
 
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Password reset link sent to your email."
             });
         } catch (error) {
@@ -148,24 +149,24 @@ export class UserController {
             const userExist = await this.userService.findUserByEmail(credential.email)
 
             if (!userExist) {
-                res.status(401).json({ message: "User not exists" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
                 return
             }
 
             if (userExist.isBlocked) {
-                res.status(200).json({ message: "User Blocked", isBlocked: true })
+                res.status(HttpStatusCode.OK).json({ message: "User Blocked", isBlocked: true })
                 return
             }
 
             if (userExist && userExist?.googleId && userExist?.googleId.length > 1) {
-                res.status(409).json({ message: "This account is accociated with Google , Please try to Login with google instead." });
+                res.status(HttpStatusCode.CONFLICT).json({ message: "This account is accociated with Google , Please try to Login with google instead." });
                 return
             }
 
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 
             if (!isPasswordCorrect) {
-                res.status(401).json({ message: "Invalid password or email" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Invalid password or email" })
                 return
             }
 
@@ -181,7 +182,7 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Login Success",
                 data: {
                     name: userExist.name,
@@ -208,7 +209,7 @@ export class UserController {
             console.log("decoded token data", decoded)
 
             if (!decoded || !decoded.exp) {
-                res.status(400).json({ message: "Invalid token" });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid token" });
                 return
             }
 
@@ -231,7 +232,7 @@ export class UserController {
             let user = await this.userService.findUserByEmail(validatedUser.email)
 
             if (user && !user.googleId) {
-                res.status(409).json({ message: "An account with this email already exists" })
+                res.status(HttpStatusCode.CONFLICT).json({ message: "An account with this email already exists" })
                 return
             }
 
@@ -259,7 +260,7 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Google Auth Success",
                 data: {
                     name: user!.name,
@@ -281,25 +282,25 @@ export class UserController {
             const { email } = req.body
 
             if (!email) {
-                res.status(400).json({ message: "Email is required" })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Email is required" })
                 return
             }
 
             const user = await this.userService.findUserByEmail(email)
 
             if (!user) {
-                res.status(404).json({ message: "User not exists" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
                 return
             }
 
             if (user.isBlocked) {
-                res.status(200).json({ message: "User is blocked!, Can't access", isBlocked: true })
+                res.status(HttpStatusCode.OK).json({ message: "User is blocked!, Can't access", isBlocked: true })
                 return
             }
 
 
             if (user && !user.googleId) {
-                res.status(409).json({ message: "An account with this email already exists" })
+                res.status(HttpStatusCode.CONFLICT).json({ message: "An account with this email already exists" })
                 return
             }
 
@@ -315,7 +316,7 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Google Auth Success",
                 data: {
                     name: user.name,
@@ -339,18 +340,18 @@ export class UserController {
             const token = req.cookies.refreshToken
 
             if (!token) {
-                res.status(401).json({ message: "Refresh token missing" });
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Refresh token missing" });
                 return
             }
 
             const decoded = verifyRefreshToken(token);
             const accessToken = generateAccessToken({ id: decoded.id, email: decoded.email });
 
-            res.status(200).json({ accessToken });
+            res.status(HttpStatusCode.OK).json({ accessToken });
             return
         } catch (err) {
             console.log("error", err)
-            res.status(403).json({ message: "Invalid refresh token" });
+            res.status(HttpStatusCode.FORBIDDEN).json({ message: "Invalid refresh token" });
         }
     }
 
@@ -363,7 +364,7 @@ export class UserController {
             const resetEntry = await this.userService.findResetToken(hashedToken, email)
 
             if (!resetEntry || Number(resetEntry.expireAt) < Date.now()) {
-                res.status(400).json({ message: "Invalid or expired token." });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid or expired token." });
                 return
             }
 
@@ -371,7 +372,7 @@ export class UserController {
 
             await this.userService.deleteResetToken(email)
 
-            res.status(200).json({ message: "Password has been reset successfully." });
+            res.status(HttpStatusCode.OK).json({ message: "Password has been reset successfully." });
         } catch (err) {
             next(err)
         }
@@ -383,7 +384,7 @@ export class UserController {
 
             const allUsers = await this.userService.searchAllUsers(email, userId)
             const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
-            res.status(200).json(userEmails);
+            res.status(HttpStatusCode.OK).json(userEmails);
 
         } catch (err) {
             next(err)
@@ -405,7 +406,7 @@ export class UserController {
                 github: updatedUser.github,
                 portfolio: updatedUser.portfolio,
             }
-            res.status(200).json({ message: "user updated successfuly", response })
+            res.status(HttpStatusCode.OK).json({ message: "user updated successfuly", response })
         } catch (err) {
             next(err)
         }
@@ -426,7 +427,7 @@ export class UserController {
                 portfolio: updatedUser.portfolio,
             }
 
-            res.status(200).json(data)
+            res.status(HttpStatusCode.OK).json(data)
         } catch (err) {
             next(err)
         }

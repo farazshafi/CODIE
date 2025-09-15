@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ISubscriptionService } from "../services/interface/ISubscriptionService";
 import mongoose from "mongoose";
+import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class SubscriptionController {
@@ -12,7 +13,7 @@ export class SubscriptionController {
         try {
             const data = req.body
             const newSubscription = await this.subscriptionService.createSubscription(data)
-            res.status(201).json({ message: "Subscription created", newSubscription })
+            res.status(HttpStatusCode.CREATED).json({ message: "Subscription created", newSubscription })
         } catch (error) {
             next(error)
         }
@@ -22,7 +23,7 @@ export class SubscriptionController {
         try {
             const { id } = req.params
             await this.subscriptionService.deleteSubscription(id)
-            res.status(200).json({ message: "Subscription Deleted" })
+            res.status(HttpStatusCode.OK).json({ message: "Subscription Deleted" })
         } catch (error) {
             next(error)
         }
@@ -62,7 +63,7 @@ export class SubscriptionController {
             const subscriptions = await this.subscriptionService.findSubscriptionsWithPagination(filter, pageNumber, pageSize);
             const totalUsers = await this.subscriptionService.countSubscription(filter)
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 message: "Subscription Found",
                 subscriptions,
                 pagination: {
@@ -82,7 +83,7 @@ export class SubscriptionController {
             const { id } = req.params;
             const data = req.body;
             const updatedSubscription = await this.subscriptionService.updateSubscription(id, data);
-            res.status(200).json({ message: "Subscription Updated", updatedSubscription });
+            res.status(HttpStatusCode.OK).json({ message: "Subscription Updated", updatedSubscription });
         } catch (error) {
             next(error);
         }
@@ -93,17 +94,17 @@ export class SubscriptionController {
             const { id, status } = req.body;
             const subscription = this.subscriptionService.findById(id)
             if (!subscription) {
-                res.status(404).json({ message: "Subscription not found" })
+                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Subscription not found" })
                 return
             }
 
             if (status === "suspend") {
                 await this.subscriptionService.blockSubscription(id)
-                res.status(200).json({ message: "User Blocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
                 return
             } else if (status === "active") {
                 await this.subscriptionService.unblockSubscription(id)
-                res.status(200).json({ message: "User Unblocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
                 return
             }
         } catch (error) {
@@ -158,7 +159,7 @@ export class SubscriptionController {
                 };
             });
 
-            res.status(200).json(transformed);
+            res.status(HttpStatusCode.OK).json(transformed);
         } catch (error) {
             next(error);
         }
