@@ -12,12 +12,12 @@ import { ISubscriptionRepository } from "../repositories/interface/ISubscription
 
 export class InvitationService implements IInvitationService {
     constructor(
-        private readonly invitationRepository: IInvitationRepository,
-        private readonly mailService: IMailService,
-        private readonly userRepository: IUserRepository,
-        private readonly roomRepository: IRoomRepository,
-        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
-        private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly _invitationRepository: IInvitationRepository,
+        private readonly _mailService: IMailService,
+        private readonly _userRepository: IUserRepository,
+        private readonly _roomRepository: IRoomRepository,
+        private readonly _userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly _subscriptionRepository: ISubscriptionRepository,
     ) { }
 
     async createInvitation(senderId: string, reciverId: string, roomId: string): Promise<IInvitation> {
@@ -33,20 +33,20 @@ export class InvitationService implements IInvitationService {
                 throw new HttpError(400, "Already sended Invitation.");
             }
 
-            const room = await this.roomRepository.findOne({ roomId })
+            const room = await this._roomRepository.findOne({ roomId })
             const currentContributers = room.collaborators.length - 1
-            const userSubscriptionId = (await this.userSubscriptionRepository.findOne({ userId: room.owner })).planId.toString()
-            const maxContributers = (await this.subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
+            const userSubscriptionId = (await this._userSubscriptionRepository.findOne({ userId: room.owner })).planId.toString()
+            const maxContributers = (await this._subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
             if (currentContributers >= maxContributers) {
                 throw new HttpError(400, "Maximum number of collaborators reached for this room. Please upgrade your plan");
             }
 
-            const reciverMail = (await this.userRepository.findById(reciverId)).email
-            const senderName = (await this.userRepository.findById(senderId)).name
+            const reciverMail = (await this._userRepository.findById(reciverId)).email
+            const senderName = (await this._userRepository.findById(senderId)).name
 
-            await this.mailService.sendInvitation(reciverMail, senderName)
+            await this._mailService.sendInvitation(reciverMail, senderName)
 
-            return await this.invitationRepository.create(invitation)
+            return await this._invitationRepository.create(invitation)
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error
@@ -58,13 +58,13 @@ export class InvitationService implements IInvitationService {
     }
 
     async isInvitaionExist(reciverId: string, roomId: string): Promise<boolean> {
-        const isExist = await this.invitationRepository.findOne({ reciverId: new mongoose.Types.ObjectId(reciverId), roomId });
+        const isExist = await this._invitationRepository.findOne({ reciverId: new mongoose.Types.ObjectId(reciverId), roomId });
         return !!isExist;
     }
 
     async getAllRecivedInvitationByUserId(userId: string): Promise<IInvitation[]> {
         try {
-            const data = await this.invitationRepository.getAllRecivedInvitations(userId)
+            const data = await this._invitationRepository.getAllRecivedInvitations(userId)
             return data
         } catch (error) {
             console.log("Cannot get Recived Invitations", error)

@@ -16,16 +16,16 @@ import redis from "../config/redis"
 
 export class AdminController {
     constructor(
-        private readonly userService: IUserService,
-        private readonly projectService: IProjectService,
-        private readonly paymentService: IPaymentService,
+        private readonly _userService: IUserService,
+        private readonly _projectService: IProjectService,
+        private readonly _paymentService: IPaymentService,
     ) { }
 
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const credential: LoginInput = req.body
 
-            const userExist = await this.userService.findUserByEmail(credential.email)
+            const userExist = await this._userService.findUserByEmail(credential.email)
 
             if (!userExist) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User not exists" })
@@ -130,9 +130,9 @@ export class AdminController {
             }
 
             // Fetch users with pagination
-            const users = await this.userService.findUsersWithPagination(filter, pageNumber, pageSize);
+            const users = await this._userService.findUsersWithPagination(filter, pageNumber, pageSize);
 
-            const totalUsers = await this.userService.countUsers(filter);
+            const totalUsers = await this._userService.countUsers(filter);
 
             res.status(HttpStatusCode.OK).json({
                 message: "Users fetched successfully",
@@ -160,18 +160,18 @@ export class AdminController {
         try {
             const { userId, status } = req.body
 
-            const user = this.userService.findUserById(userId)
+            const user = this._userService.findUserById(userId)
             if (!user) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not found" })
                 return
             }
 
             if (status === "suspend") {
-                await this.userService.blockUserById(userId)
+                await this._userService.blockUserById(userId)
                 res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
                 return
             } else if (status === "active") {
-                await this.userService.unblockUserById(userId)
+                await this._userService.unblockUserById(userId)
                 res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
                 return
             }
@@ -182,9 +182,9 @@ export class AdminController {
 
     getDashboardData = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userData = await this.userService.adminDashboardUserData()
-            const projectData = await this.projectService.adminDashboardProjectData()
-            const paymentData = await this.paymentService.adminDashboardPaymenttData()
+            const userData = await this._userService.adminDashboardUserData()
+            const projectData = await this._projectService.adminDashboardProjectData()
+            const paymentData = await this._paymentService.adminDashboardPaymenttData()
             res.status(HttpStatusCode.OK).json({ userData, projectData, paymentData })
         } catch (error) {
             next(error)
@@ -193,7 +193,7 @@ export class AdminController {
 
     getPaymentData = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const paymentData = await this.paymentService.getPaymentDataAdmin()
+            const paymentData = await this._paymentService.getPaymentDataAdmin()
             res.status(HttpStatusCode.OK).json(paymentData)
         } catch (error) {
             next(error)
@@ -203,7 +203,7 @@ export class AdminController {
     updatePaymentStatus = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, status } = req.body
-            const paymentData = await this.paymentService.updatePaymentStatus(id, status)
+            const paymentData = await this._paymentService.updatePaymentStatus(id, status)
             res.status(HttpStatusCode.OK).json(paymentData)
         } catch (error) {
             next(error)

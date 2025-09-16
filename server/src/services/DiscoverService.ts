@@ -32,24 +32,24 @@ interface PopulatedProject {
 
 export class DiscoverService implements IDiscoverService {
     constructor(
-        private readonly discoverRepo: IDiscoverRepository,
-        private readonly projectRepo: IProjectRepository,
-        private readonly userSubscriptionRepo: IUserSubscriptionRepository,
+        private readonly _discoverRepo: IDiscoverRepository,
+        private readonly _projectRepo: IProjectRepository,
+        private readonly _userSubscriptionRepo: IUserSubscriptionRepository,
     ) { }
 
     async create(projectId: Types.ObjectId, userId: string): Promise<IDiscover> {
         try {
-            const projectOwner = (await this.projectRepo.findById(String(projectId))).userId
+            const projectOwner = (await this._projectRepo.findById(String(projectId))).userId
             if (String(projectOwner) !== userId) {
                 throw new HttpError(400, "Only Owner can share snippet")
             }
 
-            const existingSnippet = await this.discoverRepo.findOne({ projectId })
+            const existingSnippet = await this._discoverRepo.findOne({ projectId })
             if (existingSnippet) {
                 throw new HttpError(409, "Snippet Already Shared to discovery!")
             }
 
-            return await this.discoverRepo.create({ projectId });
+            return await this._discoverRepo.create({ projectId });
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error;
@@ -69,7 +69,7 @@ export class DiscoverService implements IDiscoverService {
 
             const skip = (page - 1) * limit;
 
-            const discoveries = await this.discoverRepo
+            const discoveries = await this._discoverRepo
                 .getModel()
                 .find()
                 .populate({
@@ -111,11 +111,11 @@ export class DiscoverService implements IDiscoverService {
 
     async removeProject(id: string): Promise<void> {
         try {
-            const project = await this.discoverRepo.findById(id)
+            const project = await this._discoverRepo.findById(id)
             if (!project) {
                 throw new HttpError(404, "Snippet Not found ")
             }
-            await this.discoverRepo.delete(id)
+            await this._discoverRepo.delete(id)
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error
@@ -127,7 +127,7 @@ export class DiscoverService implements IDiscoverService {
     async getCodeExplanation(code: string, userId: string) {
         try {
             const explanation = await generateCodeExplanation(code)
-            const subscription = await this.userSubscriptionRepo.findOne({ userId })
+            const subscription = await this._userSubscriptionRepo.findOne({ userId })
 
             if (!subscription) {
                 throw new HttpError(404, "User subscription is not found!")

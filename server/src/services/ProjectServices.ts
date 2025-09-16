@@ -12,17 +12,17 @@ import { IDiscoverRepository } from '../repositories/interface/IDiscoverReposito
 
 export class ProjectService implements IProjectService {
     constructor(
-        private readonly projectRepository: IProjectRepository,
-        private readonly roomRepository: IRoomRepository,
-        private readonly subscriptionRepository: ISubscriptionRepository,
-        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
-        private readonly roomService: IRoomService,
-        private readonly discoverRepository: IDiscoverRepository,
+        private readonly _projectRepository: IProjectRepository,
+        private readonly _roomRepository: IRoomRepository,
+        private readonly _subscriptionRepository: ISubscriptionRepository,
+        private readonly _userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly _roomService: IRoomService,
+        private readonly _discoverRepository: IDiscoverRepository,
     ) { }
 
     async createProject(data: CreateProjectType): Promise<IProject> {
         try {
-            const isExist = await this.projectRepository.isProjectNameExists({
+            const isExist = await this._projectRepository.isProjectNameExists({
                 userId: data.userId,
                 projectName: data.projectName,
                 language: data.projectLanguage
@@ -33,17 +33,17 @@ export class ProjectService implements IProjectService {
             }
 
             // make sure he wont create project more than (x) given in plan, and store owner plan id
-            const userPlanId = await this.userSubscriptionRepository.findOne({ userId: new mongoose.Types.ObjectId(data.userId) })
+            const userPlanId = await this._userSubscriptionRepository.findOne({ userId: new mongoose.Types.ObjectId(data.userId) })
             console.log("checking".bgGreen, userPlanId)
 
-            const plan = await this.subscriptionRepository.findById(userPlanId.planId.toString())
+            const plan = await this._subscriptionRepository.findById(userPlanId.planId.toString())
             console.log("user plan ", plan)
-            const totalProjects = (await this.projectRepository.find({ userId: data.userId })).length
+            const totalProjects = (await this._projectRepository.find({ userId: data.userId })).length
             if (totalProjects >= plan.maxPrivateProjects) {
                 throw new HttpError(400, "You have reached the maximum number of projects, Upgrade your plan.");
             }
 
-            return await this.projectRepository.create({
+            return await this._projectRepository.create({
                 ...data,
                 userId: new mongoose.Types.ObjectId(data.userId)
             });
@@ -60,11 +60,11 @@ export class ProjectService implements IProjectService {
         if (!userId) {
             throw new HttpError(400, "User ID is required.");
         }
-        return this.projectRepository.findProjectByUserId(userId);
+        return this._projectRepository.findProjectByUserId(userId);
     }
 
     async getProjectById(id: string): Promise<IProject> {
-        const project = await this.projectRepository.findById(id);
+        const project = await this._projectRepository.findById(id);
         if (!project) {
             throw new HttpError(404, "Project not found");
         }
@@ -72,7 +72,7 @@ export class ProjectService implements IProjectService {
     }
 
     async getAllProjects(): Promise<IProject[]> {
-        return this.projectRepository.findAll();
+        return this._projectRepository.findAll();
     }
 
     async getProjectByRoomId(roomId: string): Promise<string> {
@@ -80,7 +80,7 @@ export class ProjectService implements IProjectService {
             throw new HttpError(400, "Room ID is required.");
         }
 
-        const project = await this.projectRepository.findProjectByRoomId(roomId);
+        const project = await this._projectRepository.findProjectByRoomId(roomId);
         if (!project) {
             throw new HttpError(404, "Project not found for that room id");
         }
@@ -89,9 +89,9 @@ export class ProjectService implements IProjectService {
 
     async saveCode(id: string, updatedCode: string): Promise<IProject> {
         try {
-            const project = await this.projectRepository.findById(id);
+            const project = await this._projectRepository.findById(id);
             if (project) {
-                return await this.projectRepository.updateCode(project.id, updatedCode);
+                return await this._projectRepository.updateCode(project.id, updatedCode);
             } else {
                 throw new HttpError(404, "Project not found");
             }
@@ -105,7 +105,7 @@ export class ProjectService implements IProjectService {
     }
 
     async deleteProject(projectId: string): Promise<{ message: string }> {
-        const project = await this.projectRepository.findById(projectId);
+        const project = await this._projectRepository.findById(projectId);
         if (!project) {
             throw new HttpError(404, "Project not found.");
         }
@@ -113,20 +113,20 @@ export class ProjectService implements IProjectService {
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            const room = await this.roomRepository.getRoomByProjectId(projectId);
+            const room = await this._roomRepository.getRoomByProjectId(projectId);
             if (room) {
-                const isRoomDeleted = await this.roomRepository.delete(room._id as string, session);
+                const isRoomDeleted = await this._roomRepository.delete(room._id as string, session);
                 if (!isRoomDeleted) {
                     throw new HttpError(500, `Failed to delete room with ID: ${room._id} for project ID: ${projectId}`);
                 }
             }
 
-            const snippet = await this.discoverRepository.findOne({ projectId });
+            const snippet = await this._discoverRepository.findOne({ projectId });
             if (snippet) {
-                await this.discoverRepository.deleteOne({ projectId }, session);
+                await this._discoverRepository.deleteOne({ projectId }, session);
             }
 
-            const isProjectDeleted = await this.projectRepository.delete(projectId, session);
+            const isProjectDeleted = await this._projectRepository.delete(projectId, session);
             if (!isProjectDeleted) {
                 throw new HttpError(500, "Failed to delete the project.");
             }
@@ -148,7 +148,7 @@ export class ProjectService implements IProjectService {
 
     async getSavedCode(id: string): Promise<IProject> {
         try {
-            const project = await this.projectRepository.findById(id);
+            const project = await this._projectRepository.findById(id);
             if (project) {
                 return project;
             } else {
@@ -165,8 +165,8 @@ export class ProjectService implements IProjectService {
 
     async getUsedLanguages(userId: mongoose.Types.ObjectId): Promise<{ name: string; count: number }[]> {
         try {
-            const userProjects = await this.projectRepository.find({ userId })
-            const contributedProjects = await this.roomService.getContributedProjectsByUserId(String(userId));
+            const userProjects = await this._projectRepository.find({ userId })
+            const contributedProjects = await this._roomService.getContributedProjectsByUserId(String(userId));
             userProjects.push(...contributedProjects);
 
             const languageCount: Record<string, number> = {}
@@ -190,15 +190,15 @@ export class ProjectService implements IProjectService {
 
     async adminDashboardProjectData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
         try {
-            const totalProjects = await this.projectRepository.count({});
+            const totalProjects = await this._projectRepository.count({});
 
             const now = new Date();
             const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-            const projectsThisMonth = await this.projectRepository.count({ createdAt: { $gte: startOfThisMonth } });
+            const projectsThisMonth = await this._projectRepository.count({ createdAt: { $gte: startOfThisMonth } });
 
-            const projectsLastMonth = await this.projectRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+            const projectsLastMonth = await this._projectRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
 
             let change = '0%';
             let positive = true;

@@ -12,8 +12,8 @@ import { IRoomService } from "./interface/IRoomService"
 
 export class RoomServices implements IRoomService {
     constructor(
-        private readonly roomRepository: IRoomRepository,
-        private readonly projectRepository: IProjectRepository
+        private readonly _roomRepository: IRoomRepository,
+        private readonly _projectRepository: IProjectRepository
     ) { }
 
     async createRoom(projectId: string, ownerId: string): Promise<IRoom> {
@@ -24,14 +24,14 @@ export class RoomServices implements IRoomService {
                 ownerId,
                 roomId
             }
-            let existRoom = await this.roomRepository.findRoomById(roomId)
+            let existRoom = await this._roomRepository.findRoomById(roomId)
 
             while (existRoom) {
                 roomId = generateRoomId();
-                existRoom = await this.roomRepository.findRoomById(roomId);
+                existRoom = await this._roomRepository.findRoomById(roomId);
             }
 
-            return await this.roomRepository.createRoom(roomData)
+            return await this._roomRepository.createRoom(roomData)
         } catch (err) {
             console.error("Failed when creating room: ", err)
             throw new HttpError(500, "Failed to create room")
@@ -40,7 +40,7 @@ export class RoomServices implements IRoomService {
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
         try {
-            const existRoom = await this.roomRepository.getRoomByProjectId(projectId)
+            const existRoom = await this._roomRepository.getRoomByProjectId(projectId)
             if (!existRoom) {
                 return null
             }
@@ -57,12 +57,12 @@ export class RoomServices implements IRoomService {
 
     async updateCollabratorRole(roomId: string, userId: string, role: "viewer" | "editor"): Promise<IRoom> {
         try {
-            const room = await this.roomRepository.findOne({ roomId })
+            const room = await this._roomRepository.findOne({ roomId })
             if (!room) {
                 throw new HttpError(404, "Room Not Found!")
             }
 
-            return this.roomRepository.findRoomAndUpdateRole(roomId, role, userId)
+            return this._roomRepository.findRoomAndUpdateRole(roomId, role, userId)
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error
@@ -74,12 +74,12 @@ export class RoomServices implements IRoomService {
 
     async getContributedProjectsByUserId(userId: string): Promise<IProject[]> {
         try {
-            const rooms = await this.roomRepository.find({
+            const rooms = await this._roomRepository.find({
                 "collaborators.user": new mongoose.Types.ObjectId(userId),
                 owner: { $ne: new mongoose.Types.ObjectId(userId) }
             });
             const projectIds = rooms.map(room => room.projectId.toString());
-            return await this.projectRepository.getProjectByIds(projectIds)
+            return await this._projectRepository.getProjectByIds(projectIds)
         } catch (error) {
             console.log("Occured whiel getting contributed projects", error)
             throw new HttpError(500, "Occured whiel getting contributed projects")
@@ -88,7 +88,7 @@ export class RoomServices implements IRoomService {
 
     async isEligibleToEdit(userId: string, roomId: string): Promise<boolean> {
         try {
-            const room = await this.roomRepository.findOne({ roomId })
+            const room = await this._roomRepository.findOne({ roomId })
             if (!room) {
                 throw new HttpError(404, "Room Not found!")
             }
@@ -109,7 +109,7 @@ export class RoomServices implements IRoomService {
 
     async getUserRoleInProject(projectId: string, userId: string): Promise<string> {
         try {
-            const room = await this.roomRepository.findOne({ projectId })
+            const room = await this._roomRepository.findOne({ projectId })
             if (!room) {
                 throw new HttpError(404, "Room not found")
             }
@@ -118,7 +118,7 @@ export class RoomServices implements IRoomService {
                 return "owner"
             }
 
-            const role = await this.roomRepository.findContributerRole(userId, projectId)
+            const role = await this._roomRepository.findContributerRole(userId, projectId)
             return role
 
         } catch (error) {
@@ -131,7 +131,7 @@ export class RoomServices implements IRoomService {
 
     async removeContributer(userId: string, projectId: string): Promise<IRoom> {
         try {
-            const updatedContributers = await this.roomRepository.removeUserFromCollabrators(userId, new mongoose.Types.ObjectId(projectId))
+            const updatedContributers = await this._roomRepository.removeUserFromCollabrators(userId, new mongoose.Types.ObjectId(projectId))
             if (!updatedContributers) {
                 throw new HttpError(404, "Cannot find User in contributers")
             }
@@ -147,7 +147,7 @@ export class RoomServices implements IRoomService {
 
     async getAllContributorsForUser(userId: string): Promise<ContributorSummary[]> {
         type PopulatedUser = Pick<IUser, '_id' | 'name' | 'email' | 'avatarUrl'>;
-        const rooms = await this.roomRepository.getModel()
+        const rooms = await this._roomRepository.getModel()
             .find({ owner: new mongoose.Types.ObjectId(userId) })
             .populate({
                 path: "collaborators.user",

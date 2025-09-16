@@ -11,25 +11,25 @@ import { ObjectId } from 'mongodb';
 
 export class UserService implements IUserService {
     constructor(
-        private readonly userRepository: IUserRepository,
-        private readonly userSubscriptionRepository: IUserSubscriptionRepository,
-        private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly _userRepository: IUserRepository,
+        private readonly _userSubscriptionRepository: IUserSubscriptionRepository,
+        private readonly _subscriptionRepository: ISubscriptionRepository,
     ) { }
 
     async createUser(data: UserInput): Promise<IUser> {
-        const existingUser = await this.userRepository.findByEmail(data.email);
+        const existingUser = await this._userRepository.findByEmail(data.email);
         if (existingUser) {
             throw new HttpError(409, "User already exists");
         }
 
-        const user = await this.userRepository.create({
+        const user = await this._userRepository.create({
             ...data,
             password: data.password
         });
 
-        const freeSubscription: ISubscription = await this.subscriptionRepository.findOne({ name: "Free" })
+        const freeSubscription: ISubscription = await this._subscriptionRepository.findOne({ name: "Free" })
 
-        await this.userSubscriptionRepository.createSubscriptionWhenUserRegister(user.id, freeSubscription._id as string)
+        await this._userSubscriptionRepository.createSubscriptionWhenUserRegister(user.id, freeSubscription._id as string)
 
         if (!freeSubscription) {
             throw new HttpError(404, "Free subscription not found")
@@ -38,20 +38,20 @@ export class UserService implements IUserService {
     }
 
     async findUserByEmail(email: string): Promise<IUser> {
-        return this.userRepository.findByEmail(email);
+        return this._userRepository.findByEmail(email);
     }
 
     async handleGoogleAuth(data: GoogleAuthInput): Promise<IUser> {
-        let user = await this.userRepository.findByGoogleId(data.googleId);
+        let user = await this._userRepository.findByGoogleId(data.googleId);
 
         if (!user) {
             // Check if email exists but not with google auth
-            user = await this.userRepository.findByEmail(data.email);
+            user = await this._userRepository.findByEmail(data.email);
             if (user && !user.googleId) {
                 throw new HttpError(409, "Email already registered with password");
             }
 
-            user = await this.userRepository.create({
+            user = await this._userRepository.create({
                 name: data.name,
                 email: data.email,
                 googleId: data.googleId,
@@ -88,7 +88,7 @@ export class UserService implements IUserService {
 
     async updateUserPassword(email: string, password: string): Promise<void> {
         try {
-            await this.userRepository.findByEmailAndUpdate(email, { password })
+            await this._userRepository.findByEmailAndUpdate(email, { password })
         } catch (error) {
             console.log("Error while updating password", error)
             throw new HttpError(500, "Error while updating Password!")
@@ -101,7 +101,7 @@ export class UserService implements IUserService {
 
     async searchAllUsers(email: string, userId: string): Promise<IUser[]> {
         try {
-            return await this.userRepository.find({ email: { "$regex": email, "$options": "i" }, isAdmin: false, _id: { "$ne": new ObjectId(userId) } });
+            return await this._userRepository.find({ email: { "$regex": email, "$options": "i" }, isAdmin: false, _id: { "$ne": new ObjectId(userId) } });
         } catch (error) {
             console.log("Failed to get all users", error)
             throw new HttpError(500, "Filed to get all users")
@@ -110,27 +110,27 @@ export class UserService implements IUserService {
 
     async findUsersWithPagination(filter: Record<string, unknown>, page: number, limit: number): Promise<IUser[]> {
         const skip = (page - 1) * limit;
-        return this.userRepository.findMany(filter, skip, limit);
+        return this._userRepository.findMany(filter, skip, limit);
     }
 
     async countUsers(filter: Record<string, unknown>): Promise<number> {
-        return this.userRepository.count(filter);
+        return this._userRepository.count(filter);
     }
 
     async findUserById(userId: string): Promise<IUser> {
-        return await this.userRepository.findById(userId)
+        return await this._userRepository.findById(userId)
     }
 
     async blockUserById(userId: string): Promise<void> {
-        await this.userRepository.findByIdAndUpdate(userId, { isBlocked: true })
+        await this._userRepository.findByIdAndUpdate(userId, { isBlocked: true })
     }
 
     async unblockUserById(userId: string): Promise<void> {
-        await this.userRepository.findByIdAndUpdate(userId, { isBlocked: false })
+        await this._userRepository.findByIdAndUpdate(userId, { isBlocked: false })
     }
 
     async updateUser(userId: string, data: { name: string, portfolio: string, github: string, avatar: string }): Promise<IUser> {
-        return await this.userRepository.findByIdAndUpdate(userId, {
+        return await this._userRepository.findByIdAndUpdate(userId, {
             name: data.name,
             github: data.github,
             portfolio: data.portfolio,
@@ -140,7 +140,7 @@ export class UserService implements IUserService {
 
     async getUserData(userId: string): Promise<IUser> {
         try {
-            const userData = await this.userRepository.findById(userId)
+            const userData = await this._userRepository.findById(userId)
             if (!userData) throw new HttpError(404, "User Not found")
             return userData
         } catch (error) {
@@ -154,18 +154,18 @@ export class UserService implements IUserService {
 
     async adminDashboardUserData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
         try {
-            const totalUsers = await this.userRepository.count({ isAdmin: false });
+            const totalUsers = await this._userRepository.count({ isAdmin: false });
 
             const now = new Date();
             const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-            const usersThisMonth = await this.userRepository.count({
+            const usersThisMonth = await this._userRepository.count({
                 isAdmin: false,
                 createdAt: { $gte: startOfThisMonth }
             });
 
-            const usersLastMonth = await this.userRepository.count({
+            const usersLastMonth = await this._userRepository.count({
                 isAdmin: false,
                 createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth }
             });

@@ -4,12 +4,12 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 
 export class RequestController {
-    constructor(private readonly requestService: IRequestService) { }
+    constructor(private readonly _requestService: IRequestService) { }
 
     getAllSendedReq = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params
-            const data = await this.requestService.getAllSendedRequest(id)
+            const data = await this._requestService.getAllSendedRequest(id)
             res.status(HttpStatusCode.CREATED).json({
                 data
             });
@@ -21,7 +21,7 @@ export class RequestController {
     getAllRecivedRequest = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params
-            const data = await this.requestService.getAllRecivedRequest(id)
+            const data = await this._requestService.getAllRecivedRequest(id)
             res.status(HttpStatusCode.CREATED).json(data);
         } catch (err) {
             next(err)
@@ -31,7 +31,7 @@ export class RequestController {
     getRequetsByRoom = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { roomId } = req.params;
-        const data = await this.requestService.getAllRequetByRoomId(roomId);
+        const data = await this._requestService.getAllRequetByRoomId(roomId);
 
         const formattedData = data.map((request) => {
             const sender =

@@ -6,13 +6,13 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class SubscriptionController {
     constructor(
-        private readonly subscriptionService: ISubscriptionService,
+        private readonly _subscriptionService: ISubscriptionService,
     ) { }
 
     createSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const data = req.body
-            const newSubscription = await this.subscriptionService.createSubscription(data)
+            const newSubscription = await this._subscriptionService.createSubscription(data)
             res.status(HttpStatusCode.CREATED).json({ message: "Subscription created", newSubscription })
         } catch (error) {
             next(error)
@@ -22,7 +22,7 @@ export class SubscriptionController {
     deleteSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params
-            await this.subscriptionService.deleteSubscription(id)
+            await this._subscriptionService.deleteSubscription(id)
             res.status(HttpStatusCode.OK).json({ message: "Subscription Deleted" })
         } catch (error) {
             next(error)
@@ -60,8 +60,8 @@ export class SubscriptionController {
                 filter.isVisible = false;
             }
 
-            const subscriptions = await this.subscriptionService.findSubscriptionsWithPagination(filter, pageNumber, pageSize);
-            const totalUsers = await this.subscriptionService.countSubscription(filter)
+            const subscriptions = await this._subscriptionService.findSubscriptionsWithPagination(filter, pageNumber, pageSize);
+            const totalUsers = await this._subscriptionService.countSubscription(filter)
 
             res.status(HttpStatusCode.OK).json({
                 message: "Subscription Found",
@@ -82,7 +82,7 @@ export class SubscriptionController {
         try {
             const { id } = req.params;
             const data = req.body;
-            const updatedSubscription = await this.subscriptionService.updateSubscription(id, data);
+            const updatedSubscription = await this._subscriptionService.updateSubscription(id, data);
             res.status(HttpStatusCode.OK).json({ message: "Subscription Updated", updatedSubscription });
         } catch (error) {
             next(error);
@@ -92,18 +92,18 @@ export class SubscriptionController {
     blockUnblock = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, status } = req.body;
-            const subscription = this.subscriptionService.findById(id)
+            const subscription = this._subscriptionService.findById(id)
             if (!subscription) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "Subscription not found" })
                 return
             }
 
             if (status === "suspend") {
-                await this.subscriptionService.blockSubscription(id)
+                await this._subscriptionService.blockSubscription(id)
                 res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
                 return
             } else if (status === "active") {
-                await this.subscriptionService.unblockSubscription(id)
+                await this._subscriptionService.unblockSubscription(id)
                 res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
                 return
             }
@@ -114,7 +114,7 @@ export class SubscriptionController {
 
     getSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const subscriptions = await this.subscriptionService.getSubscription();
+            const subscriptions = await this._subscriptionService.getSubscription();
 
             const transformed = subscriptions.map(sub => {
                 const features: string[] = [];

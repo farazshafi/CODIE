@@ -7,24 +7,24 @@ import cloudinary from '../../config/cloudinary';
 
 export class MessageEvents implements IEventHandler {
     private io: Server;
-    private messageService: IMessageService;
+    private _messageService: IMessageService;
 
     constructor(io: Server, messageService: IMessageService) {
         this.io = io;
-        this.messageService = messageService;
+        this._messageService = messageService;
     }
 
     public register(socket: Socket): void {
-        socket.on("send-message", (data: ISentMessage) => this.saveMessage(data));
-        socket.on("send-voice-message", (data: ISentVoiceMessage) => this.saveVoiceMessage(data));
+        socket.on("send-message", (data: ISentMessage) => this._saveMessage(data));
+        socket.on("send-voice-message", (data: ISentVoiceMessage) => this._saveVoiceMessage(data));
     }
 
-    private async saveMessage(data: ISentMessage): Promise<void> {
-        const savedMessages = await this.messageService.createMessage(data);
+    private async _saveMessage(data: ISentMessage): Promise<void> {
+        const savedMessages = await this._messageService.createMessage(data);
         this.io.to(data.projectId).emit("recived-message", { ...savedMessages.toObject() });
     }
 
-    private async saveVoiceMessage(data: ISentVoiceMessage): Promise<void> {
+    private async _saveVoiceMessage(data: ISentVoiceMessage): Promise<void> {
         const { base64, ...msgData } = data
 
         const uploadResponse = await cloudinary.uploader.upload(base64, {
@@ -36,7 +36,7 @@ export class MessageEvents implements IEventHandler {
 
         const voiceUrl = uploadResponse.secure_url
 
-        const saveMessage = await this.messageService.createMessage({
+        const saveMessage = await this._messageService.createMessage({
             ...msgData,
             content: voiceUrl,
             contentType: "audio"

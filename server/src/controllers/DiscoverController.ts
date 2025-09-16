@@ -6,7 +6,7 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class DiscoverController {
     constructor(
-        private readonly discoverService: IDiscoverService,
+        private readonly _discoverService: IDiscoverService,
     ) { }
 
     shareToDiscover = async (req: Request, res: Response, next: NextFunction) => {
@@ -15,7 +15,7 @@ export class DiscoverController {
             const { projectId } = req.body
             if (!projectId) res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Project Id is Required" })
 
-            await this.discoverService.create(new mongoose.Types.ObjectId(projectId), userId)
+            await this._discoverService.create(new mongoose.Types.ObjectId(projectId), userId)
             res.status(HttpStatusCode.CREATED).json({ message: "Shared to Discover" })
         } catch (error) {
             next(error)
@@ -36,7 +36,7 @@ export class DiscoverController {
                 page: parseInt(page as string)
             }
 
-            const discoveries = await this.discoverService.findDiscoveries(filter, pagination)
+            const discoveries = await this._discoverService.findDiscoveries(filter, pagination)
 
             res.status(HttpStatusCode.OK).json({ discoveries })
         } catch (error) {
@@ -47,7 +47,7 @@ export class DiscoverController {
     removeDiscover = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params
-            await this.discoverService.removeProject(id)
+            await this._discoverService.removeProject(id)
 
             res.status(HttpStatusCode.OK).json({ message: "removed from discovery" })
         } catch (error) {
@@ -60,7 +60,7 @@ export class DiscoverController {
             const { code }: { code: string } = req.body
             const userId = req.user.id
 
-            const explanation = await this.discoverService.getCodeExplanation(code, userId)
+            const explanation = await this._discoverService.getCodeExplanation(code, userId)
             res.status(HttpStatusCode.OK).json(explanation)
         } catch (error) {
             next(error)

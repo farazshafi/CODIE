@@ -6,8 +6,8 @@ import { IUserSocketRepository } from '../repositories/interface/IUserSocketRepo
 
 export class UserEvents implements IEventHandler {
     private io: Server;
-    private userSocketService: IUserSocketService;
-    private userSocketRepository: IUserSocketRepository;
+    private _userSocketService: IUserSocketService;
+    private _userSocketRepository: IUserSocketRepository;
 
     constructor(
         io: Server,
@@ -15,16 +15,16 @@ export class UserEvents implements IEventHandler {
         userSocketRepository: IUserSocketRepository
     ) {
         this.io = io;
-        this.userSocketService = userSocketService;
-        this.userSocketRepository = userSocketRepository;
+        this._userSocketService = userSocketService;
+        this._userSocketRepository = userSocketRepository;
     }
 
     public register(socket: Socket): void {
-        socket.on("block-user", (data: { userId: string }) => this.handleBlockUser(data.userId));
+        socket.on("block-user", (data: { userId: string }) => this._handleBlockUser(data.userId));
     }
 
-    private async handleBlockUser(userId: string): Promise<void> {
-        const userSocket = await this.userSocketRepository.getSocketId(userId);
+    private async _handleBlockUser(userId: string): Promise<void> {
+        const userSocket = await this._userSocketRepository.getSocketId(userId);
         if (!userSocket) return;
         this.io.to(userSocket).emit("user-blocked", { message: "You are Blocked!" });
     }

@@ -5,7 +5,7 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class RoomController {
     constructor(
-        private readonly roomService: IRoomService,
+        private readonly _roomService: IRoomService,
     ) { }
 
     createRoom = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -13,7 +13,7 @@ export class RoomController {
             const { projectId } = req.body
             const ownderId = req?.user?.id
 
-            const room = await this.roomService.createRoom(projectId, ownderId)
+            const room = await this._roomService.createRoom(projectId, ownderId)
             res.status(HttpStatusCode.CREATED).json({
                 status: 'success',
                 message: 'Room created successfully',
@@ -29,7 +29,7 @@ export class RoomController {
     getRoomByProjectId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { projectId } = req.params
-            const room = await this.roomService.getRoomByProjectId(projectId)
+            const room = await this._roomService.getRoomByProjectId(projectId)
 
             if (!room) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
@@ -48,7 +48,7 @@ export class RoomController {
     getContributers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { projectId } = req.params
-            const room = await this.roomService.getRoomByProjectId(projectId)
+            const room = await this._roomService.getRoomByProjectId(projectId)
 
             if (!room) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
@@ -68,7 +68,7 @@ export class RoomController {
         try {
             const { roomId, userId, role } = req.body
 
-            await this.roomService.updateCollabratorRole(roomId, userId, role)
+            await this._roomService.updateCollabratorRole(roomId, userId, role)
 
             res.status(HttpStatusCode.OK).json({
                 status: 'success',
@@ -83,7 +83,7 @@ export class RoomController {
         try {
             const { userId, roomId } = req.body
 
-            const isEligibleToEdit: boolean = await this.roomService.isEligibleToEdit(userId, roomId)
+            const isEligibleToEdit: boolean = await this._roomService.isEligibleToEdit(userId, roomId)
             console.log("check permision is Eligible, ", isEligibleToEdit)
 
             res.status(HttpStatusCode.OK).json({ isAllowed: isEligibleToEdit })
@@ -97,7 +97,7 @@ export class RoomController {
         try {
             const { userId, projectId } = req.body
 
-            await this.roomService.removeContributer(userId, projectId)
+            await this._roomService.removeContributer(userId, projectId)
 
             res.status(HttpStatusCode.OK).json({ message: "You successfully removed" })
 
@@ -109,7 +109,7 @@ export class RoomController {
     getAllContributorsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user.id
-            const contributers = await this.roomService.getAllContributorsForUser(userId)
+            const contributers = await this._roomService.getAllContributorsForUser(userId)
 
             res.status(HttpStatusCode.OK).json(contributers)
 

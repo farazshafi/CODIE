@@ -5,12 +5,12 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class MessageController {
     constructor(
-        private readonly messageService: IMessageService
+        private readonly _messageService: IMessageService
     ) { }
 
     createMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const message = await this.messageService.createMessage(req.body);
+            const message = await this._messageService.createMessage(req.body);
             res.status(HttpStatusCode.CREATED).json(message);
         } catch (err) {
             next(err)
@@ -19,7 +19,7 @@ export class MessageController {
 
     getByRoomId = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const messages = await this.messageService.getMessagesForRoom(req.params.roomId);
+            const messages = await this._messageService.getMessagesForRoom(req.params.roomId);
             res.status(HttpStatusCode.OK).json(messages);
         } catch (err) {
             next(err)

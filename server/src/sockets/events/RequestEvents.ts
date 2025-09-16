@@ -8,8 +8,8 @@ import { ApproveRequestData } from '../../types/socketType';
 
 export class RequestEvents implements IEventHandler {
     private io: Server;
-    private roomSocketService: IRoomSocketService;
-    private userSocketRepository: IUserSocketRepository;
+    private _roomSocketService: IRoomSocketService;
+    private _userSocketRepository: IUserSocketRepository;
 
     constructor(
         io: Server,
@@ -17,19 +17,19 @@ export class RequestEvents implements IEventHandler {
         userSocketRepository: IUserSocketRepository
     ) {
         this.io = io;
-        this.roomSocketService = roomSocketService;
-        this.userSocketRepository = userSocketRepository;
+        this._roomSocketService = roomSocketService;
+        this._userSocketRepository = userSocketRepository;
     }
 
     public register(socket: Socket): void {
-        socket.on("join-request", (data: RequestData) => this.handleJoinRequest(data, socket));
-        socket.on("approve-user", (data: ApproveRequestData) => this.handleApproveRequest(data, socket));
-        socket.on("reject-user", (data: ApproveRequestData) => this.handleReject(data, socket));
+        socket.on("join-request", (data: RequestData) => this._handleJoinRequest(data, socket));
+        socket.on("approve-user", (data: ApproveRequestData) => this._handleApproveRequest(data, socket));
+        socket.on("reject-user", (data: ApproveRequestData) => this._handleReject(data, socket));
     }
 
-    private async handleJoinRequest(data: RequestData, socket: Socket): Promise<void> {
+    private async _handleJoinRequest(data: RequestData, socket: Socket): Promise<void> {
         try {
-            const result = await this.roomSocketService.handleJoinRequest(data);
+            const result = await this._roomSocketService.handleJoinRequest(data);
             if ("error" in result) {
                 socket.emit("error", result.error);
                 return;
@@ -60,12 +60,12 @@ export class RequestEvents implements IEventHandler {
         }
     }
 
-    private async handleApproveRequest(data: ApproveRequestData, socket: Socket): Promise<void> {
+    private async _handleApproveRequest(data: ApproveRequestData, socket: Socket): Promise<void> {
         try {
-            const userId = await this.userSocketRepository.getUserId(socket.id);
+            const userId = await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
-            const result = await this.roomSocketService.handleApproveUser({
+            const result = await this._roomSocketService.handleApproveUser({
                 ...data,
                 userId,
             });
@@ -76,7 +76,7 @@ export class RequestEvents implements IEventHandler {
             }
 
             if (result.approvedUserId) {
-                const userSocketId = await this.userSocketRepository.getSocketId(result.approvedUserId);
+                const userSocketId = await this._userSocketRepository.getSocketId(result.approvedUserId);
                 const roomId = result.roomId;
 
                 // Notify approved user
@@ -117,13 +117,12 @@ export class RequestEvents implements IEventHandler {
         }
     }
 
-
-    private async handleReject(data: ApproveRequestData, socket: Socket): Promise<void> {
+    private async _handleReject(data: ApproveRequestData, socket: Socket): Promise<void> {
         try {
-            const userId = await this.userSocketRepository.getUserId(socket.id);
+            const userId = await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
-            const result = await this.roomSocketService.handleRejectUser(data);
+            const result = await this._roomSocketService.handleRejectUser(data);
 
             if (result.error) {
                 socket.emit("error", result.error);
@@ -131,7 +130,7 @@ export class RequestEvents implements IEventHandler {
             }
 
             if (result.rejectedUserId) {
-                const userSocketId = await this.userSocketRepository.getSocketId(result.rejectedUserId);
+                const userSocketId = await this._userSocketRepository.getSocketId(result.rejectedUserId);
                 if (userSocketId) {
                     this.io.to(userSocketId).emit("join-rejected", {
                         message: "Request Rejected",

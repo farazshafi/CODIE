@@ -6,21 +6,21 @@ import { IRoomRepository } from "../repositories/interface/IRoomRepository";
 
 export class RequestService implements IRequestService {
     constructor(
-        private readonly requestRepository: IRequestRepository,
-        private readonly roomRepositories: IRoomRepository
+        private readonly _requestRepository: IRequestRepository,
+        private readonly _roomRepositories: IRoomRepository
     ) { }
 
     async createRequest(data: { roomId: string, senderId: string }): Promise<IRequest> {
         try {
             const { roomId, senderId } = data
-            const reciverId = await this.roomRepositories.getOwnderByRoomId(roomId)
+            const reciverId = await this._roomRepositories.getOwnderByRoomId(roomId)
             
             if (!reciverId) {
                 throw new HttpError(404, "Room Not Found when creating request")
             }
 
 
-            return await this.requestRepository.makeRequest({ roomId, senderId, reciverId })
+            return await this._requestRepository.makeRequest({ roomId, senderId, reciverId })
 
         } catch (err) {
             if (err instanceof HttpError) {
@@ -32,7 +32,7 @@ export class RequestService implements IRequestService {
 
     async getAllSendedRequest(id: string): Promise<IRequest[]> {
         try {
-            const data = await this.requestRepository.getAllSendedRequest(id)
+            const data = await this._requestRepository.getAllSendedRequest(id)
             if (!data) {
                 throw new HttpError(404, "No request Founded")
             }
@@ -48,7 +48,7 @@ export class RequestService implements IRequestService {
 
     async getAllRecivedRequest(userId: string): Promise<IRequest[]> {
         try {
-            const data = await this.requestRepository.getRecivedRequest(userId)
+            const data = await this._requestRepository.getRecivedRequest(userId)
             if (!data) {
                 throw new HttpError(404, "No request Founded")
             }
@@ -64,7 +64,7 @@ export class RequestService implements IRequestService {
 
     async getRequestedUser(reqId: string, type: "sender" | "reciver"): Promise<string> {
         try {
-            const request = await this.requestRepository.getRequestById(reqId)
+            const request = await this._requestRepository.getRequestById(reqId)
 
             if (!request) {
                 throw new HttpError(404, "Request not found");
@@ -84,7 +84,7 @@ export class RequestService implements IRequestService {
 
     async getAllRequetByRoomId(roomId: string): Promise<IRequest[]> {
         try {
-            const data = await this.requestRepository.getRequestsByRoomId(roomId)
+            const data = await this._requestRepository.getRequestsByRoomId(roomId)
             if (!data) {
                 throw new HttpError(404, "Requets not found")
             }

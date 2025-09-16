@@ -6,15 +6,15 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class ProjectController {
   constructor(
-    private readonly projectService: IProjectService,
-    private readonly roomService: IRoomService
+    private readonly _projectService: IProjectService,
+    private readonly _roomService: IRoomService
 
   ) { }
 
   createProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectData = req.body;
-      const newProject = await this.projectService.createProject({
+      const newProject = await this._projectService.createProject({
         userId: req.user.id,
         ...projectData
       });
@@ -31,7 +31,7 @@ export class ProjectController {
   getProjectById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const project = await this.projectService.getProjectById(id);
+      const project = await this._projectService.getProjectById(id);
       res.status(HttpStatusCode.OK).json(project);
     } catch (err) {
       next(err);
@@ -40,7 +40,7 @@ export class ProjectController {
 
   getAllProjects = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const projects = await this.projectService.getAllProjects();
+      const projects = await this._projectService.getAllProjects();
       res.status(HttpStatusCode.OK).json(projects);
     } catch (err) {
       next(err);
@@ -49,7 +49,7 @@ export class ProjectController {
 
   getProjectsByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const projects = await this.projectService.getProjectsByUserId(req.user.id);
+      const projects = await this._projectService.getProjectsByUserId(req.user.id);
       res.status(HttpStatusCode.OK).json(projects);
     } catch (err) {
       next(err);
@@ -59,7 +59,7 @@ export class ProjectController {
   getProjectByRoomId = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { roomId } = req.params;
-      const projectId = await this.projectService.getProjectByRoomId(roomId);
+      const projectId = await this._projectService.getProjectByRoomId(roomId);
       res.status(HttpStatusCode.OK).json({
         message: "Project id found",
         projectId
@@ -72,7 +72,7 @@ export class ProjectController {
   getSavedCode = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const updatedCode = await this.projectService.getSavedCode(id);
+      const updatedCode = await this._projectService.getSavedCode(id);
       res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
     } catch (err) {
       next(err);
@@ -82,7 +82,7 @@ export class ProjectController {
   deleteProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const result = await this.projectService.deleteProject(id);
+      const result = await this._projectService.deleteProject(id);
       res.status(HttpStatusCode.OK).json(result);
     } catch (err) {
       next(err);
@@ -92,7 +92,7 @@ export class ProjectController {
   saveCode = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code, projectId } = req.body;
-      const updatedCode = await this.projectService.saveCode(projectId, code);
+      const updatedCode = await this._projectService.saveCode(projectId, code);
       res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
     } catch (err) {
       next(err);
@@ -104,7 +104,7 @@ export class ProjectController {
       const userId = req.user.id
       console.log("user is getting", userId)
 
-      const usedLangauges = await this.projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
+      const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
 
       res.status(HttpStatusCode.OK).json({ usedLangauges })
 
@@ -117,7 +117,7 @@ export class ProjectController {
     try {
       const userId = req.user.id
 
-      const projects = await this.projectService.getProjectsByUserId(userId)
+      const projects = await this._projectService.getProjectsByUserId(userId)
 
       res.status(HttpStatusCode.OK).json(projects)
 
@@ -130,7 +130,7 @@ export class ProjectController {
     try {
       const userId = req.user.id
 
-      const projects = await this.roomService.getContributedProjectsByUserId(userId)
+      const projects = await this._roomService.getContributedProjectsByUserId(userId)
 
       res.status(HttpStatusCode.OK).json(projects)
 

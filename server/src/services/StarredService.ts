@@ -8,13 +8,13 @@ import { IDiscoverRepository } from "../repositories/interface/IDiscoverReposito
 
 export class StarredService implements IStarredService {
     constructor(
-        private readonly starredRepo: IStarredRepository,
-        private readonly discoveryRepo: IDiscoverRepository
+        private readonly _starredRepo: IStarredRepository,
+        private readonly _discoveryRepo: IDiscoverRepository
     ) { }
 
     async getUserStarredSnippets(userId: string): Promise<IStarred[]> {
         try {
-            const starredSnipets = await this.starredRepo.getModel().find({ userId })
+            const starredSnipets = await this._starredRepo.getModel().find({ userId })
                 .populate({
                     path: "projectId",
                     select: "_id projectName projectCode projectLanguage userId",
@@ -39,16 +39,16 @@ export class StarredService implements IStarredService {
 
     async starASnippet(userId: string, projectId: string): Promise<IStarred> {
         try {
-            const isExist = await this.starredRepo.findOne({ userId, projectId });
+            const isExist = await this._starredRepo.findOne({ userId, projectId });
             if (isExist) {
                 throw new HttpError(400, "Project already starred by this user");
             }
 
-            const starredSnipets = await this.starredRepo.create({ userId: new mongoose.Types.ObjectId(userId), projectId: new mongoose.Types.ObjectId(projectId) })
+            const starredSnipets = await this._starredRepo.create({ userId: new mongoose.Types.ObjectId(userId), projectId: new mongoose.Types.ObjectId(projectId) })
             if (!starredSnipets) {
                 throw new HttpError(404, "cannot create snippets ")
             }
-            const discoverySnippet = await this.discoveryRepo.findOne({ projectId })
+            const discoverySnippet = await this._discoveryRepo.findOne({ projectId })
             if (!discoverySnippet) {
                 throw new HttpError(404, "Discovery snippet not found~!")
             }
@@ -67,13 +67,13 @@ export class StarredService implements IStarredService {
 
     async removeSnippet(userId: string, projectId: string): Promise<boolean> {
         try {
-            const result = await this.starredRepo.deleteOne({ userId, projectId })
+            const result = await this._starredRepo.deleteOne({ userId, projectId })
 
             if (!result) {
                 throw new HttpError(404, "Snippet not found ")
             }
 
-            const discoverySnippet = await this.discoveryRepo.findOne({ projectId })
+            const discoverySnippet = await this._discoveryRepo.findOne({ projectId })
             if (!discoverySnippet) {
                 throw new HttpError(404, "Discovery snippet not found~!")
             }
@@ -95,7 +95,7 @@ export class StarredService implements IStarredService {
 
     async getSnippetById(snippetId: string): Promise<IStarred> {
         try {
-            const starredSnipets = await this.starredRepo.findById(snippetId)
+            const starredSnipets = await this._starredRepo.findById(snippetId)
             if (!starredSnipets) {
                 throw new HttpError(404, "Cannot find starred snippet")
             }

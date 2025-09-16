@@ -5,14 +5,14 @@ import { HttpStatusCode } from "../utils/httpStatusCodes";
 
 export class InvitationController {
     constructor(
-        private readonly invitationService: IInvitationService
+        private readonly _invitationService: IInvitationService
     ) { }
 
     createInvitation = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { senderId, reciverId, roomId } = req.body
 
-            await this.invitationService.createInvitation(senderId, reciverId, roomId)
+            await this._invitationService.createInvitation(senderId, reciverId, roomId)
 
             res.status(HttpStatusCode.CREATED).json({ message: "Invitation created successfully" })
         } catch (error) {
@@ -24,7 +24,7 @@ export class InvitationController {
         try {
             const { userId } = req.params
 
-            const recivedInvitation = await this.invitationService.getAllRecivedInvitationByUserId(userId)
+            const recivedInvitation = await this._invitationService.getAllRecivedInvitationByUserId(userId)
 
             res.status(HttpStatusCode.CREATED).json(recivedInvitation)
         } catch (error) {

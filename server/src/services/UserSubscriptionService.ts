@@ -13,21 +13,21 @@ import { IPaymentService } from "./interface/IPaymentService";
 
 export class UserSubscriptionService implements IUserSubscriptionService {
     constructor(
-        private readonly userSubscriptionRepo: IUserSubscriptionRepository,
-        private readonly subscriptionRepo: ISubscriptionRepository,
-        private readonly mailService: IMailService,
-        private readonly userRepository: IUserRepository,
-        private readonly paymentService: IPaymentService,
+        private readonly _userSubscriptionRepo: IUserSubscriptionRepository,
+        private readonly _subscriptionRepo: ISubscriptionRepository,
+        private readonly _mailService: IMailService,
+        private readonly _userRepository: IUserRepository,
+        private readonly _paymentService: IPaymentService,
     ) { }
 
     async findUserSubscription(userId: string): Promise<ISubscription> {
         try {
-            const userPlanId = (await this.userSubscriptionRepo.findOne({ userId })).planId.toString()
+            const userPlanId = (await this._userSubscriptionRepo.findOne({ userId })).planId.toString()
             if (!userPlanId) {
                 throw new HttpError(404, "User Plan not found!")
             }
 
-            const subscription = await this.subscriptionRepo.findById(userPlanId)
+            const subscription = await this._subscriptionRepo.findById(userPlanId)
             if (!subscription) {
                 throw new HttpError(404, "Subscription Not found!")
             }
@@ -44,7 +44,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
 
     async getUserSubscription(userId: string): Promise<IUserSubscription> {
         try {
-            const userPlan = await this.userSubscriptionRepo.findOne({ userId })
+            const userPlan = await this._userSubscriptionRepo.findOne({ userId })
             if (!userPlan) {
                 throw new HttpError(404, "User Plan not found!")
             }
@@ -70,7 +70,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                 .digest("hex");
 
             if (razorpay_signature !== expectedSign) {
-                await this.paymentService.createPayment({
+                await this._paymentService.createPayment({
                     userId: new mongoose.Types.ObjectId(userId),
                     subscriptionId: new mongoose.Types.ObjectId(planId),
                     amount,
@@ -81,7 +81,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                 throw new HttpError(400, "Invalid payment signature");
             }
 
-            await this.paymentService.createPayment({
+            await this._paymentService.createPayment({
                 userId: new mongoose.Types.ObjectId(userId),
                 subscriptionId: new mongoose.Types.ObjectId(planId),
                 amount,
@@ -90,16 +90,16 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                 transactionId: razorpay_payment_id,
             });
 
-            const currUserSUb = await this.userSubscriptionRepo.findOne({ userId })
-            const user = await this.userRepository.findById(userId)
-            const newPlan = await this.subscriptionRepo.findById(planId)
+            const currUserSUb = await this._userSubscriptionRepo.findOne({ userId })
+            const user = await this._userRepository.findById(userId)
+            const newPlan = await this._subscriptionRepo.findById(planId)
             if (!newPlan) throw new HttpError(404, "Plan is not found!")
 
             const now = new Date()
             let startDate = now
             let endDate = new Date(now)
 
-            const currentPlan = await this.subscriptionRepo.findById(String(currUserSUb.planId))
+            const currentPlan = await this._subscriptionRepo.findById(String(currUserSUb.planId))
             if (!currentPlan) throw new HttpError(404, "current plan not found!")
 
             let subject = '';
@@ -129,7 +129,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                     startDate = now
                     endDate.setMonth(now.getMonth() + 1)
                     currUserSUb.planId = newPlan.id
-                    await this.mailService.sendCommonEmail(user.email, subject, message)
+                    await this._mailService.sendCommonEmail(user.email, subject, message)
                 } else if (newPlan.id === currentPlan.id) {
                     // renewing check if expired 
                     if (currUserSUb.endDate && currUserSUb.endDate > now) {
@@ -146,11 +146,11 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                     currUserSUb.nextPlan = new mongoose.Types.ObjectId(planId)
                     startDate = currUserSUb.startDate;
                     endDate = currUserSUb.endDate
-                    await this.mailService.sendCommonEmail(user.email, subject, message)
+                    await this._mailService.sendCommonEmail(user.email, subject, message)
                 }
             }
 
-            const userSubscription = await this.userSubscriptionRepo.findOneAndUpdate(
+            const userSubscription = await this._userSubscriptionRepo.findOneAndUpdate(
                 { userId },
                 {
                     planId: currUserSUb.planId,
@@ -179,8 +179,8 @@ export class UserSubscriptionService implements IUserSubscriptionService {
     async applyDowngrade(): Promise<void> {
         try {
             const now = new Date()
-            const freeId = (await this.subscriptionRepo.findOne({ name: "Free" })).id
-            const expiredSubscriptions = await this.userSubscriptionRepo.find({ endDate: { $lt: now }, isActive: true })
+            const freeId = (await this._subscriptionRepo.findOne({ name: "Free" })).id
+            const expiredSubscriptions = await this._userSubscriptionRepo.find({ endDate: { $lt: now }, isActive: true })
             for (const sub of expiredSubscriptions) {
                 if (!sub.nextPlan) {
                     sub.endDate = null
@@ -188,7 +188,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                     sub.isActive = true
                     sub.planId = freeId
                 } else {
-                    const newPlan = await this.subscriptionRepo.findById(String(sub.nextPlan))
+                    const newPlan = await this._subscriptionRepo.findById(String(sub.nextPlan))
                     if (!newPlan) throw new HttpError(404, "New plan is not found!")
                     sub.isActive = true
                     sub.planId = new mongoose.Types.ObjectId(newPlan._id as string)
@@ -202,7 +202,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                     }
                 }
 
-                await this.userSubscriptionRepo.save(sub)
+                await this._userSubscriptionRepo.save(sub)
 
             }
         } catch (error) {
@@ -213,8 +213,8 @@ export class UserSubscriptionService implements IUserSubscriptionService {
 
     async downgradeToFreePlan(userId: string): Promise<IUserSubscription> {
         try {
-            const userSubscription = await this.userSubscriptionRepo.findOne({ userId })
-            const freePlan = await this.subscriptionRepo.findOne({ name: "Free" })
+            const userSubscription = await this._userSubscriptionRepo.findOne({ userId })
+            const freePlan = await this._subscriptionRepo.findOne({ name: "Free" })
             userSubscription.startDate = null
             userSubscription.endDate = null
             userSubscription.nextPlan = freePlan.id
@@ -236,20 +236,20 @@ export class UserSubscriptionService implements IUserSubscriptionService {
 
         threeDaysFromNow.setDate(now.getDate() + 3)
 
-        const expireSoon = await this.userSubscriptionRepo.find({
+        const expireSoon = await this._userSubscriptionRepo.find({
             endDate: { $gt: now, $lt: threeDaysFromNow },
             isActive: true
         })
 
         for (const sub of expireSoon) {
-            const user = await this.userRepository.findById(String(sub.userId))
-            await this.mailService.sendPlanExpiryNotification(user.email, String(sub.endDate))
+            const user = await this._userRepository.findById(String(sub.userId))
+            await this._mailService.sendPlanExpiryNotification(user.email, String(sub.endDate))
         }
     }
 
     async getAiUsage(userId: string): Promise<number> {
         try {
-            const userSubscription = (await this.userSubscriptionRepo.findOne({ userId }))
+            const userSubscription = (await this._userSubscriptionRepo.findOne({ userId }))
             if (!userSubscription) {
                 throw new HttpError(404, "User subscription not found!")
             }

@@ -6,42 +6,42 @@ import { IEditorService } from "./interface/IEditorService";
 
 export class EditorService implements IEditorService {
     constructor(
-        private readonly onlineUserRepo: IOnlineUserRepository,
-        private readonly roomRepository: IRoomRepository,
-        private readonly projectRepository: IProjectRepository
+        private readonly _onlineUserRepo: IOnlineUserRepository,
+        private readonly _roomRepository: IRoomRepository,
+        private readonly _projectRepository: IProjectRepository
     ) { }
 
     async joinRoom(projectId: string, userId: string, socketId: string): Promise<string[]> {
-        const isUserAlreadyInRoom = await this.onlineUserRepo.isUserOnline(projectId, userId)
+        const isUserAlreadyInRoom = await this._onlineUserRepo.isUserOnline(projectId, userId)
         if (!isUserAlreadyInRoom) {
-            await this.onlineUserRepo.addUserToRoom(projectId, userId, socketId);
+            await this._onlineUserRepo.addUserToRoom(projectId, userId, socketId);
         }
-        return this.onlineUserRepo.getUsersInRoom(projectId);
+        return this._onlineUserRepo.getUsersInRoom(projectId);
     }
 
     async leaveRoom(projectId: string, userId: string, socketId: string): Promise<string[]> {
-        await this.onlineUserRepo.removeUserFromRoom(projectId, userId, socketId);
-        return this.onlineUserRepo.getUsersInRoom(projectId);
+        await this._onlineUserRepo.removeUserFromRoom(projectId, userId, socketId);
+        return this._onlineUserRepo.getUsersInRoom(projectId);
     }
 
     async getOnlineUsers(projectId: string): Promise<string[]> {
-        return this.onlineUserRepo.getUsersInRoom(projectId);
+        return this._onlineUserRepo.getUsersInRoom(projectId);
     }
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
-        return await this.roomRepository.getRoomByProjectId(projectId)
+        return await this._roomRepository.getRoomByProjectId(projectId)
     }
 
     async saveCode(projectId: string, code: string): Promise<void> {
-        await this.projectRepository.updateCode(projectId, code)
+        await this._projectRepository.updateCode(projectId, code)
     }
 
     async isUserOnline(projectId: string, userId: string): Promise<boolean> {
-        return await this.onlineUserRepo.isUserOnline(projectId, userId)
+        return await this._onlineUserRepo.isUserOnline(projectId, userId)
     }
 
     async getSocketIdByUserId(userId: string, projectId: string): Promise<string | null> {
-        return await this.onlineUserRepo.getSocketIdByUserId(projectId, userId)
+        return await this._onlineUserRepo.getSocketIdByUserId(projectId, userId)
     }
 
 }

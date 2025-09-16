@@ -12,22 +12,22 @@ import { HttpStatusCode } from "../utils/httpStatusCodes"
 
 export class UserController {
     constructor(
-        private readonly userService: IUserService,
-        private readonly otpService: IOtpService,
-        private readonly mailService: IMailService,
+        private readonly _userService: IUserService,
+        private readonly _otpService: IOtpService,
+        private readonly _mailService: IMailService,
     ) { }
 
     createUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const validatedUser: UserInput = req.body
-            const userExist = await this.userService.findUserByEmail(validatedUser.email)
+            const userExist = await this._userService.findUserByEmail(validatedUser.email)
 
             if (userExist) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User already exists" })
                 return
             }
 
-            await this.otpService.generateAndSendOtp(validatedUser.email)
+            await this._otpService.generateAndSendOtp(validatedUser.email)
 
             const redisKey = `pendingUser:${validatedUser.email}`
             await redis.set(redisKey, JSON.stringify(validatedUser), 'EX', 300)
@@ -45,7 +45,7 @@ export class UserController {
         try {
             const { email, otp } = req.body
 
-            await this.otpService.verifyOtp(email, otp)
+            await this._otpService.verifyOtp(email, otp)
 
             const redisKey = `pendingUser:${email}`
             const userDataStr = await redis.get(redisKey)
@@ -57,7 +57,7 @@ export class UserController {
 
             const userData: UserInput = JSON.parse(userDataStr)
 
-            const newUser = await this.userService.createUser(userData)
+            const newUser = await this._userService.createUser(userData)
 
             await redis.del(redisKey)
 
@@ -100,7 +100,7 @@ export class UserController {
                 return
             }
 
-            await this.otpService.generateAndSendOtp(email)
+            await this._otpService.generateAndSendOtp(email)
 
             res.status(HttpStatusCode.OK).json({
                 message: "OTP resent to email. Please verify to complete registration."
@@ -114,7 +114,7 @@ export class UserController {
         try {
             const { email } = req.body
 
-            const user = await this.userService.findUserByEmail(email)
+            const user = await this._userService.findUserByEmail(email)
             if (!user) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "User Not Found!" })
                 return
@@ -127,11 +127,11 @@ export class UserController {
             const resetToken = crypto.randomBytes(32).toString("hex")
 
             const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
-            await this.userService.savePasswordResetToken(email, hashedToken, new Date(Date.now() + 3600000)); // 1h
+            await this._userService.savePasswordResetToken(email, hashedToken, new Date(Date.now() + 3600000)); // 1h
 
             const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}&email=${email}`
 
-            await this.mailService.sendResetLink(email, resetLink)
+            await this._mailService.sendResetLink(email, resetLink)
 
 
             res.status(HttpStatusCode.OK).json({
@@ -146,7 +146,7 @@ export class UserController {
         try {
             const credential: LoginInput = req.body
 
-            const userExist = await this.userService.findUserByEmail(credential.email)
+            const userExist = await this._userService.findUserByEmail(credential.email)
 
             if (!userExist) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
@@ -229,7 +229,7 @@ export class UserController {
     googleRegisterAuth = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const validatedUser: GoogleAuthInput = req.body
-            let user = await this.userService.findUserByEmail(validatedUser.email)
+            let user = await this._userService.findUserByEmail(validatedUser.email)
 
             if (user && !user.googleId) {
                 res.status(HttpStatusCode.CONFLICT).json({ message: "An account with this email already exists" })
@@ -245,7 +245,7 @@ export class UserController {
                     isAdmin: validatedUser.isAdmin ?? false,
                     isBlocked: validatedUser.isBlocked ?? false
                 };
-                user = await this.userService.createUser(newUserPayload);
+                user = await this._userService.createUser(newUserPayload);
             }
 
 
@@ -286,7 +286,7 @@ export class UserController {
                 return
             }
 
-            const user = await this.userService.findUserByEmail(email)
+            const user = await this._userService.findUserByEmail(email)
 
             if (!user) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
@@ -361,16 +361,16 @@ export class UserController {
 
             const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
 
-            const resetEntry = await this.userService.findResetToken(hashedToken, email)
+            const resetEntry = await this._userService.findResetToken(hashedToken, email)
 
             if (!resetEntry || Number(resetEntry.expireAt) < Date.now()) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid or expired token." });
                 return
             }
 
-            await this.userService.updateUserPassword(email, password)
+            await this._userService.updateUserPassword(email, password)
 
-            await this.userService.deleteResetToken(email)
+            await this._userService.deleteResetToken(email)
 
             res.status(HttpStatusCode.OK).json({ message: "Password has been reset successfully." });
         } catch (err) {
@@ -382,7 +382,7 @@ export class UserController {
         try {
             const { email, userId } = req.body
 
-            const allUsers = await this.userService.searchAllUsers(email, userId)
+            const allUsers = await this._userService.searchAllUsers(email, userId)
             const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
             res.status(HttpStatusCode.OK).json(userEmails);
 
@@ -396,7 +396,7 @@ export class UserController {
             const userId = req.user.id
             const userData = req.body
             console.log("user data", userData)
-            const updatedUser = await this.userService.updateUser(userId, userData)
+            const updatedUser = await this._userService.updateUser(userId, userData)
             const response = {
                 name: updatedUser.name,
                 email: updatedUser.email,
@@ -415,7 +415,7 @@ export class UserController {
     getUserData = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = req.user.id
-            const updatedUser = await this.userService.getUserData(userId)
+            const updatedUser = await this._userService.getUserData(userId)
 
             const data = {
                 name: updatedUser.name,

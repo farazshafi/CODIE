@@ -27,33 +27,33 @@ const COLOR_PALETTE = [
 
 export class EditorEvents implements IEventHandler {
     private io: Server;
-    private editorService: IEditorService;
-    private userSocketRepository: IUserSocketRepository;
-    private onlineUserRepository: IOnlineUserRepository;
+    private _editorService: IEditorService;
+    private _userSocketRepository: IUserSocketRepository;
+    private _onlineUserRepository: IOnlineUserRepository;
 
     constructor(
         io: Server,
-        editorService: IEditorService,
-        userSocketRepository: IUserSocketRepository,
-        onlineUserRepository: IOnlineUserRepository
+        _editorService: IEditorService,
+        _userSocketRepository: IUserSocketRepository,
+        _onlineUserRepository: IOnlineUserRepository
     ) {
         this.io = io;
-        this.editorService = editorService;
-        this.userSocketRepository = userSocketRepository;
-        this.onlineUserRepository = onlineUserRepository;
+        this._editorService = _editorService;
+        this._userSocketRepository = _userSocketRepository;
+        this._onlineUserRepository = _onlineUserRepository;
     }
 
     public register(socket: Socket): void {
-        socket.on('join-project', (data: JoinProjectData) => this.handleJoinRoom(data, socket));
-        socket.on('leave-project', (data: leaveProjectData) => this.handleLeaveRoom(data, socket));
-        socket.on('code-update', (data: updateCodeData) => this.handleCodeUpdate(data, socket));
-        socket.on('notify-role-change', (data: updateRoleData) => this.handleUpdateRole(data, socket));
+        socket.on('join-project', (data: JoinProjectData) => this._handleJoinRoom(data, socket));
+        socket.on('leave-project', (data: leaveProjectData) => this._handleLeaveRoom(data, socket));
+        socket.on('code-update', (data: updateCodeData) => this._handleCodeUpdate(data, socket));
+        socket.on('notify-role-change', (data: updateRoleData) => this._handleUpdateRole(data, socket));
 
         // lock system
-        socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'manual' }) => this.handleLockRequest(data, socket));
-        socket.on('lock:release', (data: { projectId: string, userId: string, ranges: string[] }) => this.handleLockRelease(data, socket));
-        socket.on('get-locked-lines', (data: { projectId: string }) => this.handleGetLockedLines(data, socket));
-        socket.on('cursor-update', (data: { projectId: string, userId: string, line: number }) => this.handleCursorUpdate(data, socket));
+        socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'manual' }) => this._handleLockRequest(data, socket));
+        socket.on('lock:release', (data: { projectId: string, userId: string, ranges: string[] }) => this._handleLockRelease(data, socket));
+        socket.on('get-locked-lines', (data: { projectId: string }) => this._handleGetLockedLines(data, socket));
+        socket.on('cursor-update', (data: { projectId: string, userId: string, line: number }) => this._handleCursorUpdate(data, socket));
 
     }
 
@@ -61,12 +61,12 @@ export class EditorEvents implements IEventHandler {
         const projectId = socket.data.projectId;
         const userId = socket.data.userId;
         if (projectId && userId) {
-            this.handleLeaveRoom({ projectId, userId, userName: '' }, socket);
+            this._handleLeaveRoom({ projectId, userId, userName: '' }, socket);
         }
     }
 
-    private async handleJoinRoom(data: JoinProjectData, client: Socket): Promise<void> {
-        const onlineUsers = await this.editorService.joinRoom(data.projectId, data.userId, client.id);
+    private async _handleJoinRoom(data: JoinProjectData, client: Socket): Promise<void> {
+        const onlineUsers = await this._editorService.joinRoom(data.projectId, data.userId, client.id);
         client.join(data.projectId);
         client.data.projectId = data.projectId;
         client.data.userId = data.userId;
@@ -74,7 +74,7 @@ export class EditorEvents implements IEventHandler {
         let userMeta = await redis.hgetall(`userMeta:${data.userId}`);
 
         if (!userMeta || !userMeta.color) {
-            const color = await this.getAvailableColor();
+            const color = await this._getAvailableColor();
             await redis.hset(`userMeta:${data.userId}`, {
                 name: data.userName,
                 color
@@ -92,7 +92,7 @@ export class EditorEvents implements IEventHandler {
         console.log(`User ${data.userName} joined with color ${color}`);
     }
 
-    private async handleLeaveRoom(data: leaveProjectData, client: Socket): Promise<void> {
+    private async _handleLeaveRoom(data: leaveProjectData, client: Socket): Promise<void> {
         const { projectId, userId } = data;
 
         // Remove user meta from Redis
@@ -108,7 +108,7 @@ export class EditorEvents implements IEventHandler {
             }
         }
 
-        const onlineUsers = await this.editorService.leaveRoom(projectId, userId, client.id);
+        const onlineUsers = await this._editorService.leaveRoom(projectId, userId, client.id);
         client.leave(projectId);
         client.to(projectId).emit('online-users', onlineUsers);
         client.to(projectId).emit('user-left', { message: `${data.userName} left the editor.` });
@@ -117,7 +117,7 @@ export class EditorEvents implements IEventHandler {
 
     }
 
-    private async handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
+    private async _handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
         const { userId, projectId, content, ranges } = data;
         const lockKey = `lineLocks:${projectId}`;
 
@@ -136,7 +136,7 @@ export class EditorEvents implements IEventHandler {
             }
         }
 
-        const room = await this.editorService.getRoomByProjectId(projectId);
+        const room = await this._editorService.getRoomByProjectId(projectId);
         if (!room) {
             return;
         }
@@ -150,14 +150,14 @@ export class EditorEvents implements IEventHandler {
         }
     }
 
-    private async handleUpdateRole(data: updateRoleData, socket: Socket): Promise<void> {
+    private async _handleUpdateRole(data: updateRoleData, socket: Socket): Promise<void> {
         const { userId, role, projectId } = data;
-        const isUserOnline = await this.editorService.isUserOnline(projectId, userId);
+        const isUserOnline = await this._editorService.isUserOnline(projectId, userId);
         if (!isUserOnline) {
             socket.emit('error', { message: 'user to update not in online' });
             return;
         }
-        const targetSocketId = await this.editorService.getSocketIdByUserId(userId, projectId);
+        const targetSocketId = await this._editorService.getSocketIdByUserId(userId, projectId);
         if (!targetSocketId) {
             socket.emit('error', { message: 'targetted socket not found' });
             return;
@@ -167,7 +167,7 @@ export class EditorEvents implements IEventHandler {
         console.log("refetch permission sedned".yellow)
     }
 
-    private async handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
+    private async _handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
         const { projectId, userId, type } = data;
         const ranges = Array.isArray(data.ranges) ? data.ranges : [data.ranges];
 
@@ -216,7 +216,7 @@ export class EditorEvents implements IEventHandler {
             socket.to(projectId).emit('lock:granted', { range: r, userId, userName: name, color, type });
         }
     }
-    private async handleLockRelease(data: { projectId: string, userId: string, ranges: string[] }, socket: Socket) {
+    private async _handleLockRelease(data: { projectId: string, userId: string, ranges: string[] }, socket: Socket) {
         const { projectId, userId, ranges } = data;
         const lockKey = `lineLocks:${projectId}`;
 
@@ -230,7 +230,7 @@ export class EditorEvents implements IEventHandler {
         }
     }
 
-    private async handleGetLockedLines(data: { projectId: string }, socket: Socket) {
+    private async _handleGetLockedLines(data: { projectId: string }, socket: Socket) {
         const { projectId } = data;
         const lockKey = `lineLocks:${projectId}`;
         const existingLocksRaw = await redis.hgetall(lockKey);
@@ -251,7 +251,7 @@ export class EditorEvents implements IEventHandler {
         socket.emit('locked-lines', { projectId, locks });
     }
 
-    private async getAvailableColor(): Promise<string> {
+    private async _getAvailableColor(): Promise<string> {
         const keys = await redis.keys('userMeta:*');
         const colors = new Set<string>();
 
@@ -267,7 +267,7 @@ export class EditorEvents implements IEventHandler {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
-    private async handleCursorUpdate(data: { projectId: string, userId: string, line: number }, socket: Socket) {
+    private async _handleCursorUpdate(data: { projectId: string, userId: string, line: number }, socket: Socket) {
         const { projectId, userId, line } = data;
 
         const userMeta = await redis.hgetall(`userMeta:${userId}`);

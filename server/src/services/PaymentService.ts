@@ -5,27 +5,27 @@ import { IPaymentService } from "./interface/IPaymentService";
 import { HttpError } from "../utils/HttpError";
 
 export class PaymentService implements IPaymentService {
-    constructor(private paymentRepository: PaymentRepository) { }
+    constructor(private _paymentRepository: PaymentRepository) { }
 
     async createPayment(paymentData: Partial<IPayment>): Promise<IPayment> {
-        return await this.paymentRepository.create(paymentData as IPayment);
+        return await this._paymentRepository.create(paymentData as IPayment);
     }
 
     async getPaymentById(id: string): Promise<IPayment | null> {
-        return await this.paymentRepository.findById(id);
+        return await this._paymentRepository.findById(id);
     }
 
     async getAllPayments(): Promise<IPayment[]> {
-        return await this.paymentRepository.findAll();
+        return await this._paymentRepository.findAll();
     }
 
     async updatePayment(id: string, paymentData: Partial<IPayment>): Promise<IPayment | null> {
-        return await this.paymentRepository.update(id, paymentData);
+        return await this._paymentRepository.update(id, paymentData);
     }
 
     async handleFailedPayment(userId: string, planId: string, razorpay_payment_id: string, amount: number): Promise<IPayment | null> {
         try {
-            const payment = await this.paymentRepository.create({
+            const payment = await this._paymentRepository.create({
                 userId: new mongoose.Types.ObjectId(userId),
                 subscriptionId: new mongoose.Types.ObjectId(planId),
                 amount,
@@ -46,8 +46,8 @@ export class PaymentService implements IPaymentService {
     async getUserPaymentHistory(userId: string, page: number, limit: number): Promise<{ paymentHistory: IPayment[], totalPages: number }> {
         try {
             const skip = (page - 1) * limit;
-            const paymentHistory = await this.paymentRepository.getModel().find({ userId }).populate("subscriptionId", ["name"]).skip(skip).limit(limit);
-            const totalCount = await this.paymentRepository.getModel().countDocuments({ userId });
+            const paymentHistory = await this._paymentRepository.getModel().find({ userId }).populate("subscriptionId", ["name"]).skip(skip).limit(limit);
+            const totalCount = await this._paymentRepository.getModel().countDocuments({ userId });
             const totalPages = Math.ceil(totalCount / limit);
             return { paymentHistory, totalPages };
         } catch (error) {
@@ -60,7 +60,7 @@ export class PaymentService implements IPaymentService {
 
     async adminDashboardPaymenttData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }> {
         try {
-            const totalCompletedAmountAgg = await this.paymentRepository.getModel().aggregate([
+            const totalCompletedAmountAgg = await this._paymentRepository.getModel().aggregate([
                 { $match: { paymentStatus: "completed" } },
                 { $group: { _id: null, totalAmount: { $sum: "$amount" } } }
             ]);
@@ -70,9 +70,9 @@ export class PaymentService implements IPaymentService {
             const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-            const paymentThisMonth = await this.paymentRepository.count({ createdAt: { $gte: startOfThisMonth } });
+            const paymentThisMonth = await this._paymentRepository.count({ createdAt: { $gte: startOfThisMonth } });
 
-            const paymentLastMonth = await this.paymentRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+            const paymentLastMonth = await this._paymentRepository.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
 
             let change = '0%';
             let positive = true;
@@ -102,7 +102,7 @@ export class PaymentService implements IPaymentService {
 
     async getPaymentDataAdmin(): Promise<IPayment[]> {
         try {
-            return await this.paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"])
+            return await this._paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"])
         } catch (error) {
             console.log(error);
             throw new HttpError(500, "Server error while getting payment data");
@@ -111,7 +111,7 @@ export class PaymentService implements IPaymentService {
 
     async updatePaymentStatus(id: string, status: "completed" | "failed"): Promise<IPayment> {
         try {
-            const payment = await this.paymentRepository.findOneAndUpdate({ _id: id }, { paymentStatus: status })
+            const payment = await this._paymentRepository.findOneAndUpdate({ _id: id }, { paymentStatus: status })
             if (!payment) {
                 throw new HttpError(404, "Payment with id is not found!")
             }

@@ -15,9 +15,9 @@ import redis from '../config/redis';
 
 export class SocketManager {
     private io: Server;
-    private userSocketRepository: UserSocketRepository;
-    private onlineUserRepository: OnlineUserRepository;
-    private eventHandlers: IEventHandler[];
+    private _userSocketRepository: UserSocketRepository;
+    private _onlineUserRepository: OnlineUserRepository;
+    private _eventHandlers: IEventHandler[];
 
     constructor(server: http.Server) {
         this.io = new Server(server, {
@@ -32,15 +32,15 @@ export class SocketManager {
 
         this.io.adapter(createAdapter(pubClient, subClient));
 
-        this.userSocketRepository = userSocketRepository;
-        this.onlineUserRepository = onlineUserRepository;
+        this._userSocketRepository = userSocketRepository;
+        this._onlineUserRepository = onlineUserRepository;
 
-        this.eventHandlers = [
-            new EditorEvents(this.io, editorService, this.userSocketRepository, this.onlineUserRepository),
-            new InvitationEvents(this.io, roomSocketService, this.userSocketRepository),
+        this._eventHandlers = [
+            new EditorEvents(this.io, editorService, this._userSocketRepository, this._onlineUserRepository),
+            new InvitationEvents(this.io, roomSocketService, this._userSocketRepository),
             new MessageEvents(this.io, messageService),
-            new RequestEvents(this.io, roomSocketService, this.userSocketRepository),
-            new UserEvents(this.io, userSocketService, this.userSocketRepository)
+            new RequestEvents(this.io, roomSocketService, this._userSocketRepository),
+            new UserEvents(this.io, userSocketService, this._userSocketRepository)
         ];
     }
 
@@ -49,22 +49,22 @@ export class SocketManager {
             console.log(`New client connected: ${socket.id}`.cyan);
 
             socket.on('register-user', async (userId: string) => {
-                await this.userSocketRepository.add(userId, socket.id);
+                await this._userSocketRepository.add(userId, socket.id);
                 console.log(`User registered: ${userId}, Socket ID: ${socket.id}`.blue);
             });
 
-            this.eventHandlers.forEach(handler => handler.register(socket));
+            this._eventHandlers.forEach(handler => handler.register(socket));
 
             socket.on('disconnect', async () => {
-                const userId = await this.userSocketRepository.getUserId(socket.id);
+                const userId = await this._userSocketRepository.getUserId(socket.id);
                 if (userId) {
                     // Notify other services about the disconnection
-                    this.eventHandlers.forEach(handler => {
+                    this._eventHandlers.forEach(handler => {
                         if (handler.onDisconnect) {
                             handler.onDisconnect(socket);
                         }
                     });
-                    await this.userSocketRepository.remove(socket.id);
+                    await this._userSocketRepository.remove(socket.id);
                     console.log(`User disconnected: ${userId}`.red);
                 }
             });
