@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IMessageService } from "../services/interface/IMessageService";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
-
+import { ApiResponse } from "../utils/ApiResponse";
 
 export class MessageController {
     constructor(
@@ -11,18 +11,22 @@ export class MessageController {
     createMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const message = await this._messageService.createMessage(req.body);
-            res.status(HttpStatusCode.CREATED).json(message);
+
+            const response = new ApiResponse(HttpStatusCode.CREATED, message, "Message created successfully");
+            res.status(response.statusCode).json(response);
         } catch (err) {
-            next(err)
+            next(err);
         }
     }
 
     getByRoomId = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const messages = await this._messageService.getMessagesForRoom(req.params.roomId);
-            res.status(HttpStatusCode.OK).json(messages);
+
+            const response = new ApiResponse(HttpStatusCode.OK, messages, "Fetched messages for room successfully");
+            res.status(response.statusCode).json(response);
         } catch (err) {
-            next(err)
+            next(err);
         }
     }
 }

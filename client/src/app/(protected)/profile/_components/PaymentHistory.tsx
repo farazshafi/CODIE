@@ -22,8 +22,8 @@ const PaymentHistory = () => {
   const { mutate: getPaymentHistory, isLoading: paymentHistoryLoading } = useMutationHook(getUserPaymentHistoryApi, {
     onSuccess(data) {
       console.log("Payment history: ", data)
-      setPaymentHistory(data.paymentHistory || []);
-      setTotalPage(data.totalPages)
+      setPaymentHistory(data.data.paymentHistory || []);
+      setTotalPage(data.data.totalPages)
     }
   })
 

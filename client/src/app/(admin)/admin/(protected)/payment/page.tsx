@@ -24,14 +24,14 @@ const PaymentPage = () => {
     const { mutate: getPaymentData } = useMutationHook(getPaymentDataApi, {
         onSuccess(data) {
             console.log("Payment Data: ", data)
-            setPayments(data)
+            setPayments(data.data)
         }
     })
 
     const { mutate: updateStatus } = useMutationHook(updatePaymentStatusApi, {
         onSuccess() {
             toast.success("Updated Status")
-            getPaymentData({})
+            getPaymentData()
         }
     })
 

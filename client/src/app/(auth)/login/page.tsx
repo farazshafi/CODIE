@@ -34,7 +34,7 @@ const Page = () => {
 
     const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(response) {
-            setSubscription(response)
+            setSubscription(response.data)
         }
     })
 
@@ -46,7 +46,7 @@ const Page = () => {
                 name: data.data.name,
                 email: data.data.email,
                 avatar: data.data.avatar,
-                token: data.accessToken,
+                token: data.data.accessToken,
                 id: data.data.id,
                 isAdmin: data.data.isAdmin,
                 github: data.data.github,
@@ -76,7 +76,7 @@ const Page = () => {
             setUser({
                 email: data.data.email,
                 name: data.data.name,
-                token: data.accessToken,
+                token: data.data.accessToken,
                 avatar: data.data.avatar,
                 id: data.data.id,
                 isAdmin: data.data.isAdmin,

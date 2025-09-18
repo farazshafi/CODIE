@@ -100,11 +100,11 @@ export class SubscriptionController {
 
             if (status === "suspend") {
                 await this._subscriptionService.blockSubscription(id)
-                res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "subscription Blocked Successfully" })
                 return
             } else if (status === "active") {
                 await this._subscriptionService.unblockSubscription(id)
-                res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
+                res.status(HttpStatusCode.OK).json({ message: "subscription Unblocked Successfully" })
                 return
             }
         } catch (error) {

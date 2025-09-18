@@ -31,7 +31,7 @@ export default function ContributorsCircle() {
   const { mutate: getContributors } = useMutationHook(getAllContributersForUserApi, {
     onSuccess(data) {
       // Sort by contributions descending
-      const sorted = data.sort((a: Contributor, b: Contributor) => b.contributions - a.contributions);
+      const sorted = data.data.sort((a: Contributor, b: Contributor) => b.contributions - a.contributions);
       setContributors(sorted);
     },
   });

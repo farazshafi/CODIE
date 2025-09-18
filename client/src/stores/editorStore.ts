@@ -12,7 +12,7 @@ interface useState {
     setProjectId: (projectId: string | null) => void;
     setUserRole: (role: "owner" | "editor" | "viewer") => void;
     setOwnerId: (ownerId: string | null) => void,
-    setContributionEnabled: () => void
+    setContributionEnabled: (value: boolean) => void
 }
 
 export const useEditorStore = create<useState>()(
@@ -27,7 +27,7 @@ export const useEditorStore = create<useState>()(
             setProjectId: (projectId) => set({ projectId }),
             setUserRole: (userRole) => set({ userRole }),
             setOwnerId: (ownerId) => set({ ownerId }),
-            setContributionEnabled: () => set({ isContributionEnabled: true })
+            setContributionEnabled: (value) => set({ isContributionEnabled: value })
         }),
         {
             name: "editor-store",

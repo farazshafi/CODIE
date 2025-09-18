@@ -46,9 +46,7 @@ API.interceptors.response.use(
                     {},
                     { withCredentials: true }
                 );
-
-                const newAccessToken = tokenResponse.data.accessToken;
-
+                const newAccessToken = tokenResponse.data.data.accessToken;
                 const userStorage = localStorage.getItem("user-storage");
                 if (userStorage) {
                     const userData = JSON.parse(userStorage);

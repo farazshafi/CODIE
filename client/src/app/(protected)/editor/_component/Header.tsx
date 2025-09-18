@@ -81,9 +81,9 @@ const Header = ({
     const { mutate } = useMutationHook(enableCollabrationApi, {
         onSuccess(res) {
             setIsWantToCollab(true)
-            setRoomId(res.data.roomId)
+            setRoomId(res.data.data.roomId)
             toast.message("Enabled collabration!")
-            
+
         },
         onError(error) {
             toast.error(error?.response?.data?.message || "Something went wrong!");
@@ -92,23 +92,24 @@ const Header = ({
 
     const { mutate: getRoomByProjectId } = useMutationHook(getRoomByProjectIdApi, {
         onSuccess(res) {
+            console.log("get room by project id: data", res.data)
             setRoomId(res.data.roomId)
             setIsWantToCollab(true)
             setOwnerId(res.data.owner)
             storeOnwerId(res.data.owner)
         },
         onError(error) {
-            console.log("room getting error: ",error)
+            console.log("room getting error: ", error)
             setIsWantToCollab(false)
         },
     })
 
     const { mutate: getUserSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
-            console.log(data.text)
+            console.log(data.data.text)
             setChatSupport({
-                text: data.text,
-                voice: data.voice
+                text: data.data.text,
+                voice: data.data.voice
             })
         }, onError(error) {
             console.log("server error", error)

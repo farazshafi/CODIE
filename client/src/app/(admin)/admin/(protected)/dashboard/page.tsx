@@ -21,16 +21,16 @@ const Dashboard = () => {
         onSuccess(data) {
             console.log("Dashboard Data: ", data)
             setStatsCards([
-                data.userData,
-                data.projectData,
-                data.paymentData
+                data.data.userData,
+                data.data.projectData,
+                data.data.paymentData
             ])
         }
 
     })
 
     useEffect(() => {
-        getDashboardData({})
+        getDashboardData()
     }, [])
 
     return (

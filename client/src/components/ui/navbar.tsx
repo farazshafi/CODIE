@@ -125,6 +125,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
 
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {
         onSuccess(res) {
+            console.log("sended data:",res.data)
             setSendedData(res.data);
             updateNotificationCount();
         },
@@ -132,14 +133,14 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
 
     const { mutate: getAllRecReq } = useMutationHook(getAllRecivedRequestApi, {
         onSuccess(res) {
-            setRecivedData(res)
+            setRecivedData(res.data)
             updateNotificationCount();
         },
     });
 
     const { mutate: getRecInvitations } = useMutationHook(getRecivedInvitationsApi, {
         onSuccess(data) {
-            setRecivedInvitation(data);
+            setRecivedInvitation(data.data);
             updateNotificationCount();
         },
     });

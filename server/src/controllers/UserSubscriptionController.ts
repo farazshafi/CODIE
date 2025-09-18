@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IUserSubscriptionService } from "../services/interface/IUserSubscriptionService";
 import { razorpayInstance } from "../config/razorpay";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
+import { ApiResponse } from "../utils/ApiResponse";
 
 
 export class UserSubscriptionController {
@@ -15,7 +16,7 @@ export class UserSubscriptionController {
             const userPlan = await this._userSubscriptionService.findUserSubscription(userId)
             const userSubsription = await this._userSubscriptionService.getUserSubscription(userId)
 
-            res.status(HttpStatusCode.OK).json({
+            const response = new ApiResponse(HttpStatusCode.OK, {
                 text: userPlan.chatSupport.text,
                 voice: userPlan.chatSupport.voice,
                 id: userPlan.id, name: userPlan.name,
@@ -24,7 +25,9 @@ export class UserSubscriptionController {
                 nextPlanId: userSubsription.nextPlan,
                 endDate: userSubsription.endDate,
                 startDate: userSubsription.startDate,
-            })
+            }, "Fetched User subscription")
+            res.status(response.statusCode).json(response)
+
         } catch (error) {
             next(error)
         }
@@ -40,8 +43,8 @@ export class UserSubscriptionController {
             }
 
             const { id } = await razorpayInstance.orders.create(options)
-            res.status(HttpStatusCode.OK).json({ id, amount, currency })
-
+            const response = new ApiResponse(HttpStatusCode.CREATED, { id, amount, currency }, "Successfully Subscribed")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -53,7 +56,8 @@ export class UserSubscriptionController {
 
             const userSub = await this._userSubscriptionService.verifyPaymentAndUpdateUserSubscription(razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, planId, amount)
 
-            res.status(HttpStatusCode.OK).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
+            const response = new ApiResponse(HttpStatusCode.OK, userSub, "Successfully Subscribed To see details navigate to profile.")
+            res.status(response.statusCode).json(response)
 
         } catch (error) {
             next(error)
@@ -63,11 +67,15 @@ export class UserSubscriptionController {
     downgradeToFree = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { userId } = req.body
-            if (!userId) res.status(HttpStatusCode.BAD_REQUEST).json({ message: "UserId required!" })
+            if (!userId) {
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "User id is required")
+                res.status(response.statusCode).json(response)
+            }
 
             const userSub = await this._userSubscriptionService.downgradeToFreePlan(userId)
 
-            res.status(HttpStatusCode.OK).json({ userSub, message: "Successfully Subscribed, To see details navigate to profile" })
+            const response = new ApiResponse(HttpStatusCode.OK, userSub, "Successfully Subscribed To see details navigate to profile.")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -77,9 +85,10 @@ export class UserSubscriptionController {
         try {
             const userId = req.user.id
 
-            const userSub = await this._userSubscriptionService.getAiUsage(userId)
+            const aiUsage = await this._userSubscriptionService.getAiUsage(userId)
 
-            res.status(HttpStatusCode.OK).json(userSub)
+            const response = new ApiResponse(HttpStatusCode.OK, aiUsage, "Successfully Fetched ai usage.")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }

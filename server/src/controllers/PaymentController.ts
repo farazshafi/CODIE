@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IPaymentService } from "../services/interface/IPaymentService";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
+import { ApiResponse } from "../utils/ApiResponse";
 
 export class PaymentController {
     constructor(private readonly _paymentService: IPaymentService) { }
@@ -9,7 +10,9 @@ export class PaymentController {
         try {
             const payments = await this._paymentService.getAllPayments();
             const totalRevenue = payments.reduce((acc, payment) => acc + payment.amount, 0);
-            res.status(HttpStatusCode.OK).json({ payments, totalRevenue });
+
+            const response = new ApiResponse(HttpStatusCode.OK, { payments, totalRevenue }, "Fetched sales data successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }
@@ -17,9 +20,11 @@ export class PaymentController {
 
     paymentFailure = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId, planId, razorpayId, amount } = req.body
-            await this._paymentService.handleFailedPayment(userId, planId, razorpayId, amount)
-            res.status(HttpStatusCode.OK).json({ message: "Payment Failed!, Try again" });
+            const { userId, planId, razorpayId, amount } = req.body;
+            await this._paymentService.handleFailedPayment(userId, planId, razorpayId, amount);
+
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Payment Failed! Try again");
+            res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }
@@ -27,11 +32,14 @@ export class PaymentController {
 
     getUserPaymentHistory = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = req.user.id
+            const userId = req.user.id;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
-            const { paymentHistory, totalPages } = await this._paymentService.getUserPaymentHistory(userId, page, limit)
-            res.status(HttpStatusCode.OK).json({ paymentHistory, totalPages });
+
+            const { paymentHistory, totalPages } = await this._paymentService.getUserPaymentHistory(userId, page, limit);
+
+            const response = new ApiResponse(HttpStatusCode.OK, { paymentHistory, totalPages }, "Fetched user payment history");
+            res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }

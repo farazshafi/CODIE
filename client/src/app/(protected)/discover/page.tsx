@@ -39,10 +39,10 @@ const Page = () => {
 
     const { mutate, isLoading } = useMutationHook(findDiscoveriesApi, {
         onSuccess(data) {
-            
-            setDiscoveries(data.discoveries);
-            setTotalPage(data.totalPages);
-            setCurrentPage(data.currentPage);
+            console.log("discoverApi data",data)
+            setDiscoveries(data.data.discoveries);
+            setTotalPage(data.data.totalPages);
+            setCurrentPage(data.data.currentPage);
         }
     });
 

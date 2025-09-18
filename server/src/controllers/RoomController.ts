@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IRoomService } from "../services/interface/IRoomService";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
-
+import { ApiResponse } from "../utils/ApiResponse";
 
 export class RoomController {
     constructor(
@@ -10,111 +10,106 @@ export class RoomController {
 
     createRoom = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { projectId } = req.body
-            const ownderId = req?.user?.id
+            const { projectId } = req.body;
+            const ownerId = req?.user?.id;
 
-            const room = await this._roomService.createRoom(projectId, ownderId)
-            res.status(HttpStatusCode.CREATED).json({
-                status: 'success',
-                message: 'Room created successfully',
-                data: {
-                    roomId: room.roomId,
-                }
-            });
+            const room = await this._roomService.createRoom(projectId, ownerId);
+
+            const response = new ApiResponse(
+                HttpStatusCode.CREATED,
+                { roomId: room.roomId },
+                "Room created successfully"
+            );
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     getRoomByProjectId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { projectId } = req.params
-            const room = await this._roomService.getRoomByProjectId(projectId)
+            const { projectId } = req.params;
+            const room = await this._roomService.getRoomByProjectId(projectId);
 
             if (!room) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
-                return
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "Room not found");
+                res.status(response.statusCode).json(response);
+                return;
             }
 
-            res.status(HttpStatusCode.OK).json({
-                status: 'success',
-                data: room
-            });
+            const response = new ApiResponse(HttpStatusCode.OK, room, "Room fetched successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     getContributers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { projectId } = req.params
-            const room = await this._roomService.getRoomByProjectId(projectId)
+            const { projectId } = req.params;
+            const room = await this._roomService.getRoomByProjectId(projectId);
 
             if (!room) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Room Not Found" })
-                return
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "Room not found");
+                res.status(response.statusCode).json(response);
+                return;
             }
 
-            res.status(HttpStatusCode.OK).json({
-                status: 'success',
-                data: room.collaborators
-            });
+            const response = new ApiResponse(HttpStatusCode.OK, room.collaborators, "Contributors fetched successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     updateRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { roomId, userId, role } = req.body
+            const { roomId, userId, role } = req.body;
 
-            await this._roomService.updateCollabratorRole(roomId, userId, role)
+            await this._roomService.updateCollabratorRole(roomId, userId, role);
 
-            res.status(HttpStatusCode.OK).json({
-                status: 'success',
-                message: "successfully updated role"
-            });
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Role updated successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     checkPermission = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { userId, roomId } = req.body
+            const { userId, roomId } = req.body;
 
-            const isEligibleToEdit: boolean = await this._roomService.isEligibleToEdit(userId, roomId)
-            console.log("check permision is Eligible, ", isEligibleToEdit)
+            const isAllowed: boolean = await this._roomService.isEligibleToEdit(userId, roomId);
 
-            res.status(HttpStatusCode.OK).json({ isAllowed: isEligibleToEdit })
-
+            const response = new ApiResponse(HttpStatusCode.OK, { isAllowed }, "Permission check completed");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     removeUserFromContributers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { userId, projectId } = req.body
+            const { userId, projectId } = req.body;
 
-            await this._roomService.removeContributer(userId, projectId)
+            await this._roomService.removeContributer(userId, projectId);
 
-            res.status(HttpStatusCode.OK).json({ message: "You successfully removed" })
-
+            const response = new ApiResponse(HttpStatusCode.OK, null, "User removed successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 
     getAllContributorsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = req.user.id
-            const contributers = await this._roomService.getAllContributorsForUser(userId)
+            const userId = req.user.id;
+            const contributors = await this._roomService.getAllContributorsForUser(userId);
 
-            res.status(HttpStatusCode.OK).json(contributers)
-
+            const response = new ApiResponse(HttpStatusCode.OK, contributors, "Contributors fetched successfully");
+            res.status(response.statusCode).json(response);
         } catch (error) {
-            next(error)
+            next(error);
         }
-    }
+    };
 }

@@ -16,14 +16,14 @@ const Page = () => {
 
     const { mutate: getStarredSnippets, isLoading } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
-            console.log("user starred projects", data)
-            setSnippets(data)
+            console.log("user starred projects", data.data)
+            setSnippets(data.data)  
         },
     })
     const { mutate: removeStarredSnippet , isLoading: unstarring} = useMutationHook(removeSnippetApi, {
         onSuccess(data) {
             toast.success(data.message || "Unstarred Snippet")
-            getStarredSnippets({})
+            getStarredSnippets()
         },
     })
 

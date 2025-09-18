@@ -48,9 +48,9 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
 
     const { mutate: getStarredSnippet } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
-            console.log("raw data", data);
-            const starredIds = Array.isArray(data)
-                ? data.map((item) => item?.projectId?._id)
+            console.log("raw data", data.data);
+            const starredIds = Array.isArray(data.data)
+                ? data.data.map((item) => item?.projectId?._id)
                 : [];
             setStarred(starredIds)
         }

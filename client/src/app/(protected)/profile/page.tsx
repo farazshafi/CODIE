@@ -41,7 +41,7 @@ const Page = () => {
 
     const { mutate: getAiUsage } = useMutationHook(getUserAiUsageApi, {
         onSuccess(data) {
-            setAiUsage(data);
+            setAiUsage(data.data);
         },
     });
 
@@ -53,20 +53,21 @@ const Page = () => {
 
     const { mutate: getStarredSnippets, isLoading: snippetsLoading } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
-            setTotalStarredSnippet(data.length)
+            setTotalStarredSnippet(data.data.length)
         },
     })
 
     const { mutate: getUsedLanguage } = useMutationHook(getUsedLanguagesApi, {
         onSuccess(data) {
-            setUsedLanguages(data.usedLangauges);
+            console.log("used langes data",data.data)
+            setUsedLanguages(data.data);
         },
     });
 
     const { mutate: getUserData } = useMutationHook(getUserApi, {
         onSuccess(data) {
             console.log("user data: ", data)
-            setUser({ ...user, ...data })
+            setUser({ ...user, ...data.data })
         },
     });
 

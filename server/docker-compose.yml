@@ -3,7 +3,7 @@ services:
   app:
     build: .
     deploy:
-      replicas: 3
+      replicas: 2
     expose:
       - "5000"
     networks:

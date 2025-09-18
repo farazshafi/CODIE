@@ -47,7 +47,7 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
     })
     const { mutate: searchUsers, isLoading: searchUserLoading } = useMutationHook(searchUsersApi, {
         onSuccess(data) {
-            setUserResult(data)
+            setUserResult(data.data)
         },
         onError(error) {
             toast.error(error.response.data.message || "Search failed")

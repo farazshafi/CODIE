@@ -10,7 +10,7 @@ interface DiscoverQuery {
 export const findDiscoveriesApi = async (params: DiscoverQuery) => {
   try {
     const response = await API.get("/discover", { params });
-    return response.data.discoveries;
+    return response.data;
   } catch (error) {
     console.log("Error while getting Discoveries");
     throw error;

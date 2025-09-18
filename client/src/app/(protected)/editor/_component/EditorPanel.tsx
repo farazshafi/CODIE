@@ -38,22 +38,24 @@ export default function EditorPanel() {
   /** ✅ API mutations */
   const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
-      setCode(data.data.projectCode || "");
+      setCode(data.data.data.projectCode || "");
       setLastValidCode(data.data.projectCode || "");
     },
   });
 
   const { mutate: checkPermission } = useMutationHook(checkIsEligibleToEditApi, {
     onSuccess(data) {
-      setIsEditable(data.isAllowed || false);
-      setContributionEnabled()
+      setIsEditable(data.data.isAllowed || false);
+      setContributionEnabled(true)
     },
     onError(error) {
       console.log("error: ", error)
       if (error.response.data.message === "Room Not found!" || error.response.data.message === "User not found in collabrators") {
         setIsEditable(true);
+        setContributionEnabled(false)
       } else {
         setIsEditable(false);
+        setContributionEnabled(false)
       }
     },
   });
@@ -82,11 +84,14 @@ export default function EditorPanel() {
   /** ✅ Save full code (debounced) */
   const debouncedSaveCode = useCallback(
     debounce((updatedCode: string) => {
+      console.log("isContributionEnabled", isContributionEnabled)
       if (isContributionEnabled) {
+        console.log("user is owner check", ownerId, user?.id)
         if (!projectId || user?.id !== ownerId) return;
         saveCode({ code: updatedCode, projectId });
         setLastValidCode(updatedCode);
       } else {
+        console.log("code save ...")
         saveCode({ code: updatedCode, projectId });
         setLastValidCode(updatedCode);
       }
@@ -205,7 +210,6 @@ export default function EditorPanel() {
 
     // Always save the code to DB
     debouncedSaveCode(value);
-    console.log("changes comming... code edit", value)
 
     // Emit code update only if there is a room
     if (roomId) {

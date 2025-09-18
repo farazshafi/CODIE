@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IDiscoverService } from "../services/interface/IDiscoverService";
 import mongoose from "mongoose";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
+import { ApiResponse } from "../utils/ApiResponse";
 
 
 export class DiscoverController {
@@ -13,10 +14,14 @@ export class DiscoverController {
         try {
             const userId = req.user.id
             const { projectId } = req.body
-            if (!projectId) res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Project Id is Required" })
+            if (!projectId) {
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Project Id is required")
+                res.status(response.statusCode).json(response)
+            }
 
             await this._discoverService.create(new mongoose.Types.ObjectId(projectId), userId)
-            res.status(HttpStatusCode.CREATED).json({ message: "Shared to Discover" })
+            const response = new ApiResponse(HttpStatusCode.CREATED, null, "Shared to Discover")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -38,7 +43,8 @@ export class DiscoverController {
 
             const discoveries = await this._discoverService.findDiscoveries(filter, pagination)
 
-            res.status(HttpStatusCode.OK).json({ discoveries })
+            const response = new ApiResponse(HttpStatusCode.OK, discoveries, "Discovery succesfully founded")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -49,7 +55,8 @@ export class DiscoverController {
             const { id } = req.params
             await this._discoverService.removeProject(id)
 
-            res.status(HttpStatusCode.OK).json({ message: "removed from discovery" })
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Removed From Discovery")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -61,7 +68,8 @@ export class DiscoverController {
             const userId = req.user.id
 
             const explanation = await this._discoverService.getCodeExplanation(code, userId)
-            res.status(HttpStatusCode.OK).json(explanation)
+            const response = new ApiResponse(HttpStatusCode.OK, explanation, "Generated explanation succesfully")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }

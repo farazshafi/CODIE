@@ -9,6 +9,7 @@ import crypto from "crypto"
 import { IMailService } from "../services/interface/IMailService"
 import jwt from "jsonwebtoken"
 import { HttpStatusCode } from "../utils/httpStatusCodes"
+import { ApiResponse } from "../utils/ApiResponse"
 
 export class UserController {
     constructor(
@@ -23,7 +24,8 @@ export class UserController {
             const userExist = await this._userService.findUserByEmail(validatedUser.email)
 
             if (userExist) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User already exists" })
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "User already exist")
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -32,9 +34,12 @@ export class UserController {
             const redisKey = `pendingUser:${validatedUser.email}`
             await redis.set(redisKey, JSON.stringify(validatedUser), 'EX', 300)
 
-            res.status(HttpStatusCode.OK).json({
-                message: "OTP sent to email. Please verify to complete registration."
-            })
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                null,
+                "OTP sent to email. Please verify to complete registration."
+            )
+            res.status(response.statusCode).json(response)
 
         } catch (error) {
             next(error)
@@ -51,7 +56,8 @@ export class UserController {
             const userDataStr = await redis.get(redisKey)
 
             if (!userDataStr) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "No pending registration found or expired." })
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "No pending registration found or expired.")
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -73,16 +79,19 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(HttpStatusCode.CREATED).json({
-                message: "User registered successfully",
-                data: {
+            const response = new ApiResponse(
+                HttpStatusCode.CREATED,
+                {
                     name: newUser.name,
                     email: newUser.email,
                     id: newUser._id,
-                    isAdmin: newUser.isAdmin
+                    isAdmin: newUser.isAdmin,
+                    accessToken
                 },
-                accessToken
-            })
+                "User registered successfully"
+            )
+            res.status(response.statusCode).json(response)
+
         } catch (error) {
             next(error)
         }
@@ -96,15 +105,19 @@ export class UserController {
             const userDataStr = await redis.get(redisKey)
 
             if (!userDataStr) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "No pending registration found or expired." })
-                return
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "No pending registration found or expired.")
+                res.status(response.statusCode).json(response)
             }
 
             await this._otpService.generateAndSendOtp(email)
 
-            res.status(HttpStatusCode.OK).json({
-                message: "OTP resent to email. Please verify to complete registration."
-            })
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                null,
+                "OTP resent to email. Please verify to complete registration."
+            )
+            res.status(response.statusCode).json(response)
+
         } catch (error) {
             next(error)
         }
@@ -116,11 +129,13 @@ export class UserController {
 
             const user = await this._userService.findUserByEmail(email)
             if (!user) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User Not Found!" })
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "User Not Found!")
+                res.status(response.statusCode).json(response)
                 return
             }
             if (user.googleId) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Password reset is not available for Google accounts." })
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Password reset is not available for Google accounts.")
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -133,10 +148,8 @@ export class UserController {
 
             await this._mailService.sendResetLink(email, resetLink)
 
-
-            res.status(HttpStatusCode.OK).json({
-                message: "Password reset link sent to your email."
-            });
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Password reset link sent to your email.")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -149,24 +162,28 @@ export class UserController {
             const userExist = await this._userService.findUserByEmail(credential.email)
 
             if (!userExist) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "User not exists")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             if (userExist.isBlocked) {
-                res.status(HttpStatusCode.OK).json({ message: "User Blocked", isBlocked: true })
+                const response = new ApiResponse(HttpStatusCode.FORBIDDEN, { isBlocked: true }, "User Blocked")
+                res.status(response.statusCode).json(response)
                 return
             }
 
-            if (userExist && userExist?.googleId && userExist?.googleId.length > 1) {
-                res.status(HttpStatusCode.CONFLICT).json({ message: "This account is accociated with Google , Please try to Login with google instead." });
+            if (userExist.googleId && userExist.googleId.length > 1) {
+                const response = new ApiResponse(HttpStatusCode.CONFLICT, null, "This account is associated with Google, please login with Google instead.")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 
             if (!isPasswordCorrect) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Invalid password or email" })
+                const response = new ApiResponse(HttpStatusCode.UNAUTHORIZED, null, "Invalid password or email")
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -182,9 +199,9 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(HttpStatusCode.OK).json({
-                message: "Login Success",
-                data: {
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
                     name: userExist.name,
                     email: userExist.email,
                     avatar: userExist.avatarUrl,
@@ -192,9 +209,11 @@ export class UserController {
                     isAdmin: userExist.isAdmin,
                     github: userExist.github,
                     portfolio: userExist.portfolio,
+                    accessToken
                 },
-                accessToken
-            })
+                "Login Success"
+            )
+            res.status(response.statusCode).json(response)
 
         } catch (err) {
             next(err)
@@ -206,21 +225,22 @@ export class UserController {
             const token = req.headers.authorization?.split(" ")[1]
 
             const decoded = jwt.decode(token)
-            console.log("decoded token data", decoded)
 
             if (!decoded || !decoded.exp) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid token" });
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Invalid token")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             const expiresAt = decoded.exp
-            const ttl = expiresAt - Math.floor(Date.now() / 1000);
-            console.log("checking ttl: is grater than 0",ttl)
+            const ttl = expiresAt - Math.floor(Date.now() / 1000)
             if (ttl > 0) {
                 await redis.setex(`blacklist:${token}`, ttl, "true")
             }
 
-            res.json({ message: "Logged out successfully" });
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Logged out successfully")
+            res.status(response.statusCode).json(response)
+            return
         } catch (err) {
             next(err)
         }
@@ -232,7 +252,8 @@ export class UserController {
             let user = await this._userService.findUserByEmail(validatedUser.email)
 
             if (user && !user.googleId) {
-                res.status(HttpStatusCode.CONFLICT).json({ message: "An account with this email already exists" })
+                const response = new ApiResponse(HttpStatusCode.CONFLICT, null, "An account with this email already exists")
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -260,18 +281,20 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(HttpStatusCode.OK).json({
-                message: "Google Auth Success",
-                data: {
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
                     name: user!.name,
                     email: user!.email,
                     avatar: user!.avatarUrl,
                     id: user!._id,
-                    isAdmin: user!.isAdmin
+                    isAdmin: user!.isAdmin,
+                    accessToken
                 },
-                accessToken
-            })
-
+                "Google Auth Success"
+            )
+            res.status(response.statusCode).json(response)
+            return
         } catch (err) {
             next(err)
         }
@@ -280,32 +303,32 @@ export class UserController {
     googleLoginAuth = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email } = req.body
-
             if (!email) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Email is required" })
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Email is required")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             const user = await this._userService.findUserByEmail(email)
-
             if (!user) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not exists" })
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "User not exists")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             if (user.isBlocked) {
-                res.status(HttpStatusCode.OK).json({ message: "User is blocked!, Can't access", isBlocked: true })
+                const response = new ApiResponse(HttpStatusCode.FORBIDDEN, { isBlocked: true }, "User is blocked! Can't access")
+                res.status(response.statusCode).json(response)
                 return
             }
 
-
             if (user && !user.googleId) {
-                res.status(HttpStatusCode.CONFLICT).json({ message: "An account with this email already exists" })
+                const response = new ApiResponse(HttpStatusCode.CONFLICT, null, "An account with this email already exists")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             const payload = { id: user._id, email: user.email, isAdmin: user.isAdmin }
-
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
@@ -316,9 +339,9 @@ export class UserController {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(HttpStatusCode.OK).json({
-                message: "Google Auth Success",
-                data: {
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
                     name: user.name,
                     email: user.email,
                     avatar: user.avatarUrl,
@@ -326,10 +349,12 @@ export class UserController {
                     isAdmin: user.isAdmin,
                     github: user.github,
                     portfolio: user.portfolio,
+                    accessToken
                 },
-                accessToken
-            })
-
+                "Google Auth Success"
+            )
+            res.status(response.statusCode).json(response)
+            return
         } catch (err) {
             next(err)
         }
@@ -338,41 +363,43 @@ export class UserController {
     refreshAccessToken = async (req: Request, res: Response) => {
         try {
             const token = req.cookies.refreshToken
-
             if (!token) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "Refresh token missing" });
+                const response = new ApiResponse(HttpStatusCode.NOT_FOUND, null, "Refresh token missing")
+                res.status(response.statusCode).json(response)
                 return
             }
 
-            const decoded = verifyRefreshToken(token);
-            const accessToken = generateAccessToken({ id: decoded.id, email: decoded.email });
+            const decoded = verifyRefreshToken(token)
+            const accessToken = generateAccessToken({ id: decoded.id, email: decoded.email })
 
-            res.status(HttpStatusCode.OK).json({ accessToken });
+            const response = new ApiResponse(HttpStatusCode.OK, { accessToken }, "Access token refreshed")
+            res.status(response.statusCode).json(response)
             return
+
         } catch (err) {
-            console.log("error", err)
-            res.status(HttpStatusCode.FORBIDDEN).json({ message: "Invalid refresh token" });
+            const response = new ApiResponse(HttpStatusCode.FORBIDDEN, null, "Invalid refresh token")
+            res.status(response.statusCode).json(response)
         }
     }
 
     setNewPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password, token } = req.body
-
             const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
 
             const resetEntry = await this._userService.findResetToken(hashedToken, email)
-
             if (!resetEntry || Number(resetEntry.expireAt) < Date.now()) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid or expired token." });
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Invalid or expired token.")
+                res.status(response.statusCode).json(response)
                 return
             }
 
             await this._userService.updateUserPassword(email, password)
-
             await this._userService.deleteResetToken(email)
 
-            res.status(HttpStatusCode.OK).json({ message: "Password has been reset successfully." });
+            const response = new ApiResponse(HttpStatusCode.OK, null, "Password has been reset successfully.")
+            res.status(response.statusCode).json(response)
+
         } catch (err) {
             next(err)
         }
@@ -381,10 +408,11 @@ export class UserController {
     searchUsers = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, userId } = req.body
-
             const allUsers = await this._userService.searchAllUsers(email, userId)
             const userEmails = allUsers.map(user => ({ email: user.email, name: user.name, id: user._id }));
-            res.status(HttpStatusCode.OK).json(userEmails);
+
+            const response = new ApiResponse(HttpStatusCode.OK, userEmails, "Users fetched successfully")
+            res.status(response.statusCode).json(response)
 
         } catch (err) {
             next(err)
@@ -395,18 +423,23 @@ export class UserController {
         try {
             const userId = req.user.id
             const userData = req.body
-            console.log("user data", userData)
             const updatedUser = await this._userService.updateUser(userId, userData)
-            const response = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatarUrl,
-                id: updatedUser._id,
-                isAdmin: updatedUser.isAdmin,
-                github: updatedUser.github,
-                portfolio: updatedUser.portfolio,
-            }
-            res.status(HttpStatusCode.OK).json({ message: "user updated successfuly", response })
+
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    avatar: updatedUser.avatarUrl,
+                    id: updatedUser._id,
+                    isAdmin: updatedUser.isAdmin,
+                    github: updatedUser.github,
+                    portfolio: updatedUser.portfolio,
+                },
+                "User updated successfully"
+            )
+            res.status(response.statusCode).json(response)
+
         } catch (err) {
             next(err)
         }
@@ -417,17 +450,21 @@ export class UserController {
             const userId = req.user.id
             const updatedUser = await this._userService.getUserData(userId)
 
-            const data = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatarUrl,
-                id: updatedUser._id,
-                isAdmin: updatedUser.isAdmin,
-                github: updatedUser.github,
-                portfolio: updatedUser.portfolio,
-            }
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    avatar: updatedUser.avatarUrl,
+                    id: updatedUser._id,
+                    isAdmin: updatedUser.isAdmin,
+                    github: updatedUser.github,
+                    portfolio: updatedUser.portfolio,
+                },
+                "User data fetched successfully"
+            )
+            res.status(response.statusCode).json(response)
 
-            res.status(HttpStatusCode.OK).json(data)
         } catch (err) {
             next(err)
         }

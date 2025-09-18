@@ -12,6 +12,7 @@ import { IProjectService } from "../services/interface/IProjectService"
 import { IPaymentService } from "../services/interface/IPaymentService"
 import jwt from "jsonwebtoken"
 import redis from "../config/redis"
+import { ApiResponse } from "../utils/ApiResponse";
 
 
 export class AdminController {
@@ -28,12 +29,18 @@ export class AdminController {
             const userExist = await this._userService.findUserByEmail(credential.email)
 
             if (!userExist) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "User not exists" })
+                const response = new ApiResponse(
+                    HttpStatusCode.NOT_FOUND, null, "User not exists"
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
 
             if (!userExist.isAdmin) {
-                res.status(HttpStatusCode.FORBIDDEN).json({ message: 'Access denied. Admins only.' });
+                const response = new ApiResponse(
+                    HttpStatusCode.FORBIDDEN, null, "Access denied. Admins only."
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -41,7 +48,10 @@ export class AdminController {
             const isPasswordCorrect = await bcrypt.compare(credential.password, userExist.password)
 
             if (!isPasswordCorrect) {
-                res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Invalid password or email" })
+                const response = new ApiResponse(
+                    HttpStatusCode.BAD_REQUEST, null, "Invalid password or email."
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -57,17 +67,19 @@ export class AdminController {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
-            res.status(HttpStatusCode.OK).json({
-                message: "Login Success",
-                data: {
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
                     name: userExist.name,
                     email: userExist.email,
                     avatar: userExist.avatarUrl,
                     id: userExist._id,
-                    isAdmin: userExist.isAdmin
-                },
-                accessToken
-            })
+                    isAdmin: userExist.isAdmin,
+                    accessToken
+                }
+                , "Login success"
+            )
+            res.status(response.statusCode).json(response)
 
         } catch (err) {
             next(err)
@@ -82,7 +94,10 @@ export class AdminController {
             console.log("decoded token data", decoded)
 
             if (!decoded || !decoded.exp) {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Invalid token" });
+                const response = new ApiResponse(
+                    HttpStatusCode.BAD_REQUEST, null, "Invalid Token."
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -134,9 +149,15 @@ export class AdminController {
 
             const totalUsers = await this._userService.countUsers(filter);
 
-            res.status(HttpStatusCode.OK).json({
-                message: "Users fetched successfully",
-                data: users.map(user => ({
+            const response = new ApiResponse(
+                HttpStatusCode.OK, {
+                pagination: {
+                    total: totalUsers,
+                    page: pageNumber,
+                    limit: pageSize,
+                    totalPages: Math.ceil(totalUsers / pageSize)
+                },
+                user: users.map(user => ({
                     id: user._id,
                     name: user.name,
                     email: user.email,
@@ -144,13 +165,10 @@ export class AdminController {
                     avatarUrl: user.avatarUrl,
                     bio: user.bio
                 })),
-                pagination: {
-                    total: totalUsers,
-                    page: pageNumber,
-                    limit: pageSize,
-                    totalPages: Math.ceil(totalUsers / pageSize)
-                }
-            });
+            }, "User fetched successfully"
+            )
+            res.status(response.statusCode).json(response)
+
         } catch (err) {
             next(err)
         }
@@ -162,17 +180,26 @@ export class AdminController {
 
             const user = this._userService.findUserById(userId)
             if (!user) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ message: "User not found" })
+                const response = new ApiResponse(
+                    HttpStatusCode.NOT_FOUND, null, "User Not found."
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
 
             if (status === "suspend") {
                 await this._userService.blockUserById(userId)
-                res.status(HttpStatusCode.OK).json({ message: "User Blocked Successfully" })
+                const response = new ApiResponse(
+                    HttpStatusCode.OK, null, "User blocked successfully."
+                )
+                res.status(response.statusCode).json(response)
                 return
             } else if (status === "active") {
                 await this._userService.unblockUserById(userId)
-                res.status(HttpStatusCode.OK).json({ message: "User Unblocked Successfully" })
+                const response = new ApiResponse(
+                    HttpStatusCode.OK, null, "User unBlocked successfully."
+                )
+                res.status(response.statusCode).json(response)
                 return
             }
         } catch (error) {
@@ -185,7 +212,10 @@ export class AdminController {
             const userData = await this._userService.adminDashboardUserData()
             const projectData = await this._projectService.adminDashboardProjectData()
             const paymentData = await this._paymentService.adminDashboardPaymenttData()
-            res.status(HttpStatusCode.OK).json({ userData, projectData, paymentData })
+            const response = new ApiResponse(
+                HttpStatusCode.OK, { userData, projectData, paymentData }, "Dashboard data fetched successfully."
+            )
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -194,7 +224,10 @@ export class AdminController {
     getPaymentData = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const paymentData = await this._paymentService.getPaymentDataAdmin()
-            res.status(HttpStatusCode.OK).json(paymentData)
+            const response = new ApiResponse(
+                HttpStatusCode.OK, paymentData, "Payment fetched successfully."
+            )
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -204,7 +237,10 @@ export class AdminController {
         try {
             const { id, status } = req.body
             const paymentData = await this._paymentService.updatePaymentStatus(id, status)
-            res.status(HttpStatusCode.OK).json(paymentData)
+            const response = new ApiResponse(
+                HttpStatusCode.OK, paymentData, "Payment Updated successfully."
+            )
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }

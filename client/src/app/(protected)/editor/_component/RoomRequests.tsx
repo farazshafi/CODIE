@@ -21,7 +21,7 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
 
     const { mutate } = useMutationHook(getRequetsByRoom, {
         onSuccess(data) {
-            setRequests(data)
+            setRequests(data.data)
         },
         onError(error) {
             toast.error(error.message || "Error while getting requets")

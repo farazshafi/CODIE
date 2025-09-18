@@ -28,7 +28,7 @@ const AdminLogin = () => {
                 name: data.data.name,
                 email: data.data.email,
                 avatar: data.data.avatar,
-                token: data.accessToken,
+                token: data.data.accessToken,
                 id: data.data.id,
                 isAdmin: data.data.isAdmin,
             })

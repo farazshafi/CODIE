@@ -17,7 +17,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
     const { mutate: getUserSubscriptions } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
-            setSubscription(data)
+            console.log("User subscription data", data.data)
+            setSubscription(data.data)
         }
     })
 

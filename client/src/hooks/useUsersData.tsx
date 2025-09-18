@@ -28,8 +28,8 @@ export const useUsersData = () => {
 
   const { mutate: getUsers, isLoading: isUsersLoading } = useMutationHook(allUsersApi, {
     onSuccess(response) {
-      setUsers(response.data);
-      setTotalPages(response.pagination.totalPages);
+      setUsers(response.data.user);
+      setTotalPages(response.data.pagination.totalPages);
     }
   });
 

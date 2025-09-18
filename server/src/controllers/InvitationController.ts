@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IInvitationService } from "../services/interface/IInvitationService";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
+import { ApiResponse } from "../utils/ApiResponse";
 
 
 export class InvitationController {
@@ -14,7 +15,8 @@ export class InvitationController {
 
             await this._invitationService.createInvitation(senderId, reciverId, roomId)
 
-            res.status(HttpStatusCode.CREATED).json({ message: "Invitation created successfully" })
+            const response = new ApiResponse(HttpStatusCode.CREATED, null, "Invitation created successfully")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }
@@ -26,7 +28,8 @@ export class InvitationController {
 
             const recivedInvitation = await this._invitationService.getAllRecivedInvitationByUserId(userId)
 
-            res.status(HttpStatusCode.CREATED).json(recivedInvitation)
+            const response = new ApiResponse(HttpStatusCode.OK, recivedInvitation, "Invitation Fetched successfully")
+            res.status(response.statusCode).json(response)
         } catch (error) {
             next(error)
         }

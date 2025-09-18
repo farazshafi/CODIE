@@ -19,7 +19,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
 
   const { isLoading: subscriptionLoading, mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
     onSuccess(res) {
-      setSubscription(res)
+      setSubscription(res.data)
     }
   })
 
@@ -53,7 +53,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
   const { isLoading: subscribing, mutate: subscribe } = useMutationHook(subscribeToPlanApi, {
     onSuccess(data) {
       try {
-        const { id: order_id, amount, currency } = data
+        const { id: order_id, amount, currency } = data.data
         const options: RazorpayOptions = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string,
           amount,
@@ -70,6 +70,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
               planId,
               amount
             }
+            console.log("verify data:", verifyData)
             verifySubscription(verifyData)
           },
           prefill: {

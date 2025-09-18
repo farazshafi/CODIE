@@ -63,12 +63,13 @@ export class MailService implements IMailService {
                 to: to,
                 subject: "Invitation to Contribute on Codie Online Collaborative Editor",
                 html: `<h1>You're Invited!</h1>
-                       <p>${invitationFrom} has invited you to contribute to their project on Codie Online Collaborative Editor.</p>
-                       <p>To accept the invitation and start collaborating, please visit the following link:</p>
-                       <p><a href="${process.env.CLIENT_URL}/dashboard">Accept Invitation</a></p>
-                       <p>If you did not expect this invitation, you can safely ignore this email.</p>`
+                <p>${invitationFrom} has invited you to contribute to their project on Codie Online Collaborative Editor.</p>
+                <p>To accept the invitation and start collaborating, please visit the following link:</p>
+                <p><a href="${process.env.CLIENT_URL}/dashboard">Accept Invitation</a></p>
+                <p>If you did not expect this invitation, you can safely ignore this email.</p>`
             });
 
+            console.log("Invitation sended")
         } catch (error) {
             console.error("Error sending notification email: ", error);
             throw new HttpError(401, "Failed to send collaboration request notification");

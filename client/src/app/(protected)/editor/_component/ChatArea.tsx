@@ -56,7 +56,9 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const { mutate: getMessages } = useMutationHook(getChatMessagesApi, {
-        onSuccess: setMessages,
+        onSuccess(data) {
+            setMessages(data.data)
+        },
     });
 
     // Convert Blob to Base64
@@ -164,14 +166,17 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
         if (roomId) {
             getMessages(roomId);
         }
-    }, [roomId, getMessages]);
+    }, [roomId]);
 
     useEffect(() => {
         if (!socket || !roomId) return;
-        const handleMessage = (msg: Message) => setMessages((prev) => [...prev, msg]);
-        socket.on("receive_message", handleMessage);
+        const handleMessage = (msg: Message) => {
+            console.log("message comes from socket")
+            setMessages((prev) => [...prev, msg])
+        };
+        socket.on("recived-message", handleMessage);
         return () => {
-            socket.off("receive_message", handleMessage);
+            socket.off("recived-message", handleMessage);
         };
     }, [socket, roomId]);
 

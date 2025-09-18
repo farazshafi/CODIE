@@ -3,6 +3,7 @@ import { IProjectService } from "../services/interface/IProjectService";
 import mongoose from "mongoose";
 import { IRoomService } from "../services/interface/IRoomService";
 import { HttpStatusCode } from "../utils/httpStatusCodes";
+import { ApiResponse } from "../utils/ApiResponse";
 
 export class ProjectController {
   constructor(
@@ -19,10 +20,8 @@ export class ProjectController {
         ...projectData
       });
 
-      res.status(HttpStatusCode.CREATED).json({
-        message: "Project created successfully",
-        data: newProject
-      });
+      const response = new ApiResponse(HttpStatusCode.CREATED, newProject, "Project created succesfully")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -32,7 +31,8 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const project = await this._projectService.getProjectById(id);
-      res.status(HttpStatusCode.OK).json(project);
+      const response = new ApiResponse(HttpStatusCode.OK, project, "succesfully found Project by id")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -41,7 +41,8 @@ export class ProjectController {
   getAllProjects = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const projects = await this._projectService.getAllProjects();
-      res.status(HttpStatusCode.OK).json(projects);
+      const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found all projects")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -50,7 +51,8 @@ export class ProjectController {
   getProjectsByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projects = await this._projectService.getProjectsByUserId(req.user.id);
-      res.status(HttpStatusCode.OK).json(projects);
+      const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Project")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -60,10 +62,8 @@ export class ProjectController {
     try {
       const { roomId } = req.params;
       const projectId = await this._projectService.getProjectByRoomId(roomId);
-      res.status(HttpStatusCode.OK).json({
-        message: "Project id found",
-        projectId
-      });
+      const response = new ApiResponse(HttpStatusCode.OK, projectId, "succesfully Project Found")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -73,7 +73,8 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const updatedCode = await this._projectService.getSavedCode(id);
-      res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
+      const response = new ApiResponse(HttpStatusCode.OK, { success: true, data: updatedCode }, "succesfully Found Saved code")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -83,7 +84,8 @@ export class ProjectController {
     try {
       const { id } = req.params;
       const result = await this._projectService.deleteProject(id);
-      res.status(HttpStatusCode.OK).json(result);
+      const response = new ApiResponse(HttpStatusCode.OK, result, "succesfully Deleted project")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -93,7 +95,8 @@ export class ProjectController {
     try {
       const { code, projectId } = req.body;
       const updatedCode = await this._projectService.saveCode(projectId, code);
-      res.status(HttpStatusCode.OK).json({ success: true, data: updatedCode });
+      const response = new ApiResponse(HttpStatusCode.OK, { success: true, data: updatedCode }, "succesfully code saved")
+      res.status(response.statusCode).json(response)
     } catch (err) {
       next(err);
     }
@@ -102,11 +105,11 @@ export class ProjectController {
   getUsedLangauges = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.user.id
-      console.log("user is getting", userId)
 
       const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
 
-      res.status(HttpStatusCode.OK).json({ usedLangauges })
+      const response = new ApiResponse(HttpStatusCode.OK, usedLangauges, "succesfully Found User languages")
+      res.status(response.statusCode).json(response)
 
     } catch (error) {
       next(error)
@@ -119,7 +122,8 @@ export class ProjectController {
 
       const projects = await this._projectService.getProjectsByUserId(userId)
 
-      res.status(HttpStatusCode.OK).json(projects)
+      const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Project")
+      res.status(response.statusCode).json(response)
 
     } catch (error) {
       next(error)
@@ -132,7 +136,8 @@ export class ProjectController {
 
       const projects = await this._roomService.getContributedProjectsByUserId(userId)
 
-      res.status(HttpStatusCode.OK).json(projects)
+      const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Contributed Project")
+      res.status(response.statusCode).json(response)
 
     } catch (error) {
       next(error)
