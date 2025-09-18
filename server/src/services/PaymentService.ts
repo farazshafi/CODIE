@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import { IPayment } from "../models/PaymentModel";
-import { PaymentRepository } from "../repositories/PaymentRepository";
 import { IPaymentService } from "./interface/IPaymentService";
 import { HttpError } from "../utils/HttpError";
+import { IPaymentRepository } from "../repositories/interface/IPaymentRepository";
 
 export class PaymentService implements IPaymentService {
-    constructor(private _paymentRepository: PaymentRepository) { }
+    constructor(private _paymentRepository: IPaymentRepository) { }
 
     async createPayment(paymentData: Partial<IPayment>): Promise<IPayment> {
         return await this._paymentRepository.create(paymentData as IPayment);
