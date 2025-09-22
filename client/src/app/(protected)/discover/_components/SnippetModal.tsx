@@ -11,6 +11,7 @@ import { useMutationHook } from '@/hooks/useMutationHook';
 import { getUserSubscriptionApi } from '@/apis/userSubscriptionApi';
 import { useUserStore } from '@/stores/userStore';
 import { explainCodeApi } from '@/apis/discoverApi';
+import ReactMarkdown from "react-markdown"
 
 interface SnippetModalProps {
     open: boolean;
@@ -21,7 +22,7 @@ interface SnippetModalProps {
 const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) => {
     const [isCopied, setIsCopied] = useState(false);
     const [isAiExplanationOn, setIsAiExplanationOn] = useState(false);
-    const [aiExplanation, setAiExplanation] = useState<string | null | boolean>(null);
+    const [aiExplanation, setAiExplanation] = useState<string | null>(null);
 
     const user = useUserStore((state) => state.user);
 
@@ -33,10 +34,10 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
 
     const { mutate: getExplanation, isLoading: generatingExplanation } = useMutationHook(explainCodeApi, {
         onSuccess(data) {
-            setAiExplanation(data || "No explanation found.");
+            setAiExplanation(data.data || "No explanation found.");
             toast.success("AI code explanation generated.");
         }, onError(error) {
-            setAiExplanation(false)
+            setAiExplanation(null)
             toast.info(error.response.data.message || "Please upgrade your subscription")
         },
     });
@@ -115,8 +116,12 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
                         </div>
 
                         {isAiExplanationOn && (
-                            <div className="text-sm leading-relaxed text-black max-h-[35vh] overflow-auto mt-4">
-                                {generatingExplanation ? "Generating explanation..." : aiExplanation}
+                            <div className="text-sm leading-relaxed text-black max-h-[35vh] overflow-auto mt-4 prose">
+                                {generatingExplanation ? (
+                                    "Generating explanation..."
+                                ) : (
+                                    <ReactMarkdown>{aiExplanation}</ReactMarkdown>
+                                )}
                             </div>
                         )}
                     </div>
