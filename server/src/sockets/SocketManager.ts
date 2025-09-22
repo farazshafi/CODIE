@@ -12,6 +12,7 @@ import { UserEvents } from './events/UserEvents';
 import { editorService, roomSocketService, messageService, userSocketService, userSocketRepository, onlineUserRepository } from '../container';
 import { IEventHandler } from './events/EventHandler';
 import redis from '../config/redis';
+import { logger } from '../utils/logger';
 
 export class SocketManager {
     private io: Server;
@@ -46,11 +47,11 @@ export class SocketManager {
 
     public initialize() {
         this.io.on('connection', (socket: Socket) => {
-            console.log(`New client connected: ${socket.id}`.cyan);
+            logger.info({ socketId: socket.id }, "New client connected");
 
             socket.on('register-user', async (userId: string) => {
                 await this._userSocketRepository.add(userId, socket.id);
-                console.log(`User registered: ${userId}, Socket ID: ${socket.id}`.blue);
+                logger.info({ userId, socketId: socket.id }, "User registered");
             });
 
             this._eventHandlers.forEach(handler => handler.register(socket));
@@ -65,7 +66,7 @@ export class SocketManager {
                         }
                     });
                     await this._userSocketRepository.remove(socket.id);
-                    console.log(`User disconnected: ${userId}`.red);
+                    logger.info({ userId, socketId: socket.id }, "User disconnected");
                 }
             });
         });

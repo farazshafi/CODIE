@@ -3,6 +3,7 @@ import app from './app';
 import { ENV } from './config/env';
 import connectDB from './db';
 import { SocketManager } from './sockets/SocketManager';
+import { logger } from './utils/logger';
 
 const PORT = ENV.PORT;
 
@@ -15,11 +16,11 @@ const startServer = async () => {
         socketManager.initialize();
 
         server.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`.green);
+            logger.info(`Server running on http://localhost:${PORT}`);
         });
 
     } catch (error) {
-        console.error("MongoDB connection failed:".red, error);
+        logger.error({ err: error }, "MongoDB connection failed:");
         process.exit(1);
     }
 };

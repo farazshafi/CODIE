@@ -1,11 +1,12 @@
 import { Worker } from "bullmq";
 import { userSubscriptionService } from "../../container";
 import redis from "../../config/redis";
+import { logger } from "../../utils/logger";
 
 const subscriptionWorker = new Worker(
   "subscription",
   async (job) => {
-    console.log(`Processing job ${job.id} of type ${job.name}`);
+    logger.info({ jobId: job.id, name: job.name }, "Processing job");
     try {
       switch (job.name) {
         case "applyDowngrade":
@@ -15,17 +16,16 @@ const subscriptionWorker = new Worker(
           await userSubscriptionService.sendExpiryReminder();
           break;
         default:
-          console.error(`Unknown job name: ${job.name}`);
+          logger.warn({ jobId: job.id }, `Unknown job name: ${job.name}`);
       }
     } catch (err) {
-      console.error(`Job ${job.id} failed:`, err);
+      logger.error({ jobId: job.id, err }, "Job failed");
       throw err;
     }
   },
-  {
-    connection: redis,
-  }
+  { connection: redis }
 );
-console.log("✅ Subscription Worker started");
+
+logger.info("✅ Subscription Worker started");
 
 export default subscriptionWorker;

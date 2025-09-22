@@ -16,6 +16,7 @@ import discoverRouter from "./routes/discoverRouter";
 import userSubscriptionRouter from "./routes/userSubscriptionRouter";
 import paymentRouter from "./routes/paymentRouter";
 import starredRouter from "./routes/StarredRouter";
+import { attachLogger } from "./utils/loggerContext";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(cors({
 app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
+app.use(attachLogger)
 colors.enable()
 
 // User Routes

@@ -10,6 +10,9 @@ services:
       - backend
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
+      - SERVICE_NAME=app
     depends_on:
       - redis
       - worker
@@ -26,6 +29,9 @@ services:
     command: node dist/bullmq/schedulers/subscriptionScheduler.js
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
+      - SERVICE_NAME=scheduler
     networks:
       - backend
     depends_on:
@@ -38,6 +44,9 @@ services:
     command: node dist/bullmq/workers/subscriptionWorker.js
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
+      - SERVICE_NAME=worker
     networks:
       - backend
 
@@ -46,9 +55,39 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "5000:80"  # map host:5000 → nginx:80
+      - "5000:80"
     depends_on:
       - app
+    networks:
+      - backend
+
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - backend
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    ports:
+      - "3001:3000" 
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
     networks:
       - backend
 

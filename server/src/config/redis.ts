@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { logger } from "../utils/logger";
 
 const redis = new Redis({
     host: process.env.REDIS_HOST || "redis",
@@ -7,7 +8,7 @@ const redis = new Redis({
     maxRetriesPerRequest: null
 });
 
-redis.on("connect", () => console.log("✅ Redis connected"));
-redis.on("error", (err) => console.error("❌ Redis Error:", err));
+redis.on("connect", () => logger.info("✅ Redis connected"));
+redis.on("error", (err) => logger.error({ err }, "❌ Redis Error"));
 
 export default redis;
