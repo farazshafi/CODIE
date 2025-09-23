@@ -61,13 +61,23 @@ export class DiscoverService implements IDiscoverService {
 
     async findDiscoveries(
         filter: FilterOptions,
-        pagination: PaginationOptions
+        pagination: PaginationOptions,
+        sortBy: string
     ): Promise<{ discoveries: IDiscover[]; total: number; totalPages: number; currentPage: number }> {
         try {
             const { keyword, language } = filter;
             const { page, limit } = pagination;
 
             const skip = (page - 1) * limit;
+
+            let sortOptions = {};
+            if (sortBy === 'recent') {
+                sortOptions = { createdAt: -1 };
+            } else if (sortBy === 'stars') {
+                sortOptions = { starred: -1 };
+            } else {
+                sortOptions = { starred: -1 };
+            }
 
             const discoveries = await this._discoverRepo
                 .getModel()
@@ -79,7 +89,7 @@ export class DiscoverService implements IDiscoverService {
                         path: "userId",
                         select: "name"
                     }
-                }).sort({ starred: -1 })
+                }).sort(sortOptions)
 
             const filtered = discoveries.filter((d) => {
                 const project = d.projectId as unknown as PopulatedProject;

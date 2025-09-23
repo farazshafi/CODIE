@@ -29,7 +29,7 @@ export class DiscoverController {
 
     findDiscoveries = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { keyword = "", language = "", page = '1', limit = "6" } = req.query
+            const { keyword = "", language = "", page = '1', limit = "6", sortBy="" } = req.query
 
             const filter = {
                 keyword: String(keyword),
@@ -41,7 +41,7 @@ export class DiscoverController {
                 page: parseInt(page as string)
             }
 
-            const discoveries = await this._discoverService.findDiscoveries(filter, pagination)
+            const discoveries = await this._discoverService.findDiscoveries(filter, pagination, String(sortBy))
 
             const response = new ApiResponse(HttpStatusCode.OK, discoveries, "Discovery succesfully founded")
             res.status(response.statusCode).json(response)

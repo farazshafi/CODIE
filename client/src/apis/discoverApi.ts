@@ -5,6 +5,7 @@ interface DiscoverQuery {
   language?: string;
   page?: number;
   limit?: number;
+  sortBy: string;
 }
 
 export const findDiscoveriesApi = async (params: DiscoverQuery) => {

@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { Search, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Navbar from '@/components/ui/navbar';
 import SnippetCard from '@/components/snippetCard';
@@ -36,10 +36,12 @@ const Page = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedLanguage, setSelectedLanguage] = useState("");
     const [keyword, setKeyword] = useState("");
+    const [sortBy, setSortBy] = useState<"stars" | "recent" | "">("");
+
 
     const { mutate, isLoading } = useMutationHook(findDiscoveriesApi, {
         onSuccess(data) {
-            console.log("discoverApi data",data)
+            console.log("discoverApi data", data)
             setDiscoveries(data.data.discoveries);
             setTotalPage(data.data.totalPages);
             setCurrentPage(data.data.currentPage);
@@ -53,6 +55,7 @@ const Page = () => {
             language: selectedLanguage,
             page: newPage,
             limit: 6,
+            sortBy,
         });
     };
 
@@ -65,6 +68,7 @@ const Page = () => {
             language: newLanguage,
             page: 1,
             limit: 6,
+            sortBy,
         });
     };
 
@@ -74,15 +78,16 @@ const Page = () => {
             language: selectedLanguage,
             page: currentPage,
             limit: 6,
+            sortBy,
         });
     }
 
     useEffect(() => {
-        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6 });
+        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6, sortBy });
     }, []);
 
     const handleDeleteSnippet = () => {
-        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6 });
+        mutate({ keyword, language: selectedLanguage, page: 1, limit: 6, sortBy });
     }
 
     useEffect(() => {
@@ -93,6 +98,7 @@ const Page = () => {
                 language: selectedLanguage,
                 page: 1,
                 limit: 6,
+                sortBy
             });
         }, 500);
         return () => clearTimeout(delay);
@@ -141,9 +147,33 @@ const Page = () => {
 
                         <div className="flex items-center justify-between sm:justify-end gap-x-5">
                             <p className="text-sm text-white">{discoveries.length} snippets found</p>
-                            {/* <div className="text-white px-3 py-2 rounded-sm bg-tertiary">
-                                <SlidersHorizontal />
-                            </div> */}
+
+                            <div className="flex items-center gap-3">
+                                <div className="text-white px-3 py-2 rounded-sm bg-tertiary">
+                                    <SlidersHorizontal />
+                                </div>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => {
+                                        const value = e.target.value as "stars" | "recent" | "";
+                                        setSortBy(value);
+                                        setCurrentPage(1);
+                                        mutate({
+                                            keyword,
+                                            language: selectedLanguage,
+                                            page: 1,
+                                            limit: 6,
+                                            sortBy: value,
+                                        });
+                                    }}
+                                    className="bg-black text-white px-3 py-2 rounded-sm"
+                                >
+                                    <option value="">Default</option>
+                                    <option value="stars">Stars</option>
+                                    <option value="recent">Most Recent</option>
+                                </select>
+                            </div>
+
                         </div>
                     </div>
 
