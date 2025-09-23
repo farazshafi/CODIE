@@ -21,6 +21,7 @@ interface Message {
     roomId: string;
     projectId?: string;
     contentType: "text" | "audio";
+    createdAt: string;
 }
 
 interface ChatProps {
@@ -215,7 +216,10 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
                         const showAvatar = idx === 0 || messages[idx - 1].senderId !== msg.senderId;
 
                         return (
-                            <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <div
+                                key={idx}
+                                className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                            >
                                 <div className="flex max-w-[80%] items-start gap-3">
                                     {showAvatar && (
                                         <Avatar title={msg.senderName}>
@@ -223,26 +227,53 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
                                             <AvatarFallback>{msg.senderName.slice(0, 2)}</AvatarFallback>
                                         </Avatar>
                                     )}
-                                    {msg.contentType === "audio" ? (
-                                        <div className={`rounded w-[300px] ${roleColors[msg.senderRole]}`}>
-                                            <AudioPlayer
-                                                src={msg.content}
-                                                showJumpControls={false}
-                                                customAdditionalControls={[]}
-                                                customVolumeControls={[]}
-                                                layout="horizontal-reverse"
-                                                style={{ borderRadius: '10px', background: 'transparent' }}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className={`rounded px-4 py-2 whitespace-pre-wrap w-fit max-w-full ${roleColors[msg.senderRole]}`}>
-                                            <p>{msg.content}</p>
-                                        </div>
-                                    )}
+
+                                    <div className="flex flex-col">
+                                        {/* ✅ Sender Name, always left-aligned */}
+                                        {showAvatar && (
+                                            <span className="text-xs font-semibold text-white mb-1 text-left">
+                                                {isMe ? "You" : msg.senderName}
+                                            </span>
+                                        )}
+
+                                        {/* Message bubble */}
+                                        {msg.contentType === "audio" ? (
+                                            <div className={`rounded w-[300px] ${roleColors[msg.senderRole]}`}>
+                                                <AudioPlayer
+                                                    src={msg.content}
+                                                    showJumpControls={false}
+                                                    customAdditionalControls={[]}
+                                                    customVolumeControls={[]}
+                                                    layout="horizontal-reverse"
+                                                    style={{ borderRadius: "10px", background: "transparent" }}
+                                                />
+                                                <span className="text-xs text-black block mt-1 text-right">
+                                                    {new Date(msg.createdAt).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    })}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={`rounded px-4 py-2 whitespace-pre-wrap w-fit max-w-full ${roleColors[msg.senderRole]}`}
+                                            >
+                                                <p>{msg.content}</p>
+                                                <span className="text-xs text-black block mt-1 text-right">
+                                                    {new Date(msg.createdAt).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    })}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
+
+
                     <div ref={bottomRef} />
                 </div>
 
