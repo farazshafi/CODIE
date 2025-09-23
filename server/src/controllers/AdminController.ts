@@ -223,9 +223,11 @@ export class AdminController {
 
     getPaymentData = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const paymentData = await this._paymentService.getPaymentDataAdmin()
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const { payments, totalPages } = await this._paymentService.getPaymentDataAdmin(page, limit)
             const response = new ApiResponse(
-                HttpStatusCode.OK, paymentData, "Payment fetched successfully."
+                HttpStatusCode.OK, { payments, totalPages }, "Payment fetched successfully."
             )
             res.status(response.statusCode).json(response)
         } catch (error) {

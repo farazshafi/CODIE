@@ -8,10 +8,12 @@ export class PaymentController {
 
     getSales = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const payments = await this._paymentService.getAllPayments();
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const { payments, totalPages } = await this._paymentService.getAllPayments(page, limit);
             const totalRevenue = payments.reduce((acc, payment) => acc + payment.amount, 0);
 
-            const response = new ApiResponse(HttpStatusCode.OK, { payments, totalRevenue }, "Fetched sales data successfully");
+            const response = new ApiResponse(HttpStatusCode.OK, { payments, totalRevenue, totalPages }, "Fetched sales data successfully");
             res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);

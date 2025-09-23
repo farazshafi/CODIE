@@ -1,5 +1,6 @@
 "use client";
 import { getPaymentDataApi, updatePaymentStatusApi } from "@/apis/adminApi";
+import Pagination from "@/components/ui/Pagination";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -20,18 +21,20 @@ const PaymentPage = () => {
     const [search, setSearch] = useState("");
     const [sortKey, setSortKey] = useState<keyof Payment>("paymentDate");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
 
     const { mutate: getPaymentData } = useMutationHook(getPaymentDataApi, {
         onSuccess(data) {
-            console.log("Payment Data: ", data)
-            setPayments(data.data)
+            setPayments(data.data.payments)
+            setTotalPages(data.data.totalPages)
         }
     })
 
     const { mutate: updateStatus } = useMutationHook(updatePaymentStatusApi, {
         onSuccess() {
             toast.success("Updated Status")
-            getPaymentData()
+            getPaymentData(currentPage)
         }
     })
 
@@ -68,9 +71,9 @@ const PaymentPage = () => {
 
 
     useEffect(() => {
-        getPaymentData({})
+        getPaymentData(currentPage)
         // setPayments(mockPayments)
-    }, [])
+    }, [currentPage])
 
     return (
         <div className="p-6 bg-gray-900 min-h-screen text-white">
@@ -151,6 +154,11 @@ const PaymentPage = () => {
 
                 </table>
             </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+            />
         </div>
     );
 };

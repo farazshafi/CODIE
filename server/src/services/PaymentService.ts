@@ -15,8 +15,12 @@ export class PaymentService implements IPaymentService {
         return await this._paymentRepository.findById(id);
     }
 
-    async getAllPayments(): Promise<IPayment[]> {
-        return await this._paymentRepository.findAll();
+    async getAllPayments(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }> {
+        const skip = (page - 1) * limit;
+        const payments = await this._paymentRepository.getModel().find().skip(skip).limit(limit);
+        const totalCount = await this._paymentRepository.getModel().countDocuments();
+        const totalPages = Math.ceil(totalCount / limit);
+        return { payments, totalPages };
     }
 
     async updatePayment(id: string, paymentData: Partial<IPayment>): Promise<IPayment | null> {
@@ -100,9 +104,13 @@ export class PaymentService implements IPaymentService {
         }
     }
 
-    async getPaymentDataAdmin(): Promise<IPayment[]> {
+    async getPaymentDataAdmin(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }>{
         try {
-            return await this._paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"])
+            const skip = (page - 1) * limit;
+            const payments = await this._paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"]).skip(skip).limit(limit);
+            const totalCount = await this._paymentRepository.getModel().countDocuments();
+            const totalPages = Math.ceil(totalCount / limit);
+            return { payments, totalPages };
         } catch (error) {
             console.log(error);
             throw new HttpError(500, "Server error while getting payment data");

@@ -76,7 +76,7 @@ const PaymentHistory = () => {
 
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPage} setCurrentPage={(page) => {
-        getPaymentHistory(page)
+        getPaymentHistory(String(page))
         setCurrentPage(page)
       }}
       />

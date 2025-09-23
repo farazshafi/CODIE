@@ -25,9 +25,9 @@ export const dashboardDataApi = async () => {
     return response.data;
 }
 
-export const getPaymentDataApi = async () => {
+export const getPaymentDataApi = async (page = 1,) => {
     try {
-        const response = await API.get(`/admin/payment`)
+        const response = await API.get(`/admin/payment?page=${page}&limit=10`)
         return response.data
     } catch (error) {
         console.log("Error While fetching Payment", error)
