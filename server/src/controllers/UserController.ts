@@ -76,7 +76,7 @@ export class UserController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // 7 days
             })
 
             const response = new ApiResponse(
@@ -196,7 +196,7 @@ export class UserController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // 7 days
             })
 
             const response = new ApiResponse(
@@ -278,7 +278,7 @@ export class UserController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000,
+                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE),
             })
 
             const response = new ApiResponse(
@@ -336,7 +336,7 @@ export class UserController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000,
+                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE),
             })
 
             const response = new ApiResponse(
