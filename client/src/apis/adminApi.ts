@@ -44,3 +44,13 @@ export const updatePaymentStatusApi = async (data: { id: string, status: "comple
         throw error
     }
 }
+
+export const getAdminGraphApi = async () => {
+    try {
+        const response = await API.get(`/admin/graph`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching Payment", error)
+        throw error
+    }
+}

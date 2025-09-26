@@ -247,4 +247,16 @@ export class AdminController {
             next(error)
         }
     }
+
+    getAdminGraph = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const data = await this._userService.getAdminGraphData();
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Admin Graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+
 }

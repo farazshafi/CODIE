@@ -77,7 +77,7 @@ export const starredRepository = new StarredRepository(StarredModel)
 export const paymentRepository = new PaymentRepository(PaymentModel)
 
 // Set up services
-export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository)
+export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository, paymentRepository)
 export const requestService = new RequestService(requestRepository, roomRepository)
 export const mailService = new MailService()
 export const otpService = new OtpService(otpRepository, mailService)

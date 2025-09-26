@@ -7,4 +7,5 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     findByEmailAndUpdate(email: string, updateData: Partial<IUser>): Promise<IUser | null>;
     findMany(filter: Record<string, unknown>, skip: number, limit: number): Promise<IUser[]>;
     count(filter: Record<string, unknown>): Promise<number>;
+    getMonthlyUsers(monthsBack: number): Promise<{ month: string; year: number; users: number }[]>
 }

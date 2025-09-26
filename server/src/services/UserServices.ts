@@ -1,6 +1,7 @@
 import ResetLinkModel, { IResetLink } from '../models/ResetLinkModel';
 import { ISubscription } from '../models/SubscriptionModel';
 import { IUser } from '../models/UserModel';
+import { IPaymentRepository } from '../repositories/interface/IPaymentRepository';
 import { ISubscriptionRepository } from '../repositories/interface/ISubscriptionRepository';
 import { IUserRepository } from '../repositories/interface/IUserRepository';
 import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
@@ -14,6 +15,8 @@ export class UserService implements IUserService {
         private readonly _userRepository: IUserRepository,
         private readonly _userSubscriptionRepository: IUserSubscriptionRepository,
         private readonly _subscriptionRepository: ISubscriptionRepository,
+        private readonly _paymentRepository: IPaymentRepository
+
     ) { }
 
     async createUser(data: UserInput): Promise<IUser> {
@@ -195,5 +198,29 @@ export class UserService implements IUserService {
             throw new HttpError(500, "Server error while getting dashboard user data");
         }
     }
+
+    async getAdminGraphData(): Promise<{ month: string; revenue: number; users: number }[]> {
+        const monthsBack = 6;
+        const [userData, revenueData] = await Promise.all([
+            this._userRepository.getMonthlyUsers(monthsBack),
+            this._paymentRepository.getMonthlyRevenue(monthsBack)
+        ]);
+
+        const result: { month: string; revenue: number; users: number }[] = [];
+
+        for (let i = monthsBack - 1; i >= 0; i--) {
+            const d = new Date(new Date().getFullYear(), new Date().getMonth() - i, 1);
+            const monthName = d.toLocaleString('default', { month: 'short' });
+            const year = d.getFullYear();
+
+            const users = userData.find(u => u.month === monthName && u.year === year)?.users || 0;
+            const revenue = revenueData.find(r => r.month === monthName && r.year === year)?.revenue || 0;
+
+            result.push({ month: monthName, revenue, users });
+        }
+
+        return result;
+    }
+
 
 }

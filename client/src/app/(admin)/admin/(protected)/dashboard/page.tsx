@@ -4,6 +4,7 @@ import { Users, Package, CreditCard } from 'lucide-react';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { dashboardDataApi } from '@/apis/adminApi';
 import Loading from '@/components/Loading';
+import RevenueGraph from './_components/RevenueGraph';
 
 type StatsType = {
     title: string;
@@ -61,12 +62,10 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="admin-card p-4 lg:col-span-2">
                     <h2 className="text-lg font-medium mb-4">Weekly Analytics</h2>
-                    <div className="h-64 flex items-center justify-center border border-gray-700 rounded-md">
-                        <p className="text-admin-muted">Chart will be displayed here</p>
-                    </div>
+                    <RevenueGraph />
                 </div>
 
-                <div className="admin-card p-4">
+                {/* <div className="admin-card p-4">
                     <h2 className="text-lg font-medium mb-4">Recent Activities</h2>
                     <div className="space-y-4">
                         {[1, 2, 3, 4, 5].map((item) => (
@@ -79,7 +78,7 @@ const Dashboard = () => {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     );

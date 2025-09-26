@@ -14,5 +14,6 @@ adminRouter.get("/dashboard_data", authenticate, isAdmin, adminController.getDas
 adminRouter.post("/user/updateBlockStatus", authenticate, isAdmin, validate(updateStatusBlockUnblock), adminController.updateBlockStatus)
 adminRouter.get("/payment", authenticate, isAdmin, adminController.getPaymentData)
 adminRouter.put("/update_payment_status", authenticate, isAdmin, adminController.updatePaymentStatus)
+adminRouter.get("/graph", authenticate, isAdmin, adminController.getAdminGraph)
 
 export default adminRouter 
