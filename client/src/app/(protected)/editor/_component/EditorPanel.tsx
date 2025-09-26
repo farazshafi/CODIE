@@ -14,12 +14,14 @@ import UnlockButton from "./UnlockButton";
 import { toast } from "sonner";
 
 export default function EditorPanel() {
-  const { language, theme, fontSize } = useCodeEditorStore();
+  const { language, theme, fontSize, setLanguage, reset: resetEditorState } = useCodeEditorStore();
   const user = useUserStore((state) => state.user);
   const ownerId = useEditorStore((state) => state.ownerId);
   const roomId = useEditorStore((state) => state.roomId);
   const projectId = useEditorStore((state) => state.projectId);
   const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled)
+  const setEditorStore = useCodeEditorStore(state => state.setEditor);
+
   const isContributionEnabled = useEditorStore((state) => state.isContributionEnabled)
   const { socket } = useSocket();
 
@@ -38,8 +40,14 @@ export default function EditorPanel() {
   /** ✅ API mutations */
   const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
-      setCode(data.data.data.projectCode || "");
-      setLastValidCode(data.data.projectCode || "");
+      const projectData = data.data.data;
+      setCode(projectData.projectCode || "");
+      setLastValidCode(projectData.projectCode || "");
+
+      if (projectData.projectLanguage) {
+        setLanguage(projectData.projectLanguage);
+      }
+
     },
   });
 
@@ -146,6 +154,7 @@ export default function EditorPanel() {
   /** ✅ On editor mount */
   const handleEditorMount: OnMount = (editor) => {
     editorRef.current = editor;
+    setEditorStore(editor);
 
     /** ✅ Prevent editing locked lines in real-time */
     editor.onDidChangeModelContent((e) => {
@@ -445,6 +454,12 @@ export default function EditorPanel() {
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
+
+  useEffect(() => {
+    if (projectId) {
+      resetEditorState();
+    }
+  }, [projectId]);
 
   return (
     <div className="w-full h-full">
