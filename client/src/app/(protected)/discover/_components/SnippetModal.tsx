@@ -12,6 +12,7 @@ import { getUserSubscriptionApi } from '@/apis/userSubscriptionApi';
 import { useUserStore } from '@/stores/userStore';
 import { explainCodeApi } from '@/apis/discoverApi';
 import ReactMarkdown from "react-markdown"
+import CommentSection from './CommentSection';
 
 interface SnippetModalProps {
     open: boolean;
@@ -19,10 +20,15 @@ interface SnippetModalProps {
     project: IDiscover | null;
 }
 
+
+
+
 const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) => {
     const [isCopied, setIsCopied] = useState(false);
     const [isAiExplanationOn, setIsAiExplanationOn] = useState(false);
     const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+    const [isCodeVisible, setIsCodeVisible] = useState(true);
+
 
     const user = useUserStore((state) => state.user);
 
@@ -73,37 +79,52 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
                     <DialogTitle>Project Code Modal</DialogTitle>
                 </VisuallyHidden>
                 <div className="flex flex-col md:flex-row gap-4 h-full">
-                    <div className="w-full md:w-[70%] rounded-lg p-4 overflow-y-auto border border-gray-200">
-                        <p className="text-black text-2xl font-semibold mb-4">
-                            {project.projectId.projectName}
-                        </p>
-
-                        <div className="relative bg-black text-white p-3 rounded-md text-sm">
-                            <button
-                                onClick={handleCopy}
-                                className="gap-x-2 flex items-center absolute top-2 right-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded"
-                            >
-                                {isCopied ? (
-                                    <>
-                                        <span>Copied</span>
-                                        <Check size={14} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>Copy</span>
-                                        <Copy size={14} />
-                                    </>
-                                )}
-                            </button>
-
-                            <div className="max-h-[40vh] overflow-auto pr-2">
-                                <pre className="whitespace-pre-wrap break-words font-mono text-xs">
-                                    <code>{project.projectId.projectCode}</code>
-                                </pre>
+                    <div className="flex flex-col w-full md:w-[70%] gap-y-3">
+                        <div className="rounded-lg p-4 border border-gray-200">
+                            <div className="flex justify-between items-center mb-2">
+                                <p className="text-black text-2xl font-semibold">
+                                    {project.projectId.projectName}
+                                </p>
+                                <button
+                                    onClick={() => setIsCodeVisible(prev => !prev)}
+                                    className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                                >
+                                    {isCodeVisible ? "Hide Code" : "Show Code"}
+                                </button>
                             </div>
+
+                            {isCodeVisible && (
+                                <div className="relative bg-black text-white p-3 rounded-md text-sm">
+                                    <button
+                                        onClick={handleCopy}
+                                        className="gap-x-2 flex items-center absolute top-2 right-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded"
+                                    >
+                                        {isCopied ? (
+                                            <>
+                                                <span>Copied</span>
+                                                <Check size={14} />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Copy</span>
+                                                <Copy size={14} />
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <div className="max-h-[40vh] overflow-auto pr-2">
+                                        <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                                            <code>{project.projectId.projectCode}</code>
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
+                        <CommentSection />
                     </div>
 
+                    {/* ai code explantion */}
                     <div className="w-full md:w-[30%] bg-gray-100 rounded-lg p-4 overflow-auto border border-gray-200">
                         <h3 className="font-bold text-lg mb-2">Code Explanation</h3>
                         <div className="flex items-center space-x-2 mt-2">
