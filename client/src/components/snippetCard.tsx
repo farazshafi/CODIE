@@ -10,8 +10,9 @@ import SnippetModal from '@/app/(protected)/discover/_components/SnippetModal';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { removeFromDiscoverApi } from '@/apis/discoverApi';
 import { toast } from 'sonner';
-import { getStarredSnippetsApi, removeSnippetApi, starSnippetApi } from '@/apis/starredApi';
+import { getStarredSnippetsApi, starSnippetApi } from '@/apis/starredApi';
 import Loading from './Loading';
+import { useEditorStore } from '@/stores/editorStore';
 
 interface snippetCardPros {
     project: IDiscover;
@@ -26,6 +27,7 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
     const user = useUserStore((state) => state.user)
     const [open, setOpen] = useState(false)
     const [starred, setStarred] = useState<string[]>([])
+    const setProjectId = useEditorStore((state) => state.setProjectId)
 
     const { mutate: removeSnippet } = useMutationHook(removeFromDiscoverApi, {
         onSuccess(data) {
@@ -122,12 +124,24 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
                     <img height={155} width={235} src="https://images.ctfassets.net/lzny33ho1g45/5hzHWhjxP8bM3Ew2SJgKuS/ae69008c04ab864f602254bf349725e7/acode.webp" alt="code-image" />
                 </div>
                 <div className='mt-3'>
-                    <button onClick={() => setOpen(true)} className='rounded-xl w-full bg-tertiary text-white py-4 cursor-pointer'>Explore</button>
+                    <button onClick={() => {
+                        setProjectId(project.projectId._id)
+                        console.log("setted projected id as : ", project.projectId._id)
+                        setOpen(true)
+                    }} className='rounded-xl w-full bg-tertiary text-white py-4 cursor-pointer'>Explore</button>
                 </div>
-            </SpotlightCard>
-            <SnippetModal open={open} onClose={() => setOpen(false)} project={project} />
+            </SpotlightCard >
+            {open && (
+                <SnippetModal
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    project={project}
+                    owner={project.projectId.userId}
+                />
+            )}
 
-        </div>
+
+        </div >
     )
 }
 

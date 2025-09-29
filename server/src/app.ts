@@ -17,6 +17,7 @@ import userSubscriptionRouter from "./routes/userSubscriptionRouter";
 import paymentRouter from "./routes/paymentRouter";
 import starredRouter from "./routes/StarredRouter";
 import { attachLogger } from "./utils/loggerContext";
+import commentRouter from "./routes/commentRouter";
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/subscription", subscriptionRouter)
 app.use("/api/discover", discoverRouter)
 app.use("/api/userSubscription", userSubscriptionRouter)
 app.use("/api/starred", starredRouter)
+app.use("/api/comment", commentRouter)
 
 // Admin Routes
 app.use("/api/admin", adminRouter)

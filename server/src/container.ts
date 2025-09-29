@@ -57,6 +57,10 @@ import { UserSocketService } from './sockets/services/UserSocketService';
 import { UserSubscriptionService } from './services/UserSubscriptionService';
 import { StarredService } from './services/StarredService';
 import { PaymentService } from './services/PaymentService';
+import CommentModel from './models/CommentModel';
+import { CommentRepository } from './repositories/CommentRepository';
+import { CommentService } from './services/CommentService';
+import { CommentController } from './controllers/CommentController';
 
 
 
@@ -75,6 +79,7 @@ export const userSocketRepository = new UserSocketRepository()
 export const userSubscriptionRepository = new UserSubscriptionRepository(UserSubscriptionModel)
 export const starredRepository = new StarredRepository(StarredModel)
 export const paymentRepository = new PaymentRepository(PaymentModel)
+export const commentRepository = new CommentRepository(CommentModel)
 
 // Set up services
 export const userService = new UserService(userRepository, userSubscriptionRepository, subscriptionRepository, paymentRepository)
@@ -92,6 +97,7 @@ export const roomSocketService = new RoomSocketService(roomRepository, requestSe
 export const userSocketService = new UserSocketService(userSocketRepository)
 export const paymentService = new PaymentService(paymentRepository)
 export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository, mailService, userRepository, paymentService)
+export const commentService = new CommentService(commentRepository)
 export const starredService = new StarredService(starredRepository, discoverRepository)
 
 // Set up controller
@@ -107,4 +113,5 @@ export const discoverController = new DiscoverController(discoverService)
 export const userSubscriptionController = new UserSubscriptionController(userSubscriptionService)
 export const starredController = new StarredController(starredService)
 export const paymentController = new PaymentController(paymentService)
+export const commentController = new CommentController(commentService)
 

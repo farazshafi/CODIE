@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { IDiscover } from '@/app/(protected)/discover/page';
-import { Check, Copy, SquareTerminal } from 'lucide-react';
+import { Check, Copy, SquareTerminal, UsersRound } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -13,24 +13,36 @@ import { useUserStore } from '@/stores/userStore';
 import { explainCodeApi } from '@/apis/discoverApi';
 import ReactMarkdown from "react-markdown"
 import CommentSection from './CommentSection';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getContributersApi } from '@/apis/roomApi';
+import { useEditorStore } from '@/stores/editorStore';
 
 interface SnippetModalProps {
     open: boolean;
     onClose: () => void;
     project: IDiscover | null;
+    owner: { _id: string, name: string }
 }
 
 
 
+type contributorType = {
+    id: string,
+    user: { name: string },
+    role: string,
+}
 
-const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) => {
+
+const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, owner }) => {
     const [isCopied, setIsCopied] = useState(false);
     const [isAiExplanationOn, setIsAiExplanationOn] = useState(false);
     const [aiExplanation, setAiExplanation] = useState<string | null>(null);
     const [isCodeVisible, setIsCodeVisible] = useState(true);
+    const [contributors, setContributors] = useState<contributorType[]>([])
 
 
     const user = useUserStore((state) => state.user);
+    const projectId = useEditorStore((state) => state.projectId)
 
     const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
@@ -48,9 +60,16 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
         },
     });
 
+    const { mutate: getContributers } = useMutationHook(getContributersApi, {
+        onSuccess(data) {
+            setContributors(data.data)
+        }
+    });
+
     useEffect(() => {
-        if (user?.id) {
+        if (user?.id && projectId) {
             getSubscription(user.id);
+            getContributers(projectId)
         }
     }, [user?.id]);
 
@@ -72,6 +91,8 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
 
     if (!project) return null;
 
+
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="bg-white w-[95vw] max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] h-[90vh] max-h-[90vh] p-4 overflow-hidden">
@@ -81,6 +102,13 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
                 <div className="flex flex-col md:flex-row gap-4 h-full">
                     <div className="flex flex-col w-full md:w-[70%] gap-y-3">
                         <div className="rounded-lg p-4 border border-gray-200">
+                            <div className="flex items-center gap-x-3">
+                                <Avatar>
+                                    <AvatarImage src="https://github.com/shadcn.png" />
+                                    <AvatarFallback>{owner.name}</AvatarFallback>
+                                </Avatar>
+                                <p>{owner.name}</p>
+                            </div>
                             <div className="flex justify-between items-center mb-2">
                                 <p className="text-black text-2xl font-semibold">
                                     {project.projectId.projectName}
@@ -124,28 +152,67 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project }) =
                         <CommentSection />
                     </div>
 
-                    {/* ai code explantion */}
-                    <div className="w-full md:w-[30%] bg-gray-100 rounded-lg p-4 overflow-auto border border-gray-200">
-                        <h3 className="font-bold text-lg mb-2">Code Explanation</h3>
-                        <div className="flex items-center space-x-2 mt-2">
-                            <Switch
-                                id="ai-explanation"
-                                checked={isAiExplanationOn}
-                                onCheckedChange={setIsAiExplanationOn}
-                            />
-                            <Label htmlFor="ai-explanation">AI Code Explanation <SquareTerminal /></Label>
+                    {/* Right Sidebar */}
+                    <div className="flex flex-col gap-y-4 w-full md:w-[30%] bg-gray-100 rounded-lg p-4 overflow-auto border border-gray-200">
+                        <div>
+
+                            {/* Contributors */}
+                            <div className="mt-6">
+                                <div className="flex gap-x-2 items-center">
+                                    <UsersRound />
+                                    <p className="font-medium">Contributors</p>
+                                    <div className="flex items-center justify-center p-1 w-[30px] h-[30px] rounded-full bg-green-600 text-white text-sm">
+                                        {contributors.length < 1 ? 0 : contributors.length - 1}
+                                    </div>
+                                </div>
+
+                                {/* Contributors Grid */}
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    {contributors
+                                        .filter((contributor) => contributor.role !== "owner")
+                                        .map((contributor) => (
+                                            <div key={contributor.id} className="flex items-center gap-x-2">
+                                                <Avatar>
+                                                    <AvatarImage src="https://github.com/shadcn.png" />
+                                                    <AvatarFallback>{contributor.user.name}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <p className="text-sm font-medium">{contributor.user.name}</p>
+                                                    <p className="text-green-600 text-xs">{contributor.role}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
                         </div>
 
-                        {isAiExplanationOn && (
-                            <div className="text-sm leading-relaxed text-black max-h-[35vh] overflow-auto mt-4 prose">
-                                {generatingExplanation ? (
-                                    "Generating explanation..."
-                                ) : (
-                                    <ReactMarkdown>{aiExplanation}</ReactMarkdown>
-                                )}
+                        {/* Code Explanation */}
+                        <div>
+                            <h3 className="font-bold text-lg mb-2">Code Explanation</h3>
+                            <div className="flex items-center space-x-2 mt-2">
+                                <Switch
+                                    id="ai-explanation"
+                                    checked={isAiExplanationOn}
+                                    onCheckedChange={setIsAiExplanationOn}
+                                />
+                                <Label htmlFor="ai-explanation">
+                                    AI Code Explanation <SquareTerminal />
+                                </Label>
                             </div>
-                        )}
+
+                            {isAiExplanationOn && (
+                                <div className="text-sm leading-relaxed text-black max-h-[35vh] overflow-auto mt-4 prose">
+                                    {generatingExplanation ? (
+                                        "Generating explanation..."
+                                    ) : (
+                                        <ReactMarkdown>{aiExplanation}</ReactMarkdown>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+
                 </div>
             </DialogContent>
         </Dialog>
