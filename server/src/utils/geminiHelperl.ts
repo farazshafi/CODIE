@@ -1,28 +1,31 @@
 import axios from "axios";
 import { HttpError } from "./HttpError";
 
+const MODEL = "models/gemini-2.5-flash";
 
 export const generateCodeExplanation = async (code: string) => {
-    try {
-        const response = await axios.post(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-            {
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [{ text: `Explain this code in simple English and make a structured response.Act as a mentor:\n\n${code}` }],
-                    },
-                ],
-            },
-            {
-                params: { key: process.env.GEMINI_API_KEY },
-                headers: { 'Content-Type': 'application/json' },
-            }
-        );
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent`;
 
-        return response.data.candidates?.[0]?.content?.parts?.[0]?.text || 'No explanation found';
-    } catch (error) {
-        console.log(error)
-        throw new HttpError(500, "server errro while generating code explanation")
-    }
-}
+    const response = await axios.post(
+      url,
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `Explain this code in simple English:\n\n${code}` }],
+          },
+        ],
+      },
+      {
+        params: { key: process.env.GEMINI_API_KEY },
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  } catch (err: any) {
+    console.error("Error calling Gemini API:", err.response?.data || err.message);
+    throw new HttpError(500, "Error generating code explanation");
+  }
+};

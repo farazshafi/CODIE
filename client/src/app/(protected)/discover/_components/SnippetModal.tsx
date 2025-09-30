@@ -27,7 +27,7 @@ interface SnippetModalProps {
 
 
 type contributorType = {
-    id: string,
+    _id: string,
     user: { name: string },
     role: string,
 }
@@ -60,7 +60,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
         },
     });
 
-    const { mutate: getContributers } = useMutationHook(getContributersApi, {
+    const { mutate: getContributers, isLoading: loadingContributers } = useMutationHook(getContributersApi, {
         onSuccess(data) {
             setContributors(data.data)
         }
@@ -168,10 +168,10 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
 
                                 {/* Contributors Grid */}
                                 <div className="grid grid-cols-2 gap-4 mt-4">
-                                    {contributors
+                                    {loadingContributers ? <p>Loading...</p> : contributors
                                         .filter((contributor) => contributor.role !== "owner")
                                         .map((contributor) => (
-                                            <div key={contributor.id} className="flex items-center gap-x-2">
+                                            <div key={contributor._id} className="flex items-center gap-x-2">
                                                 <Avatar>
                                                     <AvatarImage src="https://github.com/shadcn.png" />
                                                     <AvatarFallback>{contributor.user.name}</AvatarFallback>
