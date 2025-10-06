@@ -16,6 +16,7 @@ interface Contributor {
   name: string;
   avatar?: string;
   contributions: number;
+  totalContributions: number;
 }
 
 function getInitials(name: string) {
@@ -38,6 +39,8 @@ export default function ContributorsCircle() {
 
   useEffect(() => {
     getContributors();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -54,7 +57,7 @@ export default function ContributorsCircle() {
                     alt={contributor.name}
                     width={60}
                     height={60}
-                    unoptimized 
+                    unoptimized
                     className="rounded-full border-2 border-green-500 hover:scale-110 transition-transform cursor-pointer"
                   />
                 ) : (

@@ -11,6 +11,15 @@ import { loginAdminApi } from '@/apis/adminApi';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/stores/userStore';
 
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            errors?: { message: string }[];
+            message?: string;
+        };
+    };
+}
+
 const AdminLogin = () => {
     const router = useRouter()
     const user = useUserStore((state) => state.user)
@@ -35,7 +44,7 @@ const AdminLogin = () => {
             router.push("/admin/dashboard")
         },
 
-        onError: (e) => {
+        onError: (e: ApiError) => {
             const errors = e?.response?.data?.errors;
             let message = "Login failed";
             if (Array.isArray(errors)) {
@@ -47,6 +56,7 @@ const AdminLogin = () => {
             toast.error(message);
         }
     })
+
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +83,7 @@ const AdminLogin = () => {
             router.push("/admin/dashboard")
             return
         }
-    }, [user])
+    }, [user, router])
 
     return (
         <div className="w-full max-w-md mx-auto">

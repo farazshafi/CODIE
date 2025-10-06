@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import Logo from "../../../public/logo.png";
 import Link from "next/link";
 import { Menu, X, LogOut, User, LogIn, Banknote, Bell, CircleX, CircleCheckBig } from "lucide-react";
@@ -26,8 +26,9 @@ import { useSocket } from "@/context/SocketContext";
 import { logoutUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 
+
 type NavbarProps = {
-    refetchProjects(): void;
+    refetchProjects?(): void;
 
 }
 
@@ -64,13 +65,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
     const [hasNewNotifications, setHasNewNotifications] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
 
-    const updateNotificationData = () => {
-        if (user?.id) {
-            getAllSndReq(user.id);
-            getAllRecReq(user.id);
-            getRecInvitations(user.id);
-        }
-    };
+
 
     const { mutate: logoutUser } = useMutationHook(logoutUserApi, {
         onSuccess() {
@@ -80,7 +75,6 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         }
     })
 
-    useNotificationSocketListner(updateNotificationData, refetchProjects);
 
     //functions
     const handleLogout = () => {
@@ -125,7 +119,7 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
 
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {
         onSuccess(res) {
-            console.log("sended data:",res.data)
+            console.log("sended data:", res.data)
             setSendedData(res.data);
             updateNotificationCount();
         },
@@ -144,27 +138,38 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
             updateNotificationCount();
         },
     });
-
-    const updateNotificationCount = () => {
+    const updateNotificationCount = useCallback(() => {
         const totalCount = sendedData.length + recivedData.length + recivedInvitation.length;
         setNotificationCount(totalCount);
-    };
+    }, [sendedData, recivedData, recivedInvitation]);
+
+    const updateNotificationData = useCallback(() => {
+        if (user?.id) {
+            getAllSndReq(user.id);
+            getAllRecReq(user.id);
+            getRecInvitations(user.id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
 
     useImperativeHandle(ref, () => ({
         updateNotificationData,
     }))
 
+    useNotificationSocketListner(updateNotificationData, refetchProjects ?? (() => { }));
+
+
     // useEffects
     useEffect(() => {
         if (user?.id) {
             updateNotificationData();
         }
-    }, [user?.id]);
+    }, [user, updateNotificationData]);
 
     useEffect(() => {
         updateNotificationCount();
-    }, [sendedData, recivedData, recivedInvitation]);
+    }, [sendedData, recivedData, recivedInvitation, updateNotificationCount]);
 
     useEffect(() => {
         if (notificationCount > 0) {

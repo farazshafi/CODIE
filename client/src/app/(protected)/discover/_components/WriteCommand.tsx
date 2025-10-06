@@ -8,13 +8,18 @@ import { createCommentApi } from "@/apis/commentApi"
 import { toast } from "sonner"
 import { useEditorStore } from "@/stores/editorStore"
 
-const WriteCommentModal = ({ fetchComments }) => {
+interface WriteCommentModalProps {
+    fetchComments: (id: string) => void;
+}
+
+const WriteCommentModal: React.FC<WriteCommentModalProps> = ({ fetchComments }) => {
   const [open, setOpen] = useState(false)
   const [comment, setComment] = useState("")
   const projectId = useEditorStore((state) => state.projectId)
 
   const { mutate: createComment } = useMutationHook(createCommentApi, {
     onSuccess(data) {
+    if(!projectId) return 
       setOpen(false)
       fetchComments(projectId)
       setComment("")

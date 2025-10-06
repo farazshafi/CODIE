@@ -7,7 +7,10 @@ const API = axios.create({
 
 API.interceptors.request.use(
     (config) => {
-        const userStorage = localStorage.getItem("user-storage");
+        const userStorage = typeof window !== "undefined"
+            ? localStorage.getItem("user-storage")
+            : null;
+
         const publicRoutes = [
             "/login",
             "/register",
@@ -47,7 +50,10 @@ API.interceptors.response.use(
                     { withCredentials: true }
                 );
                 const newAccessToken = tokenResponse.data.data.accessToken;
-                const userStorage = localStorage.getItem("user-storage");
+                const userStorage = typeof window !== "undefined"
+                    ? localStorage.getItem("user-storage")
+                    : null;
+
                 if (userStorage) {
                     const userData = JSON.parse(userStorage);
                     userData.state.user.token = newAccessToken;
@@ -73,7 +79,7 @@ API.interceptors.response.use(
         }
 
 
-        return Promise.reject(error); 
+        return Promise.reject(error);
     }
 );
 

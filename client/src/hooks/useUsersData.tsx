@@ -35,11 +35,14 @@ export const useUsersData = () => {
 
   const { mutate: updateBlockStatus } = useMutationHook(blockUnblockUserApi, {
     onSuccess(data, variable) {
+      if (!variable) return
       getUsers({
         limit: usersPerPage,
-        page: 1,
+        page: "1",
         status: filterStatus,
+        search: "",
       });
+
       if (!user || !socket || !isConnected) {
         console.log(`Socket not ready or user missing user: ${user}, socket: ${socket}`);
         return;
@@ -57,7 +60,7 @@ export const useUsersData = () => {
     debounce((search: string) => {
       getUsers({
         limit: usersPerPage,
-        page: 1,
+        page: "1",
         status: filterStatus,
         search,
       });
@@ -68,12 +71,12 @@ export const useUsersData = () => {
     debouncedFetch.current = debounce((search: string) => {
       getUsers({
         limit: usersPerPage,
-        page: 1,
+        page: "1",
         status: filterStatus,
         search,
       });
     }, 1000);
-  }, [filterStatus]);
+  }, [filterStatus, getUsers]);
 
   useEffect(() => {
     return () => {
@@ -91,11 +94,11 @@ export const useUsersData = () => {
   useEffect(() => {
     getUsers({
       limit: usersPerPage,
-      page: currentPage,
+      page: String(currentPage),
       status: filterStatus,
       search: searchRef.current,
     });
-  }, [currentPage, filterStatus]);
+  }, [currentPage, filterStatus, getUsers]);
 
   return {
     users,

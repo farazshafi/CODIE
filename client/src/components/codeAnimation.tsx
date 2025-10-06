@@ -2,33 +2,35 @@
 
 import React, { useEffect, useState } from "react";
 
+
+const codeSnippet = [
+    'import { collaborative } from "code-spark";',
+    "",
+    "// Initialize collaborative editor",
+    "const editor = collaborative.create({",
+    "  project: 'awesome-app',",
+    "  language: 'typescript',",
+    "  theme: 'dark'",
+    "});",
+    "",
+    "// Invite teammates to collaborate",
+    "editor.invite(['jane@example.com', 'john@example.com']);",
+    "",
+    "// Enable AI features",
+    "editor.enableAI({",
+    "  suggestions: true,",
+    "  codeExplanation: true,",
+    "  autoCompletion: true",
+    "});",
+    "",
+    "// Deploy instantly",
+    "editor.deploy();",
+];
+
 const CodeAnimation = () => {
     const [codeLines, setCodeLines] = useState<string[]>([]);
     const [currentLine, setCurrentLine] = useState(0);
 
-    const codeSnippet = [
-        'import { collaborative } from "code-spark";',
-        "",
-        "// Initialize collaborative editor",
-        "const editor = collaborative.create({",
-        "  project: 'awesome-app',",
-        "  language: 'typescript',",
-        "  theme: 'dark'",
-        "});",
-        "",
-        "// Invite teammates to collaborate",
-        "editor.invite(['jane@example.com', 'john@example.com']);",
-        "",
-        "// Enable AI features",
-        "editor.enableAI({",
-        "  suggestions: true,",
-        "  codeExplanation: true,",
-        "  autoCompletion: true",
-        "});",
-        "",
-        "// Deploy instantly",
-        "editor.deploy();",
-    ];
 
     useEffect(() => {
         if (currentLine < codeSnippet.length) {

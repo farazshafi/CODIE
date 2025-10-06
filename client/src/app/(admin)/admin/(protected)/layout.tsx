@@ -19,7 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       logout();
       toast.warning('You are not allowed');
     }
-  }, [user]);
+  }, [user, router, logout]);
 
   if (!user) return null;
 

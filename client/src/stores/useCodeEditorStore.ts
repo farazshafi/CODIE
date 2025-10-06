@@ -1,6 +1,6 @@
 
+import * as monaco from 'monaco-editor';
 import { create } from "zustand";
-import { Monaco } from "@monaco-editor/react";
 import { CodeEditorState } from "@/types";
 import { LANGUAGE_CONFIG } from "@/app/(protected)/editor/_constants";
 
@@ -15,10 +15,12 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
     error: null,
     editor: null,
     executionResult: null,
+    reset: () => set({ editor: null, language: "javascript", theme: "vs-dark", fontSize: 14 }),
+
 
     getCode: () => get().editor?.getValue() || "",
 
-    setEditor: (editor: Monaco) => {
+    setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => {
         set({ editor });
     },
 
@@ -33,14 +35,6 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
     setLanguage: (language: string) => {
         set({
             language,
-            output: "",
-            error: null,
-        });
-    },
-
-    reset: () => {
-        set({
-            language: "javascript",
             output: "",
             error: null,
         });

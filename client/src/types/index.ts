@@ -1,4 +1,5 @@
-import { Monaco } from "@monaco-editor/react";
+import * as monaco from 'monaco-editor';
+
 export interface Theme {
     id: string;
     label: string;
@@ -12,15 +13,16 @@ export interface CodeEditorState {
     error: string | null;
     theme: string;
     fontSize: number;
-    editor: Monaco | null;
+    editor: monaco.editor.IStandaloneCodeEditor | null;
     executionResult: ExecutionResult | null;
 
-    setEditor: (editor: Monaco) => void;
+    setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => void;
     getCode: () => string;
     setLanguage: (language: string) => void;
     setTheme: (theme: string) => void;
     setFontSize: (fontSize: number) => void;
     runCode: () => Promise<void>;
+    reset: () => void;
 }
 
 
@@ -65,12 +67,12 @@ export interface ISendAndReciveRequest {
 }
 
 export interface ContributorSummary {
-  userId: mongoose.Types.ObjectId | string;
-  name: string;
-  avatar: string;
-  totalContributions: number;
-  roles: {
-    projectId: mongoose.Types.ObjectId | string;
-    role: "owner" | "editor" | "viewer";
-  }[];
+    userId: string;
+    name: string;
+    avatar: string;
+    totalContributions: number;
+    roles: {
+        projectId: string;
+        role: "owner" | "editor" | "viewer";
+    }[];
 }

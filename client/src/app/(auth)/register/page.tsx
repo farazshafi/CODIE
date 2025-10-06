@@ -17,6 +17,16 @@ import { userSchema } from "@/lib/validations/userSchema";
 import Loading from "@/components/Loading";
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      errors?: { message: string }[];
+      message?: string;
+      error?: string;
+    };
+  };
+}
+
 const Page = () => {
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
@@ -38,7 +48,7 @@ const Page = () => {
       router.push("/otp");
     },
 
-    onError: (e) => {
+    onError: (e: ApiError) => {
       console.log("registration error: ", e);
       const errors = e?.response?.data?.errors;
       let message = "Registration failed";
@@ -73,7 +83,7 @@ const Page = () => {
       getSubscription(data.data.id)
       router.push("/dashboard")
     },
-    onError: (e) => {
+    onError: (e: ApiError) => {
       console.log("Error:", e?.response?.data);
 
       const message =
@@ -84,6 +94,7 @@ const Page = () => {
     }
 
   })
+
 
   const handlePassHidden = () => setIsPasswordHidden(prev => !prev)
 
@@ -111,12 +122,14 @@ const Page = () => {
     try {
       const { user } = await signInWithPopup(auth, gProvider);
       const { displayName, email, uid, photoURL } = user;
-      googleAuthMutate({
-        email,
-        name: displayName,
-        googleId: uid,
-        avatarUrl: photoURL ? photoURL : null,
-      })
+      if (email && displayName) {
+        googleAuthMutate({
+          email,
+          name: displayName,
+          googleId: uid,
+          avatarUrl: photoURL ? photoURL : "",
+        })
+      }
     } catch (error) {
       console.error("Google Sign In Error: ", error);
     }
@@ -128,7 +141,9 @@ const Page = () => {
     } else {
       setCheckingAuth(false);
     }
-  }, [user]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, router]);
 
   if (checkingAuth) {
     return (

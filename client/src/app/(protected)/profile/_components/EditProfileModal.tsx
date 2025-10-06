@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 type EditModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data) => void;
+  onSave: (data: {
+    name: string;
+    avatar: string;
+    github: string;
+    portfolio: string;
+  }) => void;
   user: {
     name?: string;
     avatar?: string;

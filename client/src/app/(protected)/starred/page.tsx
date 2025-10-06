@@ -17,10 +17,10 @@ const Page = () => {
     const { mutate: getStarredSnippets, isLoading } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
             console.log("user starred projects", data.data)
-            setSnippets(data.data)  
+            setSnippets(data.data)
         },
     })
-    const { mutate: removeStarredSnippet , isLoading: unstarring} = useMutationHook(removeSnippetApi, {
+    const { mutate: removeStarredSnippet, isLoading: unstarring } = useMutationHook(removeSnippetApi, {
         onSuccess(data) {
             toast.success(data.message || "Unstarred Snippet")
             getStarredSnippets()
@@ -33,10 +33,12 @@ const Page = () => {
 
     useEffect(() => {
         if (!user) return
-        getStarredSnippets({})
-    }, [])
+        getStarredSnippets()
 
-    if(unstarring) return <Loading fullScreen={false} text='Removing your item...'></Loading>
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
+
+    if (unstarring) return <Loading fullScreen={false} text='Removing your item...'></Loading>
 
     return (
         <div>
@@ -53,7 +55,7 @@ const Page = () => {
             <div className='px-5 mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-5 text-white'>
                 {isLoading && snippets.length === 0
                     ? Array(6).fill(0).map((_, index) => <SnippetCardSkeleton key={index} />)
-                    : snippets.map((item, index) => <SnippetCard isStarred={true} onUnstarHanlder={removeSnippet} onDelete={() => { }} project={item} key={index} />)
+                    : snippets.map((item, index) => <SnippetCard refetchSnippets={() => { }} isStarred={true} onUnstarHanlder={removeSnippet} onDelete={() => { }} project={item} key={index} />)
                 }
             </div>
         </div>

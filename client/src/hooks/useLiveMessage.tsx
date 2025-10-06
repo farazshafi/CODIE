@@ -66,6 +66,6 @@ export const useLivemessage = () => {
                 // socket.off("invitation-sent", handleSuccessMessage);
             };
         }
-    }, [socket, user])
+    }, [socket, user, logout])
 
 }

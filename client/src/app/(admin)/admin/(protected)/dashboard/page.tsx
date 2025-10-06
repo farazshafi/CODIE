@@ -32,7 +32,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         getDashboardData()
-    }, [])
+    }, [getDashboardData])
 
     return (
         <>

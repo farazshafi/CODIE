@@ -11,6 +11,15 @@ import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            errors?: { message: string }[];
+            message?: string;
+        };
+    };
+}
+
 export type CreateSubscriptionType = z.infer<typeof createSubscription>;
 
 export default function CreateSubscriptionModal({
@@ -22,7 +31,7 @@ export default function CreateSubscriptionModal({
     isOpen: boolean,
     onClose: () => void,
     onCreate(): void,
-    editData: (CreateSubscriptionType & { id: string }) | null
+    editData: (CreateSubscriptionType & { _id: string }) | null
 }) {
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateSubscriptionType>({
@@ -37,7 +46,7 @@ export default function CreateSubscriptionModal({
             onClose();
             reset();
         },
-        onError: (e) => {
+        onError: (e: ApiError) => {
             const errors = e?.response?.data?.errors;
             let message = "Login failed";
             if (Array.isArray(errors)) {
@@ -58,7 +67,7 @@ export default function CreateSubscriptionModal({
             reset();
             router.push('/admin/subscription');
         },
-        onError: (e) => {
+        onError: (e: ApiError) => {
             const errors = e?.response?.data?.errors;
             let message = "Login failed";
             if (Array.isArray(errors)) {

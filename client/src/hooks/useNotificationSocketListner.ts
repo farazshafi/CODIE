@@ -45,5 +45,5 @@ export default function useNotificationSocketListner(onNotificationReceived: () 
 
             // socket.off("notification-received", fetchData);
         };
-    }, [socket, onNotificationReceived]);
+    }, [socket, onNotificationReceived, refetchProjects]);
 }

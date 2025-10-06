@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
+import * as monaco from 'monaco-editor';
 import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import debounce from "lodash.debounce";
 import { useUserStore } from "@/stores/userStore";
@@ -12,20 +12,21 @@ import { checkIsEligibleToEditApi } from "@/apis/roomApi";
 import LockSelectionButton from "./LockSelectionButton";
 import UnlockButton from "./UnlockButton";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export default function EditorPanel() {
-  const { language, theme, fontSize, setLanguage, reset: resetEditorState } = useCodeEditorStore();
+  const { language, theme, fontSize, setLanguage, reset } = useCodeEditorStore();
   const user = useUserStore((state) => state.user);
   const ownerId = useEditorStore((state) => state.ownerId);
   const roomId = useEditorStore((state) => state.roomId);
   const projectId = useEditorStore((state) => state.projectId);
   const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled)
-  const setEditorStore = useCodeEditorStore(state => state.setEditor);
+  const setEditor = useCodeEditorStore(state => state.setEditor);
 
   const isContributionEnabled = useEditorStore((state) => state.isContributionEnabled)
   const { socket } = useSocket();
 
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
   const [code, setCode] = useState<string>("");
   const [lastValidCode, setLastValidCode] = useState<string>("");
@@ -56,16 +57,16 @@ export default function EditorPanel() {
       setIsEditable(data.data.isAllowed || false);
       setContributionEnabled(true)
     },
-    onError(error) {
-      console.log("error: ", error)
-      if (error.response.data.message === "Room Not found!" || error.response.data.message === "User not found in collabrators") {
+    onError(error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      if (err.response?.data?.message === "Room Not found!" || err.response?.data?.message === "User not found in collabrators") {
         setIsEditable(true);
-        setContributionEnabled(false)
+        setContributionEnabled(false);
       } else {
         setIsEditable(false);
-        setContributionEnabled(false)
+        setContributionEnabled(false);
       }
-    },
+    }
   });
 
   const { mutate: saveCode } = useMutationHook(saveCodeApi, {
@@ -80,56 +81,57 @@ export default function EditorPanel() {
 
     getCode(projectId);
 
-    if (roomId) {
-      checkPermission({ roomId, userId: user?.id });
+    if (roomId && user?.id) {
+      checkPermission({ roomId, userId: user.id });
     } else {
       // No room → assume editable
       setIsEditable(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, roomId, user?.id]);
 
 
   /** ✅ Save full code (debounced) */
-  const debouncedSaveCode = useCallback(
-    debounce((updatedCode: string) => {
-      console.log("isContributionEnabled", isContributionEnabled)
-      if (isContributionEnabled) {
-        console.log("user is owner check", ownerId, user?.id)
-        if (!projectId || user?.id !== ownerId) return;
-        saveCode({ code: updatedCode, projectId });
-        setLastValidCode(updatedCode);
-      } else {
-        console.log("code save ...")
-        saveCode({ code: updatedCode, projectId });
-        setLastValidCode(updatedCode);
-      }
+  const debouncedSaveCode = useMemo(
+    () =>
+      debounce((updatedCode: string) => {
+        if (isContributionEnabled) {
+          if (!projectId || user?.id !== ownerId) return;
+          saveCode({ code: updatedCode, projectId });
+          setLastValidCode(updatedCode);
+        } else {
+          if (projectId) {
+            saveCode({ code: updatedCode, projectId });
+          }
+          setLastValidCode(updatedCode);
+        }
+      }, 3000),
+    [projectId, saveCode, isContributionEnabled, ownerId, user?.id])
 
-    }, 3000),
-    [projectId]
-  );
 
   /** ✅ Emit whole code with line info */
-  const emitCodeUpdate = useCallback(
-    debounce((fullCode: string) => {
-      if (!socket || !editorRef.current) return;
-      const selections = editorRef.current.getSelections();
-      if (!selections || selections.length === 0) return;
+  const emitCodeUpdate = useMemo(
+    () =>
+      debounce((fullCode: string) => {
+        if (!socket || !editorRef.current) return;
+        const selections = editorRef.current.getSelections();
+        if (!selections || selections.length === 0) return;
 
-      const ranges: string[] = selections.map(sel => {
-        const start = sel.startLineNumber;
-        const end = sel.endLineNumber;
-        return start === end ? `${start}` : `${start}-${end}`;
-      });
+        const ranges: string[] = selections.map(sel => {
+          const start = sel.startLineNumber;
+          const end = sel.endLineNumber;
+          return start === end ? `${start}` : `${start}-${end}`;
+        });
 
-      socket.emit("code-update", {
-        userId: user?.id,
-        projectId,
-        ranges,
-        content: fullCode
-      });
-    }, 500),
+        socket.emit("code-update", {
+          userId: user?.id,
+          projectId,
+          ranges,
+          content: fullCode
+        });
+      }, 500),
     [socket, user?.id, projectId]
-  );
+  )
 
   /** ✅ Handle error from backend (rollback + re-request locks) */
   useEffect(() => {
@@ -154,7 +156,7 @@ export default function EditorPanel() {
   /** ✅ On editor mount */
   const handleEditorMount: OnMount = (editor) => {
     editorRef.current = editor;
-    setEditorStore(editor);
+    setEditor(editor);
 
     /** ✅ Prevent editing locked lines in real-time */
     editor.onDidChangeModelContent((e) => {
@@ -283,11 +285,11 @@ export default function EditorPanel() {
   }, [socket, user?.id]);
 
   useEffect(() => {
-    if (!editorRef.current || !window.monaco) return;
+    if (!editorRef.current || !monaco) return;
     const editor = editorRef.current;
 
-    const decorations = Object.entries(remoteCursors).map(([uid, { line, color }]) => ({
-      range: new window.monaco.Range(line, 1, line, 1),
+    const decorations = Object.entries(remoteCursors).map(([, { line }]) => ({
+      range: new monaco.Range(line, 1, line, 1),
       options: {
         className: "remote-cursor",
         beforeContentClassName: "remote-cursor-label"
@@ -298,14 +300,14 @@ export default function EditorPanel() {
   }, [remoteCursors]);
 
   useEffect(() => {
-    if (!editorRef.current || !window.monaco) return;
+    if (!editorRef.current || !monaco) return;
     const editor = editorRef.current;
 
     // Remove old widgets if needed
     Object.keys(remoteCursors).forEach(uid => {
       const widgetId = `cursor-label-${uid}`;
       try {
-        editor.removeContentWidget({ getId: () => widgetId });
+        editor.removeContentWidget({ getId: () => widgetId, getDomNode: () => document.createElement('div'), getPosition: () => null });
       } catch { }
     });
 
@@ -327,7 +329,7 @@ export default function EditorPanel() {
         },
         getPosition: () => ({
           position: { lineNumber: line, column: 1 },
-          preference: [window.monaco.editor.ContentWidgetPositionPreference.ABOVE]
+          preference: [monaco.editor.ContentWidgetPositionPreference.ABOVE]
         })
       });
     });
@@ -404,13 +406,12 @@ export default function EditorPanel() {
     return () => {
       socket.off("code-update");
     };
-  }, [socket, user?.id]);
+  }, [socket, debouncedSaveCode, ownerId, user]);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleRefetchPermission = () => {
-      console.log("refetch-permission event received");
       if (roomId && user?.id) {
         console.log("Calling checkPermission with:", { roomId, userId: user.id });
         checkPermission({ roomId, userId: user.id });
@@ -424,20 +425,21 @@ export default function EditorPanel() {
     return () => {
       socket.off("refetch-permission", handleRefetchPermission);
     };
-  }, [socket]); // ✅ only depends on socket
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
 
 
 
   /** ✅ Highlight locked ranges */
   useEffect(() => {
-    if (!editorRef.current || !window.monaco) return;
+    if (!editorRef.current || !monaco) return;
     const editor = editorRef.current;
 
     const decorations = Object.entries(locks).flatMap(([uid, ranges]) =>
       ranges.map(rangeStr => {
         const [start, end] = rangeStr.split("-").map(Number);
         return {
-          range: new window.monaco.Range(start, 1, end, 1),
+          range: new monaco.Range(start, 1, end, 1),
           options: {
             isWholeLine: true,
             className: uid === user?.id ? "locked-range-current" : "locked-range-other"
@@ -457,9 +459,17 @@ export default function EditorPanel() {
 
   useEffect(() => {
     if (projectId) {
-      resetEditorState();
+      reset();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  useEffect(() => {
+  if (editorRef.current) {
+    editorRef.current.updateOptions({ readOnly: !isEditable });
+  }
+}, [isEditable]);
+
 
   return (
     <div className="w-full h-full">

@@ -25,18 +25,26 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
 
   const { isLoading: verifing, mutate: verifySubscription } = useMutationHook(verifySubscriptionApi, {
     onSuccess(data) {
+      if (!user) return
       getSubscription(user?.id)
       setIsModalOpen(false)
       toast.success(data.message)
     },
-    onError(error) {
-      console.log(error)
-      toast.error(error.message || "Server error while verifying subscription")
-    },
+    onError(error: unknown) {
+      console.log(error);
+
+      if (error instanceof Error) {
+        toast.error("Server error, failed to subscribe: " + error.message);
+      } else {
+        toast.error("Server error, failed to subscribe");
+      }
+    }
+
   })
 
   const { isLoading: downgrading, mutate: downgradeToFreePlan } = useMutationHook(downgradeToFreePlanApi, {
     onSuccess(data) {
+      if (!user) return
       getSubscription(user?.id)
       toast.success(data.message)
 
@@ -53,6 +61,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
   const { isLoading: subscribing, mutate: subscribe } = useMutationHook(subscribeToPlanApi, {
     onSuccess(data) {
       try {
+        if (!user) return
         const { id: order_id, amount, currency } = data.data
         const options: RazorpayOptions = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string,
@@ -109,14 +118,20 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
       }
 
     },
-    onError(error) {
-      console.log(error)
-      toast.error("Server error, failed to subscribe", error.description)
-    },
+    onError(error: unknown) {
+      console.log(error);
+
+      if (error instanceof Error) {
+        toast.error("Server error, failed to subscribe: " + error.message);
+      } else {
+        toast.error("Server error, failed to subscribe");
+      }
+    }
+
   })
 
   const handlePayment = () => {
-
+    if (!user) return
     if (userSubscription?.nextPlanId) {
       toast.info(`You've already scheduled a downgrade to the Basic Plan. This change will take effect on ${userSubscription.endDate}`)
       return

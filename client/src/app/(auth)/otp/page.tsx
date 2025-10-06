@@ -12,6 +12,14 @@ import { useUserStore } from "@/stores/userStore";
 import Loading from "@/components/Loading";
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
+
 const Page = () => {
     const [otp, setOtp] = useState("");
     const [timeLeft, setTimeLeft] = useState(60);
@@ -23,7 +31,9 @@ const Page = () => {
     const setSubscription = useUserStore((state) => state.setSubscription)
     const user = useUserStore((state) => state.user);
 
-    const email = localStorage.getItem("tempMail") || "null"
+    const email = typeof window !== "undefined"
+        ? localStorage.getItem("tempMail")
+        : null;
 
     const { mutate: getSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(res) {
@@ -48,7 +58,7 @@ const Page = () => {
             router.push("/dashboard");
             localStorage.removeItem("tempMail");
         },
-        onError: (err) => {
+        onError: (err: ApiError) => {
             toast.error(err?.response?.data?.message || "Error verifying OTP");
         },
     });
@@ -62,7 +72,7 @@ const Page = () => {
             setTimeLeft(60);
             setIsResendDisabled(true);
         },
-        onError: (err) => {
+        onError: (err: ApiError) => {
             toast.error(err?.response?.data?.message || "Error resending OTP");
         },
     });
@@ -93,6 +103,8 @@ const Page = () => {
             setIsRedirecting(true);
             router.push("/dashboard");
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     useEffect(() => {

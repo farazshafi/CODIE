@@ -14,6 +14,7 @@ import { useMutationHook } from '@/hooks/useMutationHook';
 import { shareDiscoverApi } from '@/apis/discoverApi';
 import { removeFromProjectApi } from '@/apis/roomApi';
 import { useUserStore } from '@/stores/userStore';
+import { AxiosError } from 'axios';
 
 type ProjectCardProps = {
     title: string;
@@ -34,9 +35,14 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContrib
         onSuccess(data) {
             toast.success(data.message)
         },
-        onError(error) {
-            toast.info(error.response.data.message || "Can't share , Server Error")
-        },
+        onError(error: unknown) {
+            if (error && typeof error === "object" && "response" in error) {
+                const axiosError = error as AxiosError<{ message?: string }>;
+                toast.info(axiosError.response?.data?.message || "Can't share, Server Error");
+            } else {
+                toast.info("Can't share, Server Error");
+            }
+        }
     })
     const { mutate: removeFromProject } = useMutationHook(removeFromProjectApi, {
         onSuccess(data) {
@@ -62,6 +68,8 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContrib
     }
 
     const removeContributerFromProject = async () => {
+        if (!user) return
+
         removeFromProject({ projectId: id, userId: user?.id })
     }
 

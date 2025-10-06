@@ -17,7 +17,7 @@ const RevenueGraph = () => {
 
     useEffect(() => {
         getGraphData()
-    }, [])
+    }, [getGraphData])
 
     return (
         <LineChart width={600} height={300} data={graphData}>

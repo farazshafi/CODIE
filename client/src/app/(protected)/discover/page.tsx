@@ -84,6 +84,7 @@ const Page = () => {
 
     useEffect(() => {
         mutate({ keyword, language: selectedLanguage, page: 1, limit: 6, sortBy });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleDeleteSnippet = () => {
@@ -102,6 +103,8 @@ const Page = () => {
             });
         }, 500);
         return () => clearTimeout(delay);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [keyword, selectedLanguage]);
 
     return (

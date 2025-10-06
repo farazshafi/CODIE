@@ -18,6 +18,10 @@ import ProjectCardSkeleton from "./_component/ProjectCardSkelton";
 import SectionTitle from "./_component/SectionTitle";
 import { useSocket } from "@/context/SocketContext";
 
+export type NavbarRef = {
+    updateNotificationData: () => void;
+}
+
 export default function Home() {
 
     const user = useUserStore((state) => state.user);
@@ -26,7 +30,7 @@ export default function Home() {
     const { socket } = useSocket()
     const userId = user?.id;
     const userSubscription = useUserStore((state) => state.subscription)
-    const navbarRef = useRef<any>(null);
+    const navbarRef = useRef<NavbarRef>(null);
 
 
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
@@ -152,6 +156,7 @@ export default function Home() {
                         ) : data?.getProjectsByUserId?.length > 0 && (
                             data.getProjectsByUserId.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
+                                    isContributer={false}
                                     key={index}
                                     refetchProject={refetch}
                                     title={project.projectName}

@@ -25,9 +25,11 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     useEffect(() => {
         if (!user) {
             router.push("/login")
+            return
         }
         getUserSubscriptions(user?.id)
-    }, [user, router])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
 
     if (!user) {
         return <Loading fullScreen text='Redirecting to login page...' />

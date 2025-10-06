@@ -40,8 +40,11 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
             }
         },
         onError(error) {
-            console.log(error)
-            toast.error(error.response.data.message || "Invitaiton failed")
+            if (error instanceof Error) {
+                toast.error(error.message || "Invitation failed");
+            } else {
+                toast.error(String(error));
+            }
             setInvitedUserId(null)
         },
     })
@@ -50,7 +53,11 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
             setUserResult(data.data)
         },
         onError(error) {
-            toast.error(error.response.data.message || "Search failed")
+            if (error instanceof Error) {
+                toast.error(error.message || "Search failed");
+            } else {
+                toast.error(String(error));
+            }
         },
     })
 
@@ -61,17 +68,22 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
         createInvitation({ roomId, senderId: user?.id, reciverId: id })
     }
 
-    const handleSearchUsers = () => {
+
+
+
+    const handleSearchUsers = React.useCallback(() => {
         if (!user?.id) return
         searchUsers({ email: searchEmail, userId: user?.id })
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id])
 
     useEffect(() => {
-        const deleyInputTimeout = setTimeout(() => {
+        const delayInputTimeout = setTimeout(() => {
             handleSearchUsers()
-        }, 500);
-        return () => clearTimeout(deleyInputTimeout);
-    }, [searchEmail])
+        }, 500)
+        return () => clearTimeout(delayInputTimeout)
+    }, [handleSearchUsers])
+
 
     return (
         <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">

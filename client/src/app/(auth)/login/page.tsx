@@ -18,6 +18,16 @@ import { loginSchema } from "@/lib/validations/userSchema";
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            errors?: { message: string }[];
+            message?: string;
+            error?: string;
+        };
+    };
+}
+
 const Page = () => {
     const router = useRouter()
     const setUser = useUserStore((state) => state.setUser)
@@ -56,7 +66,7 @@ const Page = () => {
             router.push("/dashboard")
         },
 
-        onError: (e) => {
+        onError: (e: ApiError) => {
             const errors = e?.response?.data?.errors;
             let message = "Login failed";
             if (Array.isArray(errors)) {
@@ -86,7 +96,7 @@ const Page = () => {
             getSubscription(data.data.id)
             router.push("/dashboard")
         },
-        onError: (e) => {
+        onError: (e: ApiError) => {
             console.log("Error:", e?.response?.data);
             const message =
                 e?.response?.data?.message ||
@@ -97,8 +107,8 @@ const Page = () => {
     })
 
     const { mutate: getResetLink } = useMutationHook(getResetLinkApi, {
-        onError(error) {
-            toast.error(error.response.data.message || "Error while getting reset link")
+        onError(error: ApiError) {
+            toast.error(error?.response?.data?.message || "Error while getting reset link")
             return
         },
         onSuccess(data) {
@@ -106,6 +116,7 @@ const Page = () => {
             return
         },
     })
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -146,7 +157,9 @@ const Page = () => {
             const { user } = await signInWithPopup(auth, gProvider)
             const { email } = user
 
-            googleMutate({ email })
+            if (email) {
+                googleMutate({ email })
+            }
         } catch (err) {
             console.log("Google Sign In Error: ", err)
         }
@@ -159,6 +172,8 @@ const Page = () => {
         } else {
             setCheckingAuth(false)
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
 
 

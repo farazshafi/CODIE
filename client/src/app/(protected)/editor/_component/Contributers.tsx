@@ -29,12 +29,13 @@ type ContributersProps = {
 };
 
 
+
 const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
     const params = useParams()
 
     const { id: projectId } = params
     const { onlineUsers } = useOnlineUsers(projectId?.toString())
-    const user = useUserStore((state) => state.user)
+    const user = useUserStore((state) => state.user);
     const { socket } = useSocket()
     const roomId = useEditorStore((state) => state.roomId)
     const setUserRole = useEditorStore((state) => state.setUserRole)
@@ -50,19 +51,24 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
 
     const { mutate: getContributers } = useMutationHook(getContributersApi, {
         onSuccess(res) {
-            console.log("collaborators data: ",res.data)
+            console.log("collaborators data: ", res.data)
             setCollaborators(res.data)
-            const me = res.data.find(u => u.user._id === user?.id)
+            const me = res.data.find((u: Collaborator) => u.user._id === user?.id)
             if (me) {
                 setUserRole(me.role)
             }
         },
     })
     const { mutate: updateRole, isLoading: isRoleLoading } = useMutationHook(updateCollabratorRoleApi, {
-        onError(error) {
-            toast.error(error.response.data.message || "Error occured while updating role")
+        onError: (error: unknown) => {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error("Something went wrong, while updating role");
+            }
         },
         onSuccess(data, variables) {
+            if (!variables) return
             getContributers(projectId as string)
 
             socket?.emit("notify-role-change", {
@@ -73,17 +79,18 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
         },
     })
 
-    const handleUpdateRole = (userId: string, role: string) => {
+    const handleUpdateRole = (userId: string, role: "viewer" | "editor") => {
+        if (!roomId) return
         updateRole({ userId, role, roomId })
     }
 
     useEffect(() => {
-        if (!socket) return
-        getContributers(projectId)
+        if (!socket || !projectId) return
+        getContributers(projectId as string)
 
         const handleUpdateRole = (data: { message: string, }) => {
             toast.info(data.message)
-            getContributers(projectId)
+            getContributers(projectId as string)
         }
 
         socket.on("updated-role", handleUpdateRole)
@@ -99,6 +106,7 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
                 getContributers(projectId as string)
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, projectId])
 
     return (

@@ -24,6 +24,13 @@ interface SnippetModalProps {
     owner: { _id: string, name: string }
 }
 
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
 
 
 type contributorType = {
@@ -54,9 +61,9 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
         onSuccess(data) {
             setAiExplanation(data.data || "No explanation found.");
             toast.success("AI code explanation generated.");
-        }, onError(error) {
+        }, onError(error: ApiError) {
             setAiExplanation(null)
-            toast.info(error.response.data.message || "Please upgrade your subscription")
+            toast.info(error?.response?.data?.message || "Please upgrade your subscription")
         },
     });
 
@@ -71,6 +78,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
             getSubscription(user.id);
             getContributers(projectId)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id]);
 
     useEffect(() => {
@@ -79,6 +87,8 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
         } else if (project?.projectId.projectCode && aiExplanation === null) {
             getExplanation(project.projectId.projectCode);
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAiExplanationOn, project]);
 
 

@@ -23,10 +23,19 @@ import { useCodeEditorStore } from "@/stores/useCodeEditorStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { createProjectApi } from "@/apis/projectApi";
 import { toast } from "sonner";
-import { useUserStore } from "@/stores/userStore";
+import { ISubscription, useUserStore } from "@/stores/userStore";
 import { LANGUAGE_CONFIG } from "../../editor/_constants";
 import { useSocket } from "@/context/SocketContext";
 import { LoaderCircle } from "lucide-react";
+
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      message?: string;
+      subscription?: ISubscription
+    };
+  };
+}
 
 interface CreateProjectModalProps {
   trigger: React.ReactNode;
@@ -58,11 +67,11 @@ export default function CreateProjectModal({
 
 
   const { mutate, isLoading } = useMutationHook(createProjectApi, {
-    onError(error) {
+    onError(error: ApiError) {
       toast.error(error?.response?.data?.message || "Failed while creating Project");
       if (error?.response?.data?.message === "Your subscription has expired.") {
         const subscriptionData = error.response.data.subscription
-        setSubscription(subscriptionData)
+        if(subscriptionData) setSubscription(subscriptionData)
       }
     },
     onSuccess(data) {

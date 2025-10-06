@@ -12,7 +12,7 @@ interface User {
     portfolio?: string
 }
 
-interface ISubscription {
+export interface ISubscription {
     name: string;
     text: boolean;
     voice: boolean;

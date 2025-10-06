@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { getStarredSnippetsApi, starSnippetApi } from '@/apis/starredApi';
 import Loading from './Loading';
 import { useEditorStore } from '@/stores/editorStore';
+import { AxiosError } from 'axios';
+import Image from 'next/image';
 
 interface snippetCardPros {
     project: IDiscover;
@@ -42,17 +44,24 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
             getStarredSnippet()
             refetchSnippets()
         },
-        onError(error) {
-            console.log(error)
-            toast.info(error.response.data.message || "Cannot Star")
-        },
+        onError(error: unknown) {
+            if (error && typeof error === "object" && "response" in error) {
+                const axiosError = error as AxiosError<{ message?: string }>;
+                toast.info(axiosError.response?.data?.message || "Can't star, Server Error");
+            } else {
+                toast.info("Can't star, Server Error");
+            }
+        }
     })
 
     const { mutate: getStarredSnippet } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
-            console.log("raw data", data.data);
+            type StarredSnippet = {
+                projectId?: { _id: string };
+            };
+
             const starredIds = Array.isArray(data.data)
-                ? data.data.map((item) => item?.projectId?._id)
+                ? (data.data as StarredSnippet[]).map((item) => item?.projectId?._id).filter((id): id is string => typeof id === 'string')
                 : [];
             setStarred(starredIds)
         }
@@ -64,6 +73,8 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
 
     useEffect(() => {
         getStarredSnippet()
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     if (starring) return <Loading fullScreen={false} text='Starring your item...'></Loading>
@@ -121,7 +132,13 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
                 </div>
 
                 <div className='mt-5 '>
-                    <img height={155} width={235} src="https://images.ctfassets.net/lzny33ho1g45/5hzHWhjxP8bM3Ew2SJgKuS/ae69008c04ab864f602254bf349725e7/acode.webp" alt="code-image" />
+                    <Image
+                        src="https://images.ctfassets.net/lzny33ho1g45/5hzHWhjxP8bM3Ew2SJgKuS/ae69008c04ab864f602254bf349725e7/acode.webp"
+                        alt="code-image"
+                        width={235}
+                        height={155}
+                        className="rounded-md"
+                    />
                 </div>
                 <div className='mt-3'>
                     <button onClick={() => {

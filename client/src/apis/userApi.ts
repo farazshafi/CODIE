@@ -63,7 +63,7 @@ export const resendOtpApi = async (userData: { email: string }) => {
     }
 }
 
-export const googleAuthRegisterApi = async (userData: { email: string, name: string, googleId: string }) => {
+export const googleAuthRegisterApi = async (userData: { email: string, name: string, googleId: string, avatarUrl: string }) => {
     try {
         const response = await API.post("/google-auth-register", userData);
         return response.data;

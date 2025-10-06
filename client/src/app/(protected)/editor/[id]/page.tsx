@@ -8,7 +8,6 @@ import { toast } from "sonner"
 import Header from "../_component/Header"
 import EditorPanel from "../_component/EditorPanel"
 import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
-import { LANGUAGE_CONFIG } from "../_constants"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
 import ChatArea from "../_component/ChatArea"
@@ -18,12 +17,11 @@ import { useUserStore } from "@/stores/userStore"
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
     const [showChat, setShowChat] = useState(false)
-    const [showCollaborators, setShowCollaborators] = useState(false)
     const [copyLoading, setCopyLoading] = useState(false)
     const { id } = useParams()
     const setProjectId = useEditorStore((state) => state.setProjectId)
     const userRole = useEditorStore((state) => state.userRole)
-    const { language, editor, output, isRunning, error, runCode } = useCodeEditorStore()
+    const { output, isRunning, error, runCode } = useCodeEditorStore()
     const [chatSupport, setChatSupport] = useState({
         text: false,
         voice: false
@@ -36,10 +34,7 @@ const Page = () => {
 
     // functions
     const handleReset = () => {
-        console.log(showCollaborators)
-        const defaultCode = LANGUAGE_CONFIG[language].defaultCode
-        if (editor) editor.setValue(defaultCode)
-        localStorage.removeItem(`editor-code-${language}`)
+        // handle reset logic
     }
 
     const handleRun = async () => {
@@ -75,6 +70,7 @@ const Page = () => {
 
     useEffect(() => {
         setProjectId(id as string)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
     useEffect(() => {
@@ -87,6 +83,8 @@ const Page = () => {
                 userName: user.name
             })
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (
@@ -95,10 +93,8 @@ const Page = () => {
                 onChatToggle={(chatSupport) => {
                     setChatSupport(chatSupport)
                     setShowChat((prev) => !prev)
-                    setShowCollaborators(false)
                 }}
                 onCollaboratorsToggle={() => {
-                    setShowCollaborators((prev) => !prev)
                     setShowChat(false)
                 }}
             />

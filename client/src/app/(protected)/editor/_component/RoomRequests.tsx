@@ -24,7 +24,11 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
             setRequests(data.data)
         },
         onError(error) {
-            toast.error(error.message || "Error while getting requets")
+            if (error instanceof Error) {
+                toast.error(error.message || "Error while getting request");
+            } else {
+                toast.error(String(error));
+            }
         }
     })
 
@@ -43,6 +47,7 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
 
     useEffect(() => {
         mutate(roomID)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
@@ -58,6 +63,7 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
         return () => {
             socket.off("notification-received", handleUpdateRequest);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, roomID]);
 
 
@@ -66,7 +72,7 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
     return (
         <div className=''>
             <DropdownMenu onOpenChange={(isOpen) => {
-                if(isOpen) setHasUnread(false)
+                if (isOpen) setHasUnread(false)
             }}>
                 <DropdownMenuTrigger>
                     <div className="relative bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer">

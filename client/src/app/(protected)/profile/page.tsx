@@ -59,7 +59,7 @@ const Page = () => {
 
     const { mutate: getUsedLanguage } = useMutationHook(getUsedLanguagesApi, {
         onSuccess(data) {
-            console.log("used langes data",data.data)
+            console.log("used langes data", data.data)
             setUsedLanguages(data.data);
         },
     });
@@ -86,6 +86,8 @@ const Page = () => {
         getUsedLanguage();
         getStarredSnippets()
         getAiUsage()
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     if (!user) return null;

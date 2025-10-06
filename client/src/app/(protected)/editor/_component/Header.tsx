@@ -86,7 +86,11 @@ const Header = ({
 
         },
         onError(error) {
-            toast.error(error?.response?.data?.message || "Something went wrong!");
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error(String(error));
+            }
         },
     })
 
@@ -116,14 +120,15 @@ const Header = ({
         },
     })
 
-    const setFontChange = (newSize: number) => {
-        const size = Math.min(Math.max(newSize, 12), 24);
+    const setFontChange = React.useCallback((newSize: number[]) => {
+        const size = Math.min(Math.max(newSize[0], 12), 24);
         setFontSize(size);
         localStorage.setItem("editor-font-size", size.toString());
-    }
+    }, [setFontSize]);
+
 
     const handleCollabration = () => {
-        mutate(id)
+        mutate(id as string)
     }
 
     const handleSubscription = () => {
@@ -145,10 +150,10 @@ const Header = ({
     useEffect(() => {
         if (ownerId) {
             getUserSubscription(ownerId);
-        } else {
-            console.log("owner id is not there")
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ownerId]);
+
 
 
     const copyRoomId = async () => {
@@ -185,30 +190,40 @@ const Header = ({
     }, []);
 
     useEffect(() => {
-        getRoomByProjectId(id)
-    }, [isWantToCollab])
+        if (id) {
+            getRoomByProjectId(id as string);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isWantToCollab]);
+
 
     useEffect(() => {
-        const storedSize = localStorage.getItem("editor-font-size");
+        const storedSize = typeof window !== "undefined"
+            ? localStorage.getItem("editor-font-size")
+            : null;
+
         if (storedSize) {
             setTextSize(Number(storedSize));
         }
-    }, [setFontChange])
+    }, []);
+
 
 
     useEffect(() => {
-        if (!socket) return
+        if (!socket) return;
 
         const refetchCollabrators = () => {
-            getRoomByProjectId(id)
-        }
+            if (id) getRoomByProjectId(id as string);
+        };
 
-        socket.on("update-request", refetchCollabrators)
+        socket.on("update-request", refetchCollabrators);
 
         return () => {
-            socket.off("update-request", refetchCollabrators)
-        }
-    }, [socket, id])
+            socket.off("update-request", refetchCollabrators);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [socket, id]);
+
 
     return (
         <nav className="text-white bg-primary px-10 py-3 flex justify-between items-center relative">

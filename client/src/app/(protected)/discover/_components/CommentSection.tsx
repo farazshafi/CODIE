@@ -35,6 +35,8 @@ const CommentSection = () => {
     useEffect(() => {
         if (!projectId) return
         getAllComments(projectId)
+        
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (

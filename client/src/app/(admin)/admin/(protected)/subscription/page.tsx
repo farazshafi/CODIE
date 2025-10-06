@@ -12,7 +12,7 @@ import CreateSubscriptionModal, { CreateSubscriptionType } from './_components/C
 const Page = () => {
     const [openModal, setOpenModal] = useState(false);
     const { subscriptions, fetchAllSubscriptions, handleSuspendActive, setCurrentPage, totalPages, currentPage, setFilterStatus, setSearchInput, handleDeleteSubscription } = useSubscriptionData()
-    const [editData, setEditData] = useState<CreateSubscriptionType & { id: string } | null>(null);
+    const [editData, setEditData] = useState<CreateSubscriptionType & { _id: string } | null>(null);
 
 
     return (
@@ -25,7 +25,7 @@ const Page = () => {
             </Button>
 
             <CreateSubscriptionModal
-                key={editData ? editData.id : 'create'}
+                key={editData ? editData._id : 'create'}
                 isOpen={openModal}
                 onClose={() => {
                     setOpenModal(false);
@@ -47,7 +47,7 @@ const Page = () => {
             {/* Subscription table */}
             {subscriptions.length > 0 ? (
                 <SubscriptionTable opneModal={(data) => {
-                    setEditData(data);
+                    setEditData(data as CreateSubscriptionType & { _id: string });
                     setOpenModal(true);
                 }} handleSuspendActive={handleSuspendActive} subscriptions={subscriptions} handleDeleteSubscription={handleDeleteSubscription} />
             ) : (

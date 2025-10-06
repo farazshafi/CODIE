@@ -66,14 +66,14 @@ const PaymentPage = () => {
                 p._id === id ? { ...p, paymentStatus: status } : p
             )
         );
-        updateStatus({ id, status })
+        updateStatus({ id, status:status as "completed" | "failed"})
     };
 
 
     useEffect(() => {
         getPaymentData(currentPage)
         // setPayments(mockPayments)
-    }, [currentPage])
+    }, [currentPage, getPaymentData])
 
     return (
         <div className="p-6 bg-gray-900 min-h-screen text-white">

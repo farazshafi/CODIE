@@ -2,8 +2,17 @@
 import { blockUnblockSubscribeApi, deleteSubcriptionApi, getAllSubscriptionApi } from "@/apis/subscriptionApi"
 import { useMutationHook } from "@/hooks/useMutationHook"
 import { CreateSubscriptionInput } from "@/lib/validations/subscriptionValidation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+
+interface ApiError extends Error {
+    response?: {
+        data?: {
+            errors?: { message: string }[];
+            message?: string;
+        };
+    };
+}
 
 export const useSubscriptionData = () => {
     const [subscriptions, setSubscriptions] = useState<CreateSubscriptionInput[]>([]);
@@ -22,7 +31,7 @@ export const useSubscriptionData = () => {
             setSubscriptions(response.subscriptions)
             setTotalPages(response.pagination.totalPages);
         },
-        onError(erro) {
+        onError(erro: ApiError) {
             toast.error(`Error fetching subscriptions: ${erro.message || "Unknown error"}`);
         }
     })
@@ -32,7 +41,7 @@ export const useSubscriptionData = () => {
             toast.success(res.message || "Updated subscription status")
             fetchAllSubscriptions()
         },
-        onError(erro) {
+        onError(erro: ApiError) {
             toast.error(`Error fetching subscriptions: ${erro.message || "Unknown error"}`);
         }
     })
@@ -42,21 +51,21 @@ export const useSubscriptionData = () => {
             toast.success(response.message || "Subscription deleted successfully");
             fetchAllSubscriptions()
         },
-        onError(erro) {
+        onError(erro: ApiError) {
             toast.error(`Error fetching subscriptions: ${erro.message || "Unknown error"}`);
         }
     })
 
 
     // functions
-    const fetchAllSubscriptions = () => {
+    const fetchAllSubscriptions = useCallback(() => {
         getAllSubscriptions({
             limit: usersPerPage,
-            page: currentPage,
+            page: String(currentPage),
             status: filterStatus,
             search: searchKeyword
         })
-    }
+    }, [getAllSubscriptions, currentPage, filterStatus, searchKeyword]);
 
     const handleSuspendActive = (id: string, status: string) => {
         updateBlockStatus({ id, status })
@@ -77,7 +86,7 @@ export const useSubscriptionData = () => {
 
     useEffect(() => {
         fetchAllSubscriptions();
-    }, [filterStatus, searchKeyword])
+    }, [fetchAllSubscriptions])
 
     return {
         subscriptions,

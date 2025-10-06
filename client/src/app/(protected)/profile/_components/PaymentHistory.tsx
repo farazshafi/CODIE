@@ -28,7 +28,9 @@ const PaymentHistory = () => {
   })
 
   useEffect(() => {
-    getPaymentHistory({})
+    getPaymentHistory({ page: "1", limit: "5" })
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -76,7 +78,7 @@ const PaymentHistory = () => {
 
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPage} setCurrentPage={(page) => {
-        getPaymentHistory(String(page))
+        getPaymentHistory({ page: "1", limit: "5" })
         setCurrentPage(page)
       }}
       />

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 
 import Subscription from '@/components/Subscription';
 import PageTransitionWrapper from '@/components/TransitionWrapper';
@@ -35,7 +36,7 @@ const Page = async () => {
 
     return (
         <>
-            <Navbar />
+            <Navbar/>
             <PageTransitionWrapper>
                 {hasPlans ? (
                     <Subscription plan={subscriptions} />

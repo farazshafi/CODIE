@@ -9,7 +9,7 @@ import { useMutationHook } from '@/hooks/useMutationHook';
 import { getChatMessagesApi } from '@/apis/messageApi';
 import { toast } from 'sonner';
 import AudioPlayer from 'react-h5-audio-player';
-import AudioWaveform from './AudioWaveForm';
+import AudioWaveform from './AudioWaveform';
 import EmojiPicker from 'emoji-picker-react';
 
 interface Message {
@@ -28,13 +28,14 @@ interface ChatProps {
     userRole: 'owner' | 'editor' | 'viewer';
     chatSupport: { text: boolean; voice: boolean };
 }
+const roles = ["owner", "editor", "viewer"] as const;
+type Role = typeof roles[number];
 
-const roleColors = {
+const roleColors: Record<Role, string> = {
     owner: 'bg-yellow-300 text-black',
     editor: 'bg-blue-400 text-white',
     viewer: 'bg-gray-500 text-white',
 };
-
 const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
     const { socket } = useSocket();
     const user = useUserStore((state) => state.user);
@@ -54,6 +55,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
     const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
     const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
     const [recordingTime, setRecordingTime] = useState(0);
+
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const { mutate: getMessages } = useMutationHook(getChatMessagesApi, {
@@ -149,6 +151,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
         });
         setMessageText("");
         console.log("audio contects", audioContext)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, user, roomId, projectId, messageText, userRole]);
 
     const handleVoiceWarning = useCallback(() => {
@@ -167,6 +170,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
         if (roomId) {
             getMessages(roomId);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [roomId]);
 
     useEffect(() => {
@@ -200,7 +204,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
 
             {/* Role Legend */}
             <div className="flex justify-center items-center gap-x-4 text-white text-sm">
-                {["owner", "editor", "viewer"].map((role) => (
+                {roles.map((role) => (
                     <div key={role} className="flex items-center gap-2">
                         <div className={`w-4 h-4 rounded-full ${roleColors[role].split(" ")[0]}`}></div>
                         <span className="capitalize">{role}</span>
