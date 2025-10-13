@@ -83,7 +83,8 @@ const AdminLogin = () => {
             router.push("/admin/dashboard")
             return
         }
-    }, [user, router])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
 
     return (
         <div className="w-full max-w-md mx-auto">

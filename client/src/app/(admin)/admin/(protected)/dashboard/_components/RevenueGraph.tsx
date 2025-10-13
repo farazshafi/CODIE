@@ -17,7 +17,8 @@ const RevenueGraph = () => {
 
     useEffect(() => {
         getGraphData()
-    }, [getGraphData])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <LineChart width={600} height={300} data={graphData}>

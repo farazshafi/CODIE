@@ -14,12 +14,12 @@ import UnlockButton from "./UnlockButton";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
-export default function EditorPanel() {
+export default function EditorPanel({ id: projectId }: { id: string }) {
   const { language, theme, fontSize, setLanguage, reset } = useCodeEditorStore();
   const user = useUserStore((state) => state.user);
   const ownerId = useEditorStore((state) => state.ownerId);
   const roomId = useEditorStore((state) => state.roomId);
-  const projectId = useEditorStore((state) => state.projectId);
+  // const projectId = useEditorStore((state) => state.projectId);
   const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled)
   const setEditor = useCodeEditorStore(state => state.setEditor);
 
@@ -42,6 +42,7 @@ export default function EditorPanel() {
   const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
       const projectData = data.data.data;
+      console.log("project Data: ", projectData)
       setCode(projectData.projectCode || "");
       setLastValidCode(projectData.projectCode || "");
 
@@ -84,7 +85,6 @@ export default function EditorPanel() {
     if (roomId && user?.id) {
       checkPermission({ roomId, userId: user.id });
     } else {
-      // No room → assume editable
       setIsEditable(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -465,10 +465,10 @@ export default function EditorPanel() {
   }, [projectId]);
 
   useEffect(() => {
-  if (editorRef.current) {
-    editorRef.current.updateOptions({ readOnly: !isEditable });
-  }
-}, [isEditable]);
+    if (editorRef.current) {
+      editorRef.current.updateOptions({ readOnly: !isEditable });
+    }
+  }, [isEditable]);
 
 
   return (

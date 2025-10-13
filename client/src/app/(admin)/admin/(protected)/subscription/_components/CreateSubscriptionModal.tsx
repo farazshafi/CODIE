@@ -97,14 +97,16 @@ export default function CreateSubscriptionModal({
         } else {
             reset();
         }
-    }, [editData, reset]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editData]);
 
 
     useEffect(() => {
         if (!isOpen) {
             reset();
         }
-    }, [isOpen, reset]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>

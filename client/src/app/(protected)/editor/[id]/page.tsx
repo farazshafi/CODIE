@@ -82,6 +82,8 @@ const Page = () => {
                 projectId: projectId,
                 userName: user.name
             })
+            setProjectId(null)
+            localStorage.removeItem("editor-store")
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,7 +125,7 @@ const Page = () => {
                                     </div>
                                 </div>
                                 <div className="flex-1 overflow-hidden">
-                                    <EditorPanel />
+                                    <EditorPanel id={id as string} />
                                 </div>
                             </div>
                             <div className="bg-slate-700 overflow-auto">
@@ -170,7 +172,7 @@ const Page = () => {
                                         </div>
 
                                         <div className="flex-1 overflow-hidden">
-                                            <EditorPanel />
+                                            <EditorPanel id={id as string}/>
                                         </div>
                                     </div>
 
@@ -235,7 +237,7 @@ const Page = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-hidden">
-                                        <EditorPanel />
+                                        <EditorPanel id={id as string}/>
                                     </div>
                                 </div>
                             )}

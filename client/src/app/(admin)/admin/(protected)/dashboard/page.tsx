@@ -32,7 +32,8 @@ const Dashboard = () => {
 
     useEffect(() => {
         getDashboardData()
-    }, [getDashboardData])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <>

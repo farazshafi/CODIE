@@ -65,7 +65,8 @@ export const useSubscriptionData = () => {
             status: filterStatus,
             search: searchKeyword
         })
-    }, [getAllSubscriptions, currentPage, filterStatus, searchKeyword]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, filterStatus, searchKeyword]);
 
     const handleSuspendActive = (id: string, status: string) => {
         updateBlockStatus({ id, status })
@@ -86,7 +87,8 @@ export const useSubscriptionData = () => {
 
     useEffect(() => {
         fetchAllSubscriptions();
-    }, [fetchAllSubscriptions])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return {
         subscriptions,
