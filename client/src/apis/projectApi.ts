@@ -32,7 +32,7 @@ export const deleteProjectApi = async (projectId: string) => {
     }
 }
 
-export const saveCodeApi = async (data: { projectId:string ,code: string }) => {
+export const saveCodeApi = async (data: { projectId: string, code: string }) => {
     try {
         const response = await API.put(`${API_BASE_URL}/save_code`, data)
         return response.data
@@ -52,9 +52,9 @@ export const getCodeApi = async (id: string) => {
     }
 }
 
-export const getUsedLanguagesApi = async () => {
+export const getUsedLanguagesApi = async (userId: string) => {
     try {
-        const response = await API.get(`${API_BASE_URL}/get_used_languages/`)
+        const response = await API.get(`${API_BASE_URL}/get_used_languages/${userId}`)
         return response.data
     } catch (error) {
         console.log("Error While fetching code", error)
@@ -72,9 +72,29 @@ export const getProjectsByUserIdApi = async () => {
     }
 }
 
-export const getContributedProjectsApi = async () => {
+export const getContributedProjectsApi = async (id: string) => {
     try {
-        const response = await API.get(`${API_BASE_URL}/get_contributed_projects/`)
+        const response = await API.get(`${API_BASE_URL}/get_contributed_projects/${id}`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const getProjectsDetailsApi = async (id: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_projects_details/${id}`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const getContributorDetailsApi = async (id: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/get_contributor_details/${id}`)
         return response.data
     } catch (error) {
         console.log("Error While fetching code", error)

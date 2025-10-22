@@ -3,15 +3,15 @@
 import mongoose from 'mongoose';
 
 export interface RequestData {
-    roomId: string;
-    userId: string;
-    userName: string;
-    requestId: string;
+  roomId: string;
+  userId: string;
+  userName: string;
+  requestId: string;
 }
 
 export interface ApproveUserData {
-    roomId: string;
-    userId: string;
+  roomId: string;
+  userId: string;
 }
 
 export interface ContributorSummary {
@@ -24,3 +24,10 @@ export interface ContributorSummary {
     role: "owner" | "editor" | "viewer";
   }[];
 }
+export interface IRecentContributedProject {
+  name: string;
+  contributions: number;
+  language: string;
+  stars: number;
+}
+

@@ -11,7 +11,7 @@ import { useUserStore } from "@/stores/userStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getContributedProjectsApi, getProjectsByUserIdApi, getUsedLanguagesApi } from "@/apis/projectApi";
 import EditProfileModal from "./_components/EditProfileModal";
-import { getUserApi, updateUserApi } from "@/apis/userApi";
+import { getProfileVisibilityApi, getUserApi, updateProfileVisibilityApi, updateUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import Link from "next/link";
 import PaymentHistory from "./_components/PaymentHistory";
@@ -19,6 +19,7 @@ import { getStarredSnippetsApi } from "@/apis/starredApi";
 import Loading from "@/components/Loading";
 import ContributorsCircle from "./_components/ContributorsCircle";
 import { getUserAiUsageApi } from "@/apis/userSubscriptionApi";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 
 const Page = () => {
@@ -32,10 +33,13 @@ const Page = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [totalStarredSnippet, setTotalStarredSnippet] = useState(0)
     const [aiusage, setAiUsage] = useState(0)
+    const [isProfileVisible, setIsProfileVisible] = useState(true)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
 
     const { mutate: getProjects } = useMutationHook(getProjectsByUserIdApi, {
         onSuccess(data) {
-            setTotalProjects(data.length);
+            setTotalProjects(data.data.projects.length);
         },
     });
 
@@ -47,7 +51,8 @@ const Page = () => {
 
     const { mutate: getContributedProjects } = useMutationHook(getContributedProjectsApi, {
         onSuccess(data) {
-            setTotalContributedProj(data.length);
+            console.log("contributed project data: ", data)
+            setTotalContributedProj(data.data.length);
         },
     });
 
@@ -79,13 +84,33 @@ const Page = () => {
         },
     });
 
+    const { mutate: updateVisibility } = useMutationHook(updateProfileVisibilityApi, {
+        onSuccess(data) {
+            toast.success(data.message || "Updated successfully")
+            getVisibility()
+            setIsModalOpen(false)
+        },
+    });
+
+    const { mutate: getVisibility } = useMutationHook(getProfileVisibilityApi, {
+        onSuccess(data) {
+            setIsProfileVisible(data.data.isVisible)
+        },
+    });
+
+    const handleVisibleToggle = () => {
+
+        updateVisibility(!isProfileVisible)
+    }
+
     useEffect(() => {
         if (!user) return;
-        getContributedProjects();
+        getContributedProjects(user.id);
         getProjects()
-        getUsedLanguage();
+        getUsedLanguage(user.id);
         getStarredSnippets()
         getAiUsage()
+        getVisibility()
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
@@ -142,6 +167,12 @@ const Page = () => {
                                                 </Badge>
                                             </Link>
                                         )}
+                                        <div onClick={() => setIsModalOpen(true)}>
+                                            <Badge className={`cursor-pointer ${isProfileVisible ? "bg-green-500" : "bg-red-500"} flex items-center gap-1 hover-scale`}>
+                                                <Globe className="text-white" size={14} />
+                                                <span className="text-white">{isProfileVisible ? "Public" : "Private"}</span>
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -199,6 +230,21 @@ const Page = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 onSave={handleSave}
                 user={user}
+            />
+
+            <ConfirmationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={handleVisibleToggle}
+                content={
+                    isProfileVisible ? (
+                        <p>
+                            Are you sure you want to make your profile private? This will hide your profile from other users.
+                        </p>
+                    ) : (
+                        <p>Are you sure you want to continue with this action?</p>
+                    )
+                }
             />
         </>
     );

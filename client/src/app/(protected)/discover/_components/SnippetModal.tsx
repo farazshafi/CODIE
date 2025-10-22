@@ -16,6 +16,7 @@ import CommentSection from './CommentSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getContributersApi } from '@/apis/roomApi';
 import { useEditorStore } from '@/stores/editorStore';
+import Link from 'next/link';
 
 interface SnippetModalProps {
     open: boolean;
@@ -35,7 +36,7 @@ interface ApiError extends Error {
 
 type contributorType = {
     _id: string,
-    user: { name: string },
+    user: { _id: string, name: string },
     role: string,
 }
 
@@ -181,16 +182,18 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
                                     {loadingContributers ? <p>Loading...</p> : contributors
                                         .filter((contributor) => contributor.role !== "owner")
                                         .map((contributor) => (
-                                            <div key={contributor._id} className="flex items-center gap-x-2">
-                                                <Avatar>
-                                                    <AvatarImage src="https://github.com/shadcn.png" />
-                                                    <AvatarFallback>{contributor.user.name}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <p className="text-sm font-medium">{contributor.user.name}</p>
-                                                    <p className="text-green-600 text-xs">{contributor.role}</p>
+                                            <Link href={`/contributor/${contributor.user._id}`} key={contributor._id}>
+                                                <div className="flex items-center gap-x-2 bg-gray-600 p-2 rounded-lg text-white cursor-pointer">
+                                                    <Avatar>
+                                                        <AvatarImage src="https://github.com/shadcn.png" />
+                                                        <AvatarFallback>{contributor.user.name}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex flex-col">
+                                                        <p className="text-sm font-medium">{contributor.user.name}</p>
+                                                        <p className="text-green-600 text-xs">{contributor.role}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         ))}
                                 </div>
                             </div>

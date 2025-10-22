@@ -19,9 +19,11 @@ router.post("/google-auth-register", validate(googleAuthSchema), userController.
 router.post("/google-auth-login", userController.googleLoginAuth);
 router.post("/auth/refresh-token", userController.refreshAccessToken)
 router.post("/search-users", userController.searchUsers)
-
 router.put("/update_user", authenticate, protect, validate(updateUser), userController.updateUser);
 router.get("/get_user", authenticate, protect, userController.getUserData);
+router.get("/get_contributer/:id", authenticate, protect, userController.getContributerDetails);
+router.put("/update_profile_visibility/", authenticate, protect, userController.updateProfileVisiblility);
+router.get("/get_profile_visibility/", authenticate, protect, userController.getProfileVisibility);
 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)

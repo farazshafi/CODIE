@@ -50,7 +50,8 @@ export class ProjectController {
 
   getProjectsByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const projects = await this._projectService.getProjectsByUserId(req.user.id);
+      const { userId } = req.params
+      const projects = await this._projectService.getProjectsByUserId(userId);
       const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Project")
       res.status(response.statusCode).json(response)
     } catch (err) {
@@ -104,9 +105,9 @@ export class ProjectController {
 
   getUsedLangauges = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id
+      const {id} = req.params
 
-      const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
+      const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(id))
 
       const response = new ApiResponse(HttpStatusCode.OK, usedLangauges, "succesfully Found User languages")
       res.status(response.statusCode).json(response)
@@ -132,17 +133,28 @@ export class ProjectController {
 
   getContributedProjects = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id
+      const { userId } = req.params
+      console.log("chekcing input: ", userId)
 
-      const projects = await this._roomService.getContributedProjectsByUserId(userId)
-
+      const projects = await this._roomService.getContributedProjectsOld(userId)
+      console.log("projects from controller : ", projects)
       const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Contributed Project")
       res.status(response.statusCode).json(response)
-
     } catch (error) {
       next(error)
     }
   }
 
+  getContributorDeatils = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.params
+
+      const projects = await this._roomService.getContributedProjectsDetailsByUserId(userId)
+      const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Contributed Project")
+      res.status(response.statusCode).json(response)
+    } catch (error) {
+      next(error)
+    }
+  }
 
 }

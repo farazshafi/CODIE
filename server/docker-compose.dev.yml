@@ -1,0 +1,60 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - SERVICE_NAME=app
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    networks:
+      - backend
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ts-node-dev --respawn --transpile-only src/bullmq/schedulers/subscriptionScheduler.ts
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - SERVICE_NAME=scheduler
+    networks:
+      - backend
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ts-node-dev --respawn --transpile-only src/bullmq/workers/subscriptionWorker.ts
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - SERVICE_NAME=worker
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

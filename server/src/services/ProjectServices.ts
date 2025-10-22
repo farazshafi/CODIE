@@ -56,12 +56,50 @@ export class ProjectService implements IProjectService {
         }
     }
 
-    async getProjectsByUserId(userId: string): Promise<IProject[]> {
-        if (!userId) {
-            throw new HttpError(400, "User ID is required.");
+    async getProjectsByUserId(userId: string): Promise<{
+        projects: IProject[];
+        isPositive: boolean;
+        percentage: number;
+    }> {
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        const projects = await this._projectRepository.find({ userId: userObjectId });
+
+        const now = new Date();
+
+        const thisMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        const lastMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+        const lastMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+
+        const thisMonthCount = await this._projectRepository.count({
+            userId: userObjectId,
+            createdAt: { $gte: thisMonthStart },
+        });
+
+        const lastMonthCount = await this._projectRepository.count({
+            userId: userObjectId,
+            createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd },
+        });
+
+
+        let percentage = 0;
+        let isPositive = false;
+
+        if (lastMonthCount === 0 && thisMonthCount > 0) {
+            percentage = 100;
+            isPositive = true;
+        } else if (lastMonthCount > 0) {
+            percentage = ((thisMonthCount - lastMonthCount) / lastMonthCount) * 100;
+            isPositive = percentage >= 0;
         }
-        return this._projectRepository.findProjectByUserId(userId);
+        
+        return {
+            projects,
+            isPositive,
+            percentage: Math.round(percentage),
+        };
     }
+
 
     async getProjectById(id: string): Promise<IProject> {
         const project = await this._projectRepository.findById(id);
@@ -166,7 +204,7 @@ export class ProjectService implements IProjectService {
     async getUsedLanguages(userId: mongoose.Types.ObjectId): Promise<{ name: string; count: number }[]> {
         try {
             const userProjects = await this._projectRepository.find({ userId })
-            const contributedProjects = await this._roomService.getContributedProjectsByUserId(String(userId));
+            const contributedProjects = await this._roomService.getContributedProjectsOld(String(userId));
             userProjects.push(...contributedProjects);
 
             const languageCount: Record<string, number> = {}

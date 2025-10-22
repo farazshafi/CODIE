@@ -34,7 +34,7 @@ export default function Home() {
 
 
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
-        variables: { userId },
+        variables: { userId }
     });
 
     const { data: contributedProjects, loading: contributedLoading, error: contributeError, refetch: refetchContributedProject } = useQuery(GET_CONTRIBUTED_PROJECTS_BY_USER_ID, {
@@ -47,7 +47,10 @@ export default function Home() {
             router.push("/login");
         }
     }, [user, router]);
-
+    useEffect(() => {
+        console.log("My Projects:", data?.getProjectsByUserId);
+        console.log("Contributed Projects:", contributedProjects?.getContributedProjectsByUserId);
+    }, [data, contributedProjects]);
 
     useEffect(() => {
         if (error || contributeError) {

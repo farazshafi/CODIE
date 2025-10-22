@@ -2,6 +2,8 @@ import mongoose, { Model } from "mongoose";
 import { IRoom } from "../../models/RoomModel";
 import { CreateRoomType } from "../../types/roomType";
 import { IBaseRepository } from "./IBaseRepository";
+import { IRecentContributedProject } from "../../types/roomTypes";
+import { number } from "zod";
 
 
 export interface IRoomRepository extends IBaseRepository<IRoom> {
@@ -16,4 +18,6 @@ export interface IRoomRepository extends IBaseRepository<IRoom> {
     findRoomByProjIdAndDlt(projectId: string): Promise<boolean>;
     getProjectIdByRoomId(roomId: string): Promise<IRoom>;
     getModel(): Model<IRoom>;
+    getContributedProjects(userId: string): Promise<IRoom[]>;
+    getRecentContributedProjects(userId: string, limit: number): Promise<IRecentContributedProject[]>
 }

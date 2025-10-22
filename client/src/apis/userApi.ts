@@ -116,3 +116,33 @@ export const getUserApi = async () => {
         throw err;
     }
 }
+
+export const getContributerData = async (email: string) => {
+    try {
+        const response = await API.get(`/get_contributer/${email}`);
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}
+
+export const updateProfileVisibilityApi = async (isVisible: boolean) => {
+    try {
+        const response = await API.put(`/update_profile_visibility`, {isVisible});
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}
+
+export const getProfileVisibilityApi = async () => {
+    try {
+        const response = await API.get(`/get_profile_visibility`);
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}

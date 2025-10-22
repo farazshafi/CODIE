@@ -12,6 +12,7 @@ export interface IUserBase {
     bio?: string;
     github: string;
     portfolio: string;
+    isPublic?: boolean;
 }
 
 export interface IUser extends IUserBase, Document {
@@ -64,6 +65,10 @@ const userSchema: Schema = new mongoose.Schema(
         portfolio: {
             type: String,
             default: null
+        },
+        isPublic:{
+            type: Boolean,
+            default: true
         }
     },
     { timestamps: true }

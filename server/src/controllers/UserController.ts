@@ -86,6 +86,7 @@ export class UserController {
                     email: newUser.email,
                     id: newUser._id,
                     isAdmin: newUser.isAdmin,
+                    isPublic: newUser.isPublic,
                     accessToken
                 },
                 "User registered successfully"
@@ -209,6 +210,7 @@ export class UserController {
                     isAdmin: userExist.isAdmin,
                     github: userExist.github,
                     portfolio: userExist.portfolio,
+                    isPublic: userExist.isPublic,
                     accessToken
                 },
                 "Login Success"
@@ -264,7 +266,7 @@ export class UserController {
                     googleId: validatedUser.googleId,
                     avatarUrl: validatedUser.avatarUrl ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcDdrIJuxsoeWIjwPqSfcL9PFqVdc5-F6Urm4CjOcfCMPH752K-36Xj0tjyazZqKWWk8g",
                     isAdmin: validatedUser.isAdmin ?? false,
-                    isBlocked: validatedUser.isBlocked ?? false
+                    isBlocked: validatedUser.isBlocked ?? false,
                 };
                 user = await this._userService.createUser(newUserPayload);
             }
@@ -289,6 +291,7 @@ export class UserController {
                     avatar: user!.avatarUrl,
                     id: user!._id,
                     isAdmin: user!.isAdmin,
+                    isPublic: user!.isPublic,
                     accessToken
                 },
                 "Google Auth Success"
@@ -349,6 +352,7 @@ export class UserController {
                     isAdmin: user.isAdmin,
                     github: user.github,
                     portfolio: user.portfolio,
+                    isPublic: user.isPublic,
                     accessToken
                 },
                 "Google Auth Success"
@@ -433,6 +437,7 @@ export class UserController {
                     avatar: updatedUser.avatarUrl,
                     id: updatedUser._id,
                     isAdmin: updatedUser.isAdmin,
+                    isPublic: updatedUser.isPublic,
                     github: updatedUser.github,
                     portfolio: updatedUser.portfolio,
                 },
@@ -458,6 +463,7 @@ export class UserController {
                     avatar: updatedUser.avatarUrl,
                     id: updatedUser._id,
                     isAdmin: updatedUser.isAdmin,
+                    isPublic: updatedUser.isPublic,
                     github: updatedUser.github,
                     portfolio: updatedUser.portfolio,
                 },
@@ -469,5 +475,65 @@ export class UserController {
             next(err)
         }
     }
+
+    getContributerDetails = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+
+            const { id } = req.params
+
+            const contributer = await this._userService.getContributorData(id)
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                {
+                    name: contributer.name,
+                    email: contributer.email,
+                    avatar: contributer.avatarUrl,
+                    id: contributer._id,
+                    github: contributer.github,
+                    portfolio: contributer.portfolio,
+                    isPublic: contributer.isPublic,
+                },
+                "Contributer data fetched successfully"
+            )
+            res.status(response.statusCode).json(response)
+
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    updateProfileVisiblility = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+
+            const { isVisible } = req.body
+            const id = req.user.id
+
+            await this._userService.updateProfileVisiblity(id, isVisible)
+            const response = new ApiResponse(HttpStatusCode.OK, null, "successfully updated profile visibility")
+            res.status(response.statusCode).json(response)
+
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    getProfileVisibility = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+
+            const id = req.user.id
+
+            const user = await this._userService.findUserById(id)
+            const result = {
+                isVisible: user.isPublic
+            }
+            const response = new ApiResponse(HttpStatusCode.OK, result, "successfully fetched profile visibility")
+            res.status(response.statusCode).json(response)
+
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    
 
 }

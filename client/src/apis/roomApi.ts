@@ -70,3 +70,23 @@ export const getAllContributersForUserApi = async () => {
         throw error
     }
 }
+
+export const getContributedProjectsGraphData = async (userId: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/contributed_Projects_graph/${userId}`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}
+
+export const getRecentContributionProjectsApi = async (userId: string) => {
+    try {
+        const response = await API.get(`${API_BASE_URL}/recent_contributed_projects/${userId}`)
+        return response.data
+    } catch (error) {
+        console.log("Error While fetching code", error)
+        throw error
+    }
+}

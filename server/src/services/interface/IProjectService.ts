@@ -5,7 +5,7 @@ import { CreateProjectType } from "../../types/projectType";
 
 export interface IProjectService {
     createProject(data: CreateProjectType): Promise<IProject>;
-    getProjectsByUserId(userId: string): Promise<IProject[]>;
+    getProjectsByUserId(userId: string): Promise<{ projects: IProject[]; isPositive: boolean; percentage: number; }>
     getProjectById(id: string): Promise<IProject>;
     getAllProjects(): Promise<IProject[]>;
     getProjectByRoomId(roomId: string): Promise<string>;

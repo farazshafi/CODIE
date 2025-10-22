@@ -4,11 +4,12 @@ import { IRoom } from "../models/RoomModel"
 import { IProjectRepository } from "../repositories/interface/IProjectRepository"
 import { IRoomRepository } from "../repositories/interface/IRoomRepository"
 import { CreateRoomType } from "../types/roomType";
-import { ContributorSummary } from "../types/roomTypes";
+import { ContributorSummary, IRecentContributedProject } from "../types/roomTypes";
 import { IUser } from "../models/UserModel";
 import { generateRoomId } from "../utils/generateRoomId"
 import { HttpError } from "../utils/HttpError"
 import { IRoomService } from "./interface/IRoomService"
+import { logger } from "../utils/logger"
 
 export class RoomServices implements IRoomService {
     constructor(
@@ -72,7 +73,65 @@ export class RoomServices implements IRoomService {
         }
     }
 
-    async getContributedProjectsByUserId(userId: string): Promise<IProject[]> {
+
+    async getContributedProjectsDetailsByUserId(userId: string): Promise<{
+        projects: IRoom[],
+        percentage: number,
+        isPositive: boolean
+    }> {
+        try {
+            const rooms = await this._roomRepository.find({
+                "collaborators.user": new mongoose.Types.ObjectId(userId),
+                owner: { $ne: new mongoose.Types.ObjectId(userId) }
+            });
+
+            const now = new Date();
+            const thisMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            const lastMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+            const lastMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+
+
+            let thisMonthContributions = 0;
+            let lastMonthContributions = 0;
+
+            rooms.forEach(room => {
+                const collaborator = room.collaborators.find(c => c.user.toString() === userId);
+                if (collaborator && collaborator.joinedAt) {
+                    const joinedDate = new Date(collaborator.joinedAt);
+                    if (joinedDate >= thisMonthStart && joinedDate <= now) {
+                        thisMonthContributions++;
+                    } else if (joinedDate >= lastMonthStart && joinedDate <= lastMonthEnd) {
+                        lastMonthContributions++;
+                    }
+                }
+            });
+
+
+
+            let percentage = 0;
+            if (lastMonthContributions > 0) {
+                percentage = ((thisMonthContributions - lastMonthContributions) / lastMonthContributions) * 100;
+            } else if (thisMonthContributions > 0) {
+                percentage = 100;
+            }
+
+            const isPositive = thisMonthContributions > lastMonthContributions;
+
+
+
+            const projects = await this._roomRepository.getContributedProjects(userId)
+            return {
+                projects,
+                percentage,
+                isPositive
+            }
+        } catch (error) {
+            console.log("Occured whiel getting contributed projects", error)
+            throw new HttpError(500, "Occured whiel getting contributed projects")
+        }
+    }
+
+    async getContributedProjectsOld(userId: string): Promise<IProject[]> {
         try {
             const rooms = await this._roomRepository.find({
                 "collaborators.user": new mongoose.Types.ObjectId(userId),
@@ -184,6 +243,60 @@ export class RoomServices implements IRoomService {
 
         return Array.from(contributorMap.values());
     }
+
+    async getContributionGraph(userId: string): Promise<{ monthlyData: { name: string; contributions: number }[]; yearlyData: { name: string; contributions: number }[] }> {
+        try {
+            const contributedProjects = await this._roomRepository.getContributedProjects(userId)
+
+            const monthlyMap: Record<string, number> = {};
+            const yearlyMap: Record<string, number> = {};
+
+            contributedProjects.forEach((room) => {
+                const collaborator = room.collaborators?.find(
+                    (c) => c.user.toString() === userId
+                );
+                const date = collaborator?.joinedAt || new Date();
+
+                const month = date.toLocaleString("en", { month: "short" });
+                const year = date.getFullYear().toString();
+
+                monthlyMap[month] = (monthlyMap[month] || 0) + 1;
+                yearlyMap[year] = (yearlyMap[year] || 0) + 1;
+            });
+
+            const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthlyData = monthOrder.map((m) => ({
+                name: m,
+                contributions: monthlyMap[m] || 0,
+            }));
+
+            const yearlyData = Object.keys(yearlyMap)
+                .sort()
+                .map((year) => ({
+                    name: year,
+                    contributions: yearlyMap[year],
+                }));
+
+            return { monthlyData, yearlyData };
+        } catch (err) {
+            logger.error(`Error while fetching contribution graph ${err}`)
+            throw new HttpError(500, "Error while fetching contribution graph")
+        }
+    }
+
+    async getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]> {
+        try {
+            const projects = await this._roomRepository.getRecentContributedProjects(userId, 3)
+            console.log("Recent contributed projects:", projects);
+            return projects;
+        } catch (error) {
+            logger.error(`Error while getting recent contributed projects ${error}`);
+            console.log("error while getting recent contributedd projects ", error)
+            throw new HttpError(500, "Error while getting recent contributed projects");
+        }
+    }
+
+
 
 }
 

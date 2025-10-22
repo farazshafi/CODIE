@@ -6,7 +6,8 @@ export interface IRoomBase {
     owner: mongoose.Types.ObjectId,
     collaborators?: {
         user: mongoose.Types.ObjectId,
-        role: "owner" | "editor" | "viewer"
+        role: "owner" | "editor" | "viewer",
+        joinedAt?: Date
     }[]
 }
 
@@ -21,6 +22,7 @@ const roomSchema: Schema = new Schema({
     collaborators: [{
         user: { type: mongoose.Types.ObjectId, ref: "User" },
         role: { type: String, enum: roles, default: "viewer" },
+        joinedAt: { type: Date, default: Date.now }
     }]
 }, { timestamps: true });
 

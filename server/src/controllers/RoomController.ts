@@ -112,4 +112,29 @@ export class RoomController {
             next(error);
         }
     };
+
+    getContributedProjectsGraph = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params
+            const contributorsGraphData = await this._roomService.getContributionGraph(id);
+
+            const response = new ApiResponse(HttpStatusCode.OK, contributorsGraphData, "Contributors graph fetched successfully");
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getRecentContributonProjects = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params
+            const projects = await this._roomService.getRecentContributedProjects(id)
+
+            const response = new ApiResponse(HttpStatusCode.OK, projects, "Recent contributed projects fetched successfully");
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
+
 }

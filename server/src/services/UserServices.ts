@@ -6,6 +6,7 @@ import { ISubscriptionRepository } from '../repositories/interface/ISubscription
 import { IUserRepository } from '../repositories/interface/IUserRepository';
 import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
 import { HttpError } from '../utils/HttpError';
+import { logger } from '../utils/logger';
 import { UserInput, GoogleAuthInput } from '../validation/userValidation';
 import { IUserService } from './interface/IUserService';
 import { ObjectId } from 'mongodb';
@@ -222,5 +223,27 @@ export class UserService implements IUserService {
         return result;
     }
 
+    async getContributorData(id: string): Promise<IUser> {
+        try {
+            const user = await this._userRepository.findById(id)
+            if (!user) {
+                throw new HttpError(404, "Contributer not found")
+            }
+
+            return user
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            logger.error("Error while Fetching contributor")
+            throw new HttpError(500, error)
+        }
+    }
+
+    async updateProfileVisiblity(userId: string, status: boolean): Promise<void> {
+        const user = await this._userRepository.findById(userId)
+        user.isPublic = status
+        user.save()
+    }
 
 }

@@ -5,12 +5,15 @@ export const resolvers = {
     Query: {
         getProjectsByUserId: async (parent, args) => {
             const { userId } = args
-            return projectService.getProjectsByUserId(userId)
+            const projects = await projectService.getProjectsByUserId(userId)
+            return projects.projects
         },
 
         getContributedProjectsByUserId: async (parent, args) => {
             const { userId } = args
-            return await roomService.getContributedProjectsByUserId(userId)
+            const contributedProjects = await roomService.getContributedProjectsOld(userId)
+            console.log("resolver : contributed projects".yellow, contributedProjects)
+            return contributedProjects
         }
 
     }

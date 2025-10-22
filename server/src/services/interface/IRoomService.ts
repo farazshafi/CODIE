@@ -1,6 +1,6 @@
 import { IProject } from "../../models/ProjectModel";
 import { IRoom } from "../../models/RoomModel";
-import { ContributorSummary } from "../../types/roomTypes";
+import { ContributorSummary, IRecentContributedProject } from "../../types/roomTypes";
 
 
 export interface IRoomService {
@@ -8,8 +8,19 @@ export interface IRoomService {
     getRoomByProjectId(projectId: string): Promise<IRoom>;
     updateCollabratorRole(roomId: string, userId: string, role: "viewer" | "editor"): Promise<IRoom>
     removeContributer(userId: string, projectId: string): Promise<IRoom>;
-    getContributedProjectsByUserId(userId: string): Promise<IProject[]>;
+    getContributedProjectsDetailsByUserId(userId: string): Promise<{
+        projects: IRoom[],
+        percentage: number,
+        isPositive: boolean
+    }>;
     isEligibleToEdit(userId: string, roomId: string): Promise<boolean>;
     getUserRoleInProject(projectId: string, userId: string): Promise<string>;
     getAllContributorsForUser(userId: string): Promise<ContributorSummary[]>
+    getContributedProjectsOld(userId: string): Promise<IProject[]>;
+    getContributionGraph(userId: string): Promise<{
+        monthlyData: { name: string; contributions: number }[];
+        yearlyData: { name: string; contributions: number }[];
+    }>;
+    getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]>
+
 }

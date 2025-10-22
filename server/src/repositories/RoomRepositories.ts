@@ -1,8 +1,9 @@
-import mongoose, { Model } from "mongoose"
+import mongoose, { Model, Types } from "mongoose"
 import Room, { IRoom } from "../models/RoomModel"
 import { CreateRoomType } from "../types/roomType"
 import { BaseRepository } from "./BaseRepository"
 import { IRoomRepository } from "./interface/IRoomRepository"
+import { IRecentContributedProject } from "../types/roomTypes"
 
 export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepository {
     constructor(model: Model<IRoom>) {
@@ -14,7 +15,7 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
             roomId,
             projectId,
             owner: ownerId,
-            collaborators: [{ user: ownerId, role: "owner" }]
+            collaborators: [{ user: ownerId, role: "owner", joinedAt: new Date() }]
         })
     }
 
@@ -29,7 +30,7 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     async addUserToCollabrators(userId: string, roomId: string): Promise<IRoom> {
         return await Room.findOneAndUpdate(
             { roomId },
-            { $addToSet: { collaborators: { user: userId, role: "viewer" } } },
+            { $addToSet: { collaborators: { user: userId, role: "viewer", joinedAt: new Date() } } },
             { new: true }
         ).populate([
             { path: "collaborators.user", select: "name" },
@@ -86,4 +87,65 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     async getProjectIdByRoomId(roomId: string): Promise<IRoom> {
         return (await Room.findOne({ roomId }))
     }
+
+    async getContributedProjects(userId: string): Promise<IRoom[]> {
+        return await this.model.find({ "collaborators": { "$elemMatch": { "user": new Types.ObjectId(userId), "role": { "$ne": "owner" } } } })
+    }
+    
+    async getRecentContributedProjects(userId: string, limit = 3): Promise<IRecentContributedProject[]> {
+        const userObjectId = new Types.ObjectId(userId);
+
+        const projects = await this.model.aggregate<IRecentContributedProject>([
+            {
+                $match: {
+                    collaborators: {
+                        $elemMatch: { user: userObjectId, role: { $ne: "owner" } },
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    contributionsCount: { $size: "$collaborators" },
+                },
+            },
+            { $unwind: "$collaborators" },
+            { $match: { "collaborators.user": userObjectId } },
+            { $sort: { "collaborators.joinedAt": -1 } },
+            { $limit: limit },
+            {
+                $lookup: {
+                    from: "projects",
+                    localField: "projectId",
+                    foreignField: "_id",
+                    as: "project",
+                },
+            },
+            { $unwind: "$project" },
+            {
+                $lookup: {
+                    from: "starreds",
+                    localField: "project._id",
+                    foreignField: "projectId",
+                    as: "stars",
+                },
+            },
+            {
+                $addFields: {
+                    starsCount: { $size: "$stars" },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$project.projectName",
+                    language: "$project.projectLanguage",
+                    contributions: "$contributionsCount",
+                    stars: "$starsCount",
+                },
+            },
+        ]);
+
+        return projects;
+    }
+
 }
