@@ -1,15 +1,18 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, User } from "lucide-react";
+import { GithubIcon, Globe, Mail, User } from "lucide-react";
+import Link from "next/link";
 
 interface ContributorProfileProps {
     name: string;
     email: string;
     avatar?: string;
+    portfolio: string | null;
+    github: string | null;
 }
 
-export const ContributorProfile = ({ name, email, avatar }: ContributorProfileProps) => {
+export const ContributorProfile = ({ name, email, avatar, github, portfolio }: ContributorProfileProps) => {
     const initials = name
         .split(" ")
         .map((n) => n[0])
@@ -34,6 +37,25 @@ export const ContributorProfile = ({ name, email, avatar }: ContributorProfilePr
                                 <Mail className="h-4 w-4" />
                                 <span className="text-sm">{email}</span>
                             </div>
+                        </div>
+
+                        <div className="flex mt-3 gap-2">
+                            {github && (
+                                <Link target="_blank" href={github}>
+                                    <Badge variant="outline" className=" cursor-pointer flex bg-black items-center gap-1 hover-scale">
+                                        <GithubIcon className="text-white" size={14} />
+                                        <span className="text-white">GitHub</span>
+                                    </Badge>
+                                </Link>
+                            )}
+                            {portfolio && (
+                                <Link target="_blank" href={portfolio}>
+                                    <Badge variant="outline" className=" cursor-pointer flex bg-black items-center gap-1 hover-scale">
+                                        <Globe className="text-white" size={14} />
+                                        <span className="text-white">Portfolio</span>
+                                    </Badge>
+                                </Link>
+                            )}
                         </div>
 
                         <Badge className="bg-black text-green-600 hover:bg-primary/20">

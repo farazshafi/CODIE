@@ -13,17 +13,14 @@ import {
 } from "recharts";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getContributedProjectsGraphData } from "@/apis/roomApi";
-import { useParams } from "next/navigation";
 
 
-export const ContributionGraph = () => {
+export const ContributionGraph = ({ id }: { id: string }) => {
     const [period, setPeriod] = useState<"month" | "year">("month");
     const [yearlyData, setYearlyData] = useState<{ name: string, contributions: number }[]>([])
     const [monthlyData, setMonthlyData] = useState<{ name: string, contributions: number }[]>([])
     const data = period === "month" ? monthlyData : yearlyData;
-    
-    const { id } = useParams()
-    
+
     const { mutate: getGraphData } = useMutationHook(getContributedProjectsGraphData, {
         onSuccess(response) {
             console.log(response.data)

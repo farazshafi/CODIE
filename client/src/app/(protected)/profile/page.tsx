@@ -20,6 +20,7 @@ import Loading from "@/components/Loading";
 import ContributorsCircle from "./_components/ContributorsCircle";
 import { getUserAiUsageApi } from "@/apis/userSubscriptionApi";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { ContributionGraph } from "../contributor/_components/ContributionGraph";
 
 
 const Page = () => {
@@ -86,8 +87,9 @@ const Page = () => {
 
     const { mutate: updateVisibility } = useMutationHook(updateProfileVisibilityApi, {
         onSuccess(data) {
+            if (!user) return
             toast.success(data.message || "Updated successfully")
-            getVisibility()
+            getVisibility(user?.id)
             setIsModalOpen(false)
         },
     });
@@ -110,7 +112,7 @@ const Page = () => {
         getUsedLanguage(user.id);
         getStarredSnippets()
         getAiUsage()
-        getVisibility()
+        getVisibility(user.id)
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
@@ -214,6 +216,8 @@ const Page = () => {
                             }
                             {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
                         </div>
+
+                        <ContributionGraph id={user.id} />
 
                         <div className="py-10">
                             <h1 className="text-2xl font-bold text-white mb-4">Top Contributors</h1>

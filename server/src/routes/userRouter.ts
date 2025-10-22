@@ -23,7 +23,7 @@ router.put("/update_user", authenticate, protect, validate(updateUser), userCont
 router.get("/get_user", authenticate, protect, userController.getUserData);
 router.get("/get_contributer/:id", authenticate, protect, userController.getContributerDetails);
 router.put("/update_profile_visibility/", authenticate, protect, userController.updateProfileVisiblility);
-router.get("/get_profile_visibility/", authenticate, protect, userController.getProfileVisibility);
+router.get("/get_profile_visibility/:id", authenticate, protect, userController.getProfileVisibility);
 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)

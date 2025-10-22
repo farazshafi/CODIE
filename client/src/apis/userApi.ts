@@ -129,7 +129,7 @@ export const getContributerData = async (email: string) => {
 
 export const updateProfileVisibilityApi = async (isVisible: boolean) => {
     try {
-        const response = await API.put(`/update_profile_visibility`, {isVisible});
+        const response = await API.put(`/update_profile_visibility`, { isVisible });
         return response.data;
     } catch (err) {
         console.log("api error", err);
@@ -137,9 +137,9 @@ export const updateProfileVisibilityApi = async (isVisible: boolean) => {
     }
 }
 
-export const getProfileVisibilityApi = async () => {
+export const getProfileVisibilityApi = async (userId: string) => {
     try {
-        const response = await API.get(`/get_profile_visibility`);
+        const response = await API.get(`/get_profile_visibility/${userId}`);
         return response.data;
     } catch (err) {
         console.log("api error", err);

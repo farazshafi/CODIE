@@ -105,9 +105,9 @@ export class ProjectController {
 
   getUsedLangauges = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const {id} = req.params
+      const {userId} = req.params
 
-      const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(id))
+      const usedLangauges = await this._projectService.getUsedLanguages(new mongoose.Types.ObjectId(userId))
 
       const response = new ApiResponse(HttpStatusCode.OK, usedLangauges, "succesfully Found User languages")
       res.status(response.statusCode).json(response)

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/ui/navbar";
 import { useParams } from "next/navigation";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { getContributerData } from "@/apis/userApi";
+import { getContributerData, getProfileVisibilityApi } from "@/apis/userApi";
 import { getContributorDetailsApi, getProjectsDetailsApi, getUsedLanguagesApi } from "@/apis/projectApi";
 import { ProfileLanguageStats } from "@/components/profile/ProfileLanguageStats";
 
@@ -19,6 +19,8 @@ const Page = () => {
         name: "",
         avatar: "",
         email: "",
+        portfolio: "",
+        github: "",
     })
     const [usedLanguages, setUsedLanguages] = useState<{ name: string; count: number }[]>([]);
     const [contributedProjectsDetails, setContributedProjectsDetails] = useState({
@@ -31,11 +33,12 @@ const Page = () => {
         value: 0,
         projects: []
     })
+    const [visibility, setVisibility] = useState(true)
     const { id } = useParams()
 
     const { mutate: getCondributor, } = useMutationHook(getContributerData, {
         onSuccess(res) {
-            setCondributer({ name: res.data.name, avatar: res.data.avatar, email: res.data.email })
+            setCondributer({ name: res.data.name, avatar: res.data.avatar, email: res.data.email, portfolio: res.data.portfolio || "", github: res.data.github || "" })
         }
     })
 
@@ -68,6 +71,13 @@ const Page = () => {
         },
     });
 
+    const { mutate: getVisibility } = useMutationHook(getProfileVisibilityApi, {
+        onSuccess(data) {
+            console.log("used langes data", data.data)
+            setVisibility(data.data.isVisible)
+        },
+    });
+
 
 
     useEffect(() => {
@@ -75,6 +85,7 @@ const Page = () => {
         getContributorDetails(id as string)
         getProjectsDetails(id as string)
         getUsedLanguage(id as string);
+        getVisibility(id as string)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -98,35 +109,43 @@ const Page = () => {
                         name={condributer.name}
                         email={condributer.email}
                         avatar={condributer.avatar}
+                        portfolio={condributer?.portfolio.length > 1 ? condributer.portfolio : null}
+                        github={condributer?.github.length > 1 ? condributer.github : null}
                     />
 
-                    {/* Stats Grid */}
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <StatsCard
-                            title="Total Projects"
-                            value={projectsDetails.projects.length}
-                            icon={FolderGit2}
-                            trend={{ value: projectsDetails.value, positive: projectsDetails.isPositive }}
-                        />
-                        <StatsCard
-                            title="Total Contributions"
-                            value={contributedProjectsDetails.projects.length}
-                            icon={GitCommit}
-                            trend={{ value: contributedProjectsDetails.value, positive: contributedProjectsDetails.isPositive }}
-                        />
-                        {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
+                    {!visibility ? (
+                        <div className="mt-6 p-6 bg-gray-800 rounded-lg text-center text-white">
+                            This profile is private. Contributions and projects are hidden.
+                        </div>
+                    ) : (
+                        <div className={visibility ? "space-y-6" : "space-y-6 opacity-30 pointer-events-none"}>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <StatsCard
+                                    title="Total Projects"
+                                    value={projectsDetails.projects.length}
+                                    icon={FolderGit2}
+                                    trend={{ value: projectsDetails.value, positive: projectsDetails.isPositive }}
+                                />
+                                <StatsCard
+                                    title="Total Contributions"
+                                    value={contributedProjectsDetails.projects.length}
+                                    icon={GitCommit}
+                                    trend={{ value: contributedProjectsDetails.value, positive: contributedProjectsDetails.isPositive }}
+                                />
+                                {usedLanguages.length > 0 && <ProfileLanguageStats languages={usedLanguages} />}
+                            </div>
 
-                    </div>
+                            <div className="grid gap-6 lg:grid-cols-2">
+                                {id && <ContributionGraph id={id as string} />}
+                                <LatestProjects />
+                            </div>
+                        </div>
+                    )}
 
-                    {/* Graph and Projects */}
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <ContributionGraph />
-                        <LatestProjects />
-                    </div>
+
                 </div>
             </div>
         </>
-
     );
 };
 

@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getAllContributersForUserApi } from "@/apis/roomApi";
+import Link from "next/link";
 
 interface Contributor {
-  id: string;
+  userId: string;
   name: string;
   avatar?: string;
   contributions: number;
@@ -50,26 +51,29 @@ export default function ContributorsCircle() {
         {contributors.map((contributor, index) => (
           <Tooltip key={index + 1}>
             <TooltipTrigger asChild>
-              <div className="relative group">
-                {contributor.avatar ? (
-                  <Image
-                    src={contributor.avatar}
-                    alt={contributor.name}
-                    width={60}
-                    height={60}
-                    unoptimized
-                    className="rounded-full border-2 border-green-500 hover:scale-110 transition-transform cursor-pointer"
-                  />
-                ) : (
-                  <div className="w-[60px] h-[60px] flex items-center justify-center rounded-full border-2 border-green-500 bg-gray-700 text-green-400 font-semibold hover:scale-110 transition-transform cursor-pointer">
-                    {getInitials(contributor.name)}
-                  </div>
-                )}
-                {/* Badge for contribution count */}
-                <span className="absolute -bottom-2 -right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full shadow-md">
-                  {contributor.totalContributions}
-                </span>
-              </div>
+              <Link href={`/contributor/${contributor.userId}`}>
+                <div className="relative group cursor-pointer">
+                  {contributor.avatar ? (
+                    <Image
+                      src={contributor.avatar}
+                      alt={contributor.name}
+                      width={60}
+                      height={60}
+                      unoptimized
+                      className="rounded-full border-2 border-green-500 hover:scale-110 transition-transform cursor-pointer"
+                    />
+                  ) : (
+                    <div className="w-[60px] h-[60px] flex items-center justify-center rounded-full border-2 border-green-500 bg-gray-700 text-green-400 font-semibold hover:scale-110 transition-transform cursor-pointer">
+                      {getInitials(contributor.name)}
+                    </div>
+                  )}
+                  {/* Badge for contribution count */}
+                  <span className="absolute -bottom-2 -right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full shadow-md">
+                    {contributor.totalContributions}
+                  </span>
+                </div>
+              </Link>
+
             </TooltipTrigger>
             <TooltipContent className="bg-gray-800 text-green-400 border border-green-500 shadow-md">
               <p className="font-semibold">{contributor.name}</p>

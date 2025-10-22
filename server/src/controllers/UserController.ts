@@ -520,7 +520,7 @@ export class UserController {
     getProfileVisibility = async (req: Request, res: Response, next: NextFunction) => {
         try {
 
-            const id = req.user.id
+            const {id} = req.params
 
             const user = await this._userService.findUserById(id)
             const result = {

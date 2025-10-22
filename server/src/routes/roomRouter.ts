@@ -4,6 +4,7 @@ import { checkPermissionSchema, createRoomSchema, remove_from_project_Schema, up
 import { authenticate } from "../middlewares/authenticate";
 import { roomController } from "../container";
 import { protect } from "../middlewares/protectMiddleware";
+import { isPrivate } from "../middlewares/isPrivate";
 
 
 const roomRouter = Router()
@@ -15,7 +16,7 @@ roomRouter.post("/update_role", authenticate, protect, validate(updateRoleSchema
 roomRouter.post("/ceck_permission_to_edit", authenticate, protect, validate(checkPermissionSchema), roomController.checkPermission)
 roomRouter.put("/remove_from_project", authenticate, protect, validate(remove_from_project_Schema), roomController.removeUserFromContributers)
 roomRouter.get("/get_all_contributers", authenticate, protect, roomController.getAllContributorsForUser)
-roomRouter.get("/contributed_Projects_graph/:id", authenticate, protect, roomController.getContributedProjectsGraph)
-roomRouter.get("/recent_contributed_projects/:id", authenticate, protect, roomController.getRecentContributonProjects)
+roomRouter.get("/contributed_Projects_graph/:userId", authenticate, protect, isPrivate, roomController.getContributedProjectsGraph)
+roomRouter.get("/recent_contributed_projects/:userId", authenticate, protect, isPrivate, roomController.getRecentContributonProjects)
 
 export default roomRouter

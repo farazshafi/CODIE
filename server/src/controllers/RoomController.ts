@@ -115,8 +115,8 @@ export class RoomController {
 
     getContributedProjectsGraph = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params
-            const contributorsGraphData = await this._roomService.getContributionGraph(id);
+            const { userId } = req.params
+            const contributorsGraphData = await this._roomService.getContributionGraph(userId);
 
             const response = new ApiResponse(HttpStatusCode.OK, contributorsGraphData, "Contributors graph fetched successfully");
             res.status(response.statusCode).json(response);
@@ -127,8 +127,8 @@ export class RoomController {
 
     getRecentContributonProjects = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params
-            const projects = await this._roomService.getRecentContributedProjects(id)
+            const { userId } = req.params
+            const projects = await this._roomService.getRecentContributedProjects(userId)
 
             const response = new ApiResponse(HttpStatusCode.OK, projects, "Recent contributed projects fetched successfully");
             res.status(response.statusCode).json(response);
