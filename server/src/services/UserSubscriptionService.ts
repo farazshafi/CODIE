@@ -182,27 +182,35 @@ export class UserSubscriptionService implements IUserSubscriptionService {
             const freeId = (await this._subscriptionRepo.findOne({ name: "Free" })).id
             const expiredSubscriptions = await this._userSubscriptionRepo.find({ endDate: { $lt: now }, isActive: true })
             for (const sub of expiredSubscriptions) {
+
+                sub.isActive = false
+                await this._userSubscriptionRepo.save(sub)
+
+                let newPlanId: mongoose.Types.ObjectId;
                 if (!sub.nextPlan) {
-                    sub.endDate = null
-                    sub.startDate = null
-                    sub.isActive = true
-                    sub.planId = freeId
+                    newPlanId = freeId
                 } else {
                     const newPlan = await this._subscriptionRepo.findById(String(sub.nextPlan))
                     if (!newPlan) throw new HttpError(404, "New plan is not found!")
-                    sub.isActive = true
-                    sub.planId = new mongoose.Types.ObjectId(newPlan._id as string)
-                    sub.nextPlan = null
-                    sub.startDate = now
-                    if (sub.endDate) {
-                        sub.endDate.setMonth(sub.endDate.getMonth() + 1)
-                    } else {
-                        sub.endDate = new Date(now)
-                        sub.endDate.setMonth(sub.endDate.getMonth() + 1)
-                    }
+                    newPlanId = new mongoose.Types.ObjectId(newPlan._id as string)
                 }
 
-                await this._userSubscriptionRepo.save(sub)
+                const newSub = {
+                    userId: sub.userId,
+                    planId: newPlanId,
+                    startDate: now,
+                    endDate: new Date(now.setMonth(now.getMonth() + 1)),
+                    isActive: true,
+                    paymentOptions: {
+                        paymentTime: new Date(),
+                        paymentMethod: "Automatic"
+                    },
+                    cancelledDate: null,
+                    nextPlan: null,
+                    aiUsage: 0
+                }
+
+                await this._userSubscriptionRepo.create(newSub as IUserSubscription)
 
             }
         } catch (error) {
@@ -213,18 +221,24 @@ export class UserSubscriptionService implements IUserSubscriptionService {
 
     async downgradeToFreePlan(userId: string): Promise<IUserSubscription> {
         try {
-            const userSubscription = await this._userSubscriptionRepo.findOne({ userId })
+            const userSubscription = await this._userSubscriptionRepo.findOne({ userId, isActive: true })
+            if (!userSubscription) {
+                throw new HttpError(404, "Active user subscription not found")
+            }
             const freePlan = await this._subscriptionRepo.findOne({ name: "Free" })
-            userSubscription.startDate = null
-            userSubscription.endDate = null
+            if (!freePlan) {
+                throw new HttpError(404, "Free plan not found")
+            }
             userSubscription.nextPlan = freePlan.id
-            userSubscription.isActive = true
             userSubscription.cancelledDate = new Date()
 
             await userSubscription.save()
 
             return userSubscription
         } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
             console.log(error)
             throw new HttpError(500, "Error while downgrading to Free plan")
         }
@@ -251,7 +265,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         try {
             const userSubscription = (await this._userSubscriptionRepo.findOne({ userId }))
             if (!userSubscription) {
-                throw new HttpError(404, "User subscription not found!")
+                throw new HttpError(4.04, "User subscription not found!")
             }
             return userSubscription.aiUsage
         } catch (error) {
@@ -263,4 +277,12 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         }
     }
 
+    async getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<any> {
+        try {
+            return await this._userSubscriptionRepo.getSubscriptionHistory({ year, month, sort, currentPage, limit, search });
+        } catch (error) {
+            console.log(error)
+            throw new HttpError(500, "Error Occured While getting subscription history")
+        }
+    }
 }

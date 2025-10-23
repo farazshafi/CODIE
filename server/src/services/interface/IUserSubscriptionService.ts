@@ -10,4 +10,5 @@ export interface IUserSubscriptionService {
     getUserSubscription(userId: string): Promise<IUserSubscription>;
     downgradeToFreePlan(userId: string): Promise<IUserSubscription>;
     getAiUsage(userId: string): Promise<number>
+    getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<any>;
 }

@@ -50,7 +50,36 @@ export const getAdminGraphApi = async () => {
         const response = await API.get(`/admin/graph`)
         return response.data
     } catch (error) {
-        console.log("Error While fetching Payment", error)
+        console.log("Error While fetching  graph", error)
         throw error
     }
 }
+
+type SubscriptionHistoryParams = {
+    year?: number;
+    month?: number;
+    sort?: string;
+    search?: string;
+    limit?: number;
+    currentPage?: number;
+};
+
+export const getAllSubscriptionHistoryApi = async ({
+    year,
+    month,
+    sort,
+    search,
+    limit = 5,
+    currentPage = 1
+
+}: SubscriptionHistoryParams) => {
+    try {
+        const response = await API.get(`/admin/subscription_history`, {
+            params: { year, month, sort, search, limit, currentPage },
+        });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching subscription", error);
+        throw error;
+    }
+};

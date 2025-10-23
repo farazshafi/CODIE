@@ -16,4 +16,6 @@ adminRouter.get("/payment", authenticate, isAdmin, adminController.getPaymentDat
 adminRouter.put("/update_payment_status", authenticate, isAdmin, adminController.updatePaymentStatus)
 adminRouter.get("/graph", authenticate, isAdmin, adminController.getAdminGraph)
 
+adminRouter.get("/subscription_history", authenticate, isAdmin, adminController.getSubscriptionHistory)
+
 export default adminRouter 

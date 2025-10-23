@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs"
 import { IUserService } from "../services/interface/IUserService"
 import { IProjectService } from "../services/interface/IProjectService"
 import { IPaymentService } from "../services/interface/IPaymentService"
+import { IUserSubscriptionService } from "../services/interface/IUserSubscriptionService"
 import jwt from "jsonwebtoken"
 import redis from "../config/redis"
 import { ApiResponse } from "../utils/ApiResponse";
@@ -20,6 +21,7 @@ export class AdminController {
         private readonly _userService: IUserService,
         private readonly _projectService: IProjectService,
         private readonly _paymentService: IPaymentService,
+        private readonly _userSubscriptionService: IUserSubscriptionService
     ) { }
 
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -252,6 +254,17 @@ export class AdminController {
         try {
             const data = await this._userService.getAdminGraphData();
             const response = new ApiResponse(HttpStatusCode.OK, data, "Found Admin Graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getSubscriptionHistory = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year, month, sort, currentPage, limit, search } = req.query
+            const data = await this._userSubscriptionService.getSubscriptionHistory(Number(year), Number(month), String(sort), Number(currentPage), Number(limit), String(search))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Subscription History")
             res.status(response.statusCode).json(response);
         } catch (error) {
             next(error)
