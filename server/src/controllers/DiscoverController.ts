@@ -12,7 +12,7 @@ export class DiscoverController {
 
     shareToDiscover = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const userId = req.user.id
+            const userId = req?.user.id
             const { projectId } = req.body
             if (!projectId) {
                 const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "Project Id is required")
@@ -65,7 +65,7 @@ export class DiscoverController {
     generateExplanation = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { code }: { code: string } = req.body
-            const userId = req.user.id
+            const userId = req?.user.id
 
             const explanation = await this._discoverService.getCodeExplanation(code, userId)
             const response = new ApiResponse(HttpStatusCode.OK, explanation, "Generated explanation succesfully")

@@ -50,7 +50,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <div className="flex items-end justify-between">
-                                <span className="text-2xl font-bold">{card.title === "Total Payment" && "$"}{card.value}</span>
+                                <span className="text-2xl font-bold">{card.title === "Total Payment" && "₹"}{card.value}</span>
                                 <span className={`text-xs ${card.positive ? 'text-[#1bf07c]' : 'text-red-500'}`}>
                                     {card.change} from last month
                                 </span>

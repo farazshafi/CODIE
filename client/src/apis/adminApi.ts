@@ -69,7 +69,7 @@ export const getAllSubscriptionHistoryApi = async ({
     month,
     sort,
     search,
-    limit = 5,
+    limit = 10,
     currentPage = 1
 
 }: SubscriptionHistoryParams) => {

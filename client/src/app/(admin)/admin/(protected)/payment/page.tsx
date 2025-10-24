@@ -114,7 +114,7 @@ const PaymentPage = () => {
                                 className="border-b border-gray-700 hover:bg-gray-800 text-center"
                             >
                                 <td className="p-3">{p.userId?.name || "N/A"}</td>
-                                <td className="p-3">${p.amount}</td>
+                                <td className="p-3">₹{p.amount}</td>
                                 <td
                                     className={`p-3 ${p.paymentStatus === "completed"
                                         ? "text-green-400"

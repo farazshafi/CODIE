@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { Search, Filter, User, Calendar, DollarSign } from "lucide-react";
+import { Search, Filter, User, Calendar, IndianRupee } from "lucide-react";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getAllSubscriptionHistoryApi } from "@/apis/adminApi";
 import Pagination from "@/components/ui/Pagination";
@@ -55,22 +55,28 @@ const AdminSubscriptionHistoryPage = () => {
     fetchData();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, sort, selectedMonth, currentPage]);
+  }, [sort, searchTerm, selectedMonth, currentPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    fetchData();
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(e.target.value);
-    fetchData();
   };
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
-    fetchData();
   };
+
+  const formatDate = (isoString: string) => {
+    if (!isoString) return "-"
+    return new Date(isoString).toLocaleDateString("en-In", {
+      year: "numeric",
+      month: "short",
+      day: 'numeric'
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-8">
@@ -103,7 +109,6 @@ const AdminSubscriptionHistoryPage = () => {
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="expired">Expired</option>
-            <option value="cancelled">Cancelled</option>
           </select>
         </div>
 
@@ -151,7 +156,7 @@ const AdminSubscriptionHistoryPage = () => {
                   <td className="py-3 px-4 whitespace-nowrap">{sub.email}</td>
                   <td className="py-3 px-4 whitespace-nowrap">{sub.plan}</td>
                   <td className="py-3 px-4 flex items-center gap-1 whitespace-nowrap">
-                    <DollarSign size={14} /> {sub.amount}
+                    <IndianRupee size={14} /> {sub.amount}
                   </td>
                   <td
                     className={`py-3 px-4 font-semibold whitespace-nowrap ${sub.status === "active"
@@ -163,11 +168,11 @@ const AdminSubscriptionHistoryPage = () => {
                   >
                     {sub.status}
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap flex items-center gap-1">
-                    <Calendar size={14} /> {sub.startDate}
+                  <td className="py-3 px-4 whitespace-nowrap items-center gap-1">
+                    {formatDate(sub.startDate)}
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap flex items-center gap-1">
-                    <Calendar size={14} /> {sub.endDate}
+                  <td className="py-3 px-4 whitespace-nowrap items-center gap-1">
+                    {formatDate(sub.endDate)}
                   </td>
                 </tr>
               ))}

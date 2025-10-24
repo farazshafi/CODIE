@@ -20,5 +20,6 @@ export interface IBaseRepository<T extends Document> {
     save(document: T): Promise<T>;
     deleteMany(filter: FilterQuery<T>): Promise<number>;
     deleteOne(filter: FilterQuery<T>, session?: ClientSession): Promise<boolean>;
-    count(filter: Record<string, unknown>): Promise<number>
+    count(filter: Record<string, unknown>): Promise<number>;
+    insertMany(items: Partial<T>[], options?: { session?: ClientSession }): Promise<T[]>
 }

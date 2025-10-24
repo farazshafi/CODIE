@@ -76,7 +76,9 @@ export const useUsersData = () => {
         search,
       });
     }, 1000);
-  }, [filterStatus, getUsers]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus]);
 
   useEffect(() => {
     return () => {
@@ -98,7 +100,9 @@ export const useUsersData = () => {
       status: filterStatus,
       search: searchRef.current,
     });
-  }, [currentPage, filterStatus, getUsers]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, filterStatus]);
 
   return {
     users,

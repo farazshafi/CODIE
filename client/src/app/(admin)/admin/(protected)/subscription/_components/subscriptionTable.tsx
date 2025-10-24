@@ -36,7 +36,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ subscriptions, ha
                             <td className="py-3">{item.maxCollaborators}</td>
                             <td className="py-3">{item.maxPrivateProjects}</td>
                             <td className="py-3">{item.name}</td>
-                            <td className="py-3">{item.pricePerMonth === 0 ? "Free" : item.pricePerMonth + " $"}</td>
+                            <td className="py-3">{item.pricePerMonth === 0 ? "Free" : item.pricePerMonth + " ₹"}</td>
                             <td className="py-3">
                                 <div className="flex items-center">
                                     <div className={`h-2 w-2 rounded-full mr-2 ${item.isVisible ? 'bg-green-500' : 'bg-red-500'}`}></div>
