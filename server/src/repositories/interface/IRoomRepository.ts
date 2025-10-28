@@ -19,5 +19,6 @@ export interface IRoomRepository extends IBaseRepository<IRoom> {
     getProjectIdByRoomId(roomId: string): Promise<IRoom>;
     getModel(): Model<IRoom>;
     getContributedProjects(userId: string): Promise<IRoom[]>;
-    getRecentContributedProjects(userId: string, limit: number): Promise<IRecentContributedProject[]>
+    getRecentContributedProjects(userId: string, limit: number): Promise<IRecentContributedProject[]>;
+    getRoomsByYear(year: number): Promise<{ month: string, rooms: number, contributors: number }[]>;
 }

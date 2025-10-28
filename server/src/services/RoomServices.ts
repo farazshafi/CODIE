@@ -297,6 +297,17 @@ export class RoomServices implements IRoomService {
     }
 
 
-
+    async getRoomsByYear(year: number): Promise<{ month: string; rooms: number; contributors: number }[]> {
+        try {
+            return await this._roomRepository.getRoomsByYear(year)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            logger.error("Error while Fetching room graph")
+            throw new HttpError(500, "Server error while Fetching room graph");
+        }
+    }
 }
 

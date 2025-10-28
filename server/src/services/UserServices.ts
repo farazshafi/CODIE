@@ -246,4 +246,18 @@ export class UserService implements IUserService {
         user.save()
     }
 
+
+    async getUsersGraphByYear(year: number): Promise<{ month: string, users: number }[]> {
+        try {
+            return await this._userRepository.getUsersGraphByYear(year)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            logger.error("Error while Fetching users graph")
+            throw new HttpError(500, "Server error while Fetching users graph");
+        }
+    }
+
 }

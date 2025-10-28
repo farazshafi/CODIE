@@ -1,36 +1,47 @@
-import { getAdminGraphApi } from '@/apis/adminApi';
+'use client';
+import { getRevenueByYearApi } from '@/apis/adminApi';
 import { useMutationHook } from '@/hooks/useMutationHook';
-import React, { useEffect, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import React, { useEffect, useState } from 'react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
+const RevenueGraph = ({ year }: { year: number }) => {
 
-const RevenueGraph = () => {
+    const [revenue, setRevenue] = useState([])
 
-    const [graphData, setGraphData] = useState([])
-
-    const { mutate: getGraphData } = useMutationHook(getAdminGraphApi, {
-        onSuccess(data) {
-            console.log("graph data", data)
-            setGraphData(data.data)
-        },
+    const { mutate: getRevenue } = useMutationHook(getRevenueByYearApi, {
+        onSuccess(response) {
+            setRevenue(response.data)
+        }
     })
 
     useEffect(() => {
-        getGraphData()
+        getRevenue(year)
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [year])
 
     return (
-        <LineChart width={600} height={300} data={graphData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
-            <Line type="monotone" dataKey="users" stroke="#82ca9d" />
-        </LineChart>
-    )
-}
+        <div className="bg-gray-800 p-4 rounded-2xl shadow-md">
+            <h3 className="text-lg font-semibold mb-2 text-white">
+                Revenue Overview ({year})
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={revenue}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                    <XAxis dataKey="month" stroke="#aaa" />
+                    <YAxis stroke="#aaa" />
+                    <Tooltip />
+                    <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        dot={{ fill: '#22c55e' }}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
 
-export default RevenueGraph
+export default RevenueGraph;

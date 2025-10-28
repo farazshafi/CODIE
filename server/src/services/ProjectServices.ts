@@ -9,6 +9,7 @@ import { ISubscriptionRepository } from '../repositories/interface/ISubscription
 import { IUserSubscriptionRepository } from '../repositories/interface/IUserSubscriptionRepository';
 import { IRoomService } from './interface/IRoomService';
 import { IDiscoverRepository } from '../repositories/interface/IDiscoverRepository';
+import { logger } from '../utils/logger';
 
 export class ProjectService implements IProjectService {
     constructor(
@@ -92,7 +93,7 @@ export class ProjectService implements IProjectService {
             percentage = ((thisMonthCount - lastMonthCount) / lastMonthCount) * 100;
             isPositive = percentage >= 0;
         }
-        
+
         return {
             projects,
             isPositive,
@@ -261,6 +262,19 @@ export class ProjectService implements IProjectService {
         } catch (error) {
             console.log(error);
             throw new HttpError(500, "Server error while getting dashboard user data");
+        }
+    }
+
+    async getUsersGraphByYear(year: number): Promise<{ month: string, projects: number }[]> {
+        try {
+            return await this._projectRepository.getProjectsByYear(year)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            logger.error("Error while Fetching projects graph")
+            throw new HttpError(500, "Server error while Fetching projects graph");
         }
     }
 

@@ -83,3 +83,43 @@ export const getAllSubscriptionHistoryApi = async ({
         throw error;
     }
 };
+
+export const getRevenueByYearApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/revenue_by_year`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching revenue grah data", error);
+        throw error;
+    }
+};
+
+export const getUsersByYearApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/users_by_year`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching users graph data", error);
+        throw error;
+    }
+};
+
+export const getProjectsByYearApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/projects_by_year`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching projects graph data", error);
+        throw error;
+    }
+};
+
+export const getRoomsByYearApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/rooms_by_year`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching rooms graph data", error);
+        throw error;
+    }
+};

@@ -14,4 +14,5 @@ export interface IProjectService {
     getSavedCode(id: string): Promise<IProject>;
     getUsedLanguages(userId: mongoose.Types.ObjectId): Promise<{ name: string; count: number }[]>;
     adminDashboardProjectData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }>;
+    getUsersGraphByYear(year: number): Promise<{ month: string, projects: number }[]> ;
 }

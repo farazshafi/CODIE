@@ -21,6 +21,7 @@ export interface IRoomService {
         monthlyData: { name: string; contributions: number }[];
         yearlyData: { name: string; contributions: number }[];
     }>;
-    getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]>
+    getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]>;
+    getRoomsByYear(year: number): Promise<{ month: string, rooms: number, contributors: number }[]>;
 
 }

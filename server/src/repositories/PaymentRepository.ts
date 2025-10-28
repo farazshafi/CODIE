@@ -35,12 +35,52 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         return data.map(d => {
             const monthName = new Date(d._id.year, d._id.month - 1, 1).toLocaleString('default', { month: 'short' });
             return {
-                month: monthName, 
+                month: monthName,
                 year: d._id.year,
                 revenue: d.revenue
             };
         });
     }
 
+    async getRevenueByYear(year: number): Promise<{ month: string, revenue: number }[]> {
+        const now = new Date();
+        const currentMonth = (year === now.getFullYear()) ? now.getMonth() + 1 : 12; 
+        const revenueData = await this.model.aggregate([
+            {
+                $match: {
+                    paymentStatus: "completed",
+                    paymentDate: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$paymentDate" },
+                    revenue: { $sum: "$amount" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    month: "$_id",
+                    revenue: 1
+                }
+            },
+            {
+                $sort: { month: 1 }
+            }
+        ]);
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const result = monthNames.slice(0, currentMonth).map((name, index) => {
+            const monthData = revenueData.find(d => d.month === index + 1);
+            return { month: name, revenue: monthData ? monthData.revenue : 0 };
+        });
+
+        return result;
+    }
 
 }

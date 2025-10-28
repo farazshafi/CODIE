@@ -10,4 +10,5 @@ export interface IPaymentService {
     adminDashboardPaymenttData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }>;
     getPaymentDataAdmin(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }>;
     updatePaymentStatus(id: string, status: "completed" | "failed"): Promise<IPayment>;
+    getRevenueByYear(year: number): Promise<{ month: string, revenue: number }[]>;
 }

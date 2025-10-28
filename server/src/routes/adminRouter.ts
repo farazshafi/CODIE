@@ -15,7 +15,10 @@ adminRouter.post("/user/updateBlockStatus", authenticate, isAdmin, validate(upda
 adminRouter.get("/payment", authenticate, isAdmin, adminController.getPaymentData)
 adminRouter.put("/update_payment_status", authenticate, isAdmin, adminController.updatePaymentStatus)
 adminRouter.get("/graph", authenticate, isAdmin, adminController.getAdminGraph)
-
+adminRouter.get("/revenue_by_year", authenticate, isAdmin, adminController.getRevenueByYear)
+adminRouter.get("/users_by_year", authenticate, isAdmin, adminController.getUsersGraphByYear)
+adminRouter.get("/projects_by_year", authenticate, isAdmin, adminController.getProjectsGraphByYear)
+adminRouter.get("/rooms_by_year", authenticate, isAdmin, adminController.getRoomGraphByYear)
 adminRouter.get("/subscription_history", authenticate, isAdmin, adminController.getSubscriptionHistory)
 
 export default adminRouter 

@@ -14,6 +14,7 @@ import { IUserSubscriptionService } from "../services/interface/IUserSubscriptio
 import jwt from "jsonwebtoken"
 import redis from "../config/redis"
 import { ApiResponse } from "../utils/ApiResponse";
+import { IRoomService } from "../services/interface/IRoomService";
 
 
 export class AdminController {
@@ -21,7 +22,8 @@ export class AdminController {
         private readonly _userService: IUserService,
         private readonly _projectService: IProjectService,
         private readonly _paymentService: IPaymentService,
-        private readonly _userSubscriptionService: IUserSubscriptionService
+        private readonly _userSubscriptionService: IUserSubscriptionService,
+        private readonly _roomService: IRoomService
     ) { }
 
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -265,6 +267,50 @@ export class AdminController {
             const { year, month, sort, currentPage, limit, search } = req.query
             const data = await this._userSubscriptionService.getSubscriptionHistory(Number(year), Number(month), String(sort), Number(currentPage), Number(limit), String(search))
             const response = new ApiResponse(HttpStatusCode.OK, data, "Found Subscription History")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getRevenueByYear = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._paymentService.getRevenueByYear(Number(year))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Payment Revenue")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getUsersGraphByYear = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._userService.getUsersGraphByYear(Number(year))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found users Graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getProjectsGraphByYear = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._projectService.getUsersGraphByYear(Number(year))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Projects graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getRoomGraphByYear = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._roomService.getRoomsByYear(Number(year))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Projects graph data")
             res.status(response.statusCode).json(response);
         } catch (error) {
             next(error)

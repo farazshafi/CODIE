@@ -54,18 +54,58 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
                     users: { $sum: 1 }
                 }
             },
-            { $sort: { '_id.year': 1, '_id.month': 1 } }
+            { $sort: { '_id.year': 1, '_id.month': 1 } }    
         ]);
 
         return data.map(d => {
             const monthName = new Date(d._id.year, d._id.month - 1, 1).toLocaleString('default', { month: 'short' });
             return {
-                month: monthName, 
+                month: monthName,
                 year: d._id.year,
                 users: d.users
             };
         });
     }
 
+    async getUsersGraphByYear(year: number): Promise<{ month: string, users: number }[]> {
+        const now = new Date();
+        const currentMonth = (year === now.getFullYear()) ? now.getMonth() + 1 : 12;
 
+        const userData = await this.model.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    users: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    month: "$_id",
+                    users: 1
+                }
+            },
+            {
+                $sort: { month: 1 }
+            }
+        ]);
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const result = monthNames.slice(0, currentMonth).map((name, index) => {
+            const monthData = userData.find(d => d.month === index + 1);
+            return { month: name, users: monthData ? monthData.users : 0 };
+        });
+
+        return result;
+    }
+    
 }

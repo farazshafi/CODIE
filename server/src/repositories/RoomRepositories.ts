@@ -91,7 +91,7 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     async getContributedProjects(userId: string): Promise<IRoom[]> {
         return await this.model.find({ "collaborators": { "$elemMatch": { "user": new Types.ObjectId(userId), "role": { "$ne": "owner" } } } })
     }
-    
+
     async getRecentContributedProjects(userId: string, limit = 3): Promise<IRecentContributedProject[]> {
         const userObjectId = new Types.ObjectId(userId);
 
@@ -147,5 +147,72 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
 
         return projects;
     }
+
+    async getRoomsByYear(year: number): Promise<{ month: string, rooms: number, contributors: number }[]> {
+        const now = new Date();
+        const currentMonth = (year === now.getFullYear()) ? now.getMonth() + 1 : 12;
+
+        const roomData = await this.model.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $project: {
+                    month: { $month: "$createdAt" },
+                    allContributors: {
+                        $setUnion: [
+                            ["$owner"],
+                            { $map: { input: "$collaborators", as: "c", in: "$$c.user" } }
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$month",
+                    rooms: { $sum: 1 },
+                    contributorsSet: { $addToSet: "$allContributors" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    month: "$_id",
+                    rooms: 1,
+                    contributors: {
+                        $size: {
+                            $reduce: {
+                                input: "$contributorsSet",
+                                initialValue: [],
+                                in: { $setUnion: ["$$value", "$$this"] }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $sort: { month: 1 }
+            }
+        ]);
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const result = monthNames.slice(0, currentMonth).map((name, index) => {
+            const monthInfo = roomData.find(d => d.month === index + 1);
+            return {
+                month: name,
+                rooms: monthInfo ? monthInfo.rooms : 0,
+                contributors: monthInfo ? monthInfo.contributors : 0
+            };
+        });
+
+        return result;
+    }
+
 
 }

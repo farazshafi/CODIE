@@ -3,6 +3,7 @@ import { IPayment } from "../models/PaymentModel";
 import { IPaymentService } from "./interface/IPaymentService";
 import { HttpError } from "../utils/HttpError";
 import { IPaymentRepository } from "../repositories/interface/IPaymentRepository";
+import { logger } from "../utils/logger";
 
 export class PaymentService implements IPaymentService {
     constructor(private _paymentRepository: IPaymentRepository) { }
@@ -104,7 +105,7 @@ export class PaymentService implements IPaymentService {
         }
     }
 
-    async getPaymentDataAdmin(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }>{
+    async getPaymentDataAdmin(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }> {
         try {
             const skip = (page - 1) * limit;
             const payments = await this._paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"]).skip(skip).limit(limit);
@@ -130,6 +131,19 @@ export class PaymentService implements IPaymentService {
             }
             console.log(error);
             throw new HttpError(500, "Server error while getting payment data");
+        }
+    }
+
+    async getRevenueByYear(year: number): Promise<{ month: string, revenue: number }[]> {
+        try {
+            return await this._paymentRepository.getRevenueByYear(year)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            logger.error("Error while Fetching revenue")
+            throw new HttpError(500, "Server error while Fetching revenue");
         }
     }
 }

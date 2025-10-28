@@ -10,6 +10,12 @@
     "worker": "node dist/worker.js",
     "seed:users": "ts-node --transpile-only src/seed/userSeed.ts",
     "seed:userSubs": "ts-node --transpile-only src/seed/userSubscriptionSeed.ts",
+    "seed:projects": "ts-node --transpile-only src/seed/projectSeed.ts",
+    "seed:room": "ts-node --transpile-only src/seed/roomSeed.ts",
+    "seed:discover": "ts-node --transpile-only src/seed/discoverSeed.ts",
+    "seed:comment": "ts-node --transpile-only src/seed/commentSeed.ts",
+    "seed:payment": "ts-node --transpile-only src/seed/paymentSeed.ts",
+    "seed:starred": "ts-node --transpile-only src/seed/starredSeed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

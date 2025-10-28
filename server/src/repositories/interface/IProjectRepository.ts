@@ -11,4 +11,5 @@ export interface IProjectRepository extends IBaseRepository<IProject> {
     findProjectByRoomId(roomId: string): Promise<string | null>;
     updateCode(projectId:string , code: string): Promise<IProject>;
     getProjectByIds(ids: string[]): Promise<IProject[]>;
+    getProjectsByYear(year: number): Promise<{ month: string, projects: number }[]> ;
 }
