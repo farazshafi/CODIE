@@ -278,4 +278,11 @@ export class ProjectService implements IProjectService {
         }
     }
 
+    async getMontlyDataForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]> {
+        return this._projectRepository.getMontlyDataForGraphOverview(year)
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]> {
+        return this._projectRepository.getYearlyDataForGraphOverview()
+    }
 }

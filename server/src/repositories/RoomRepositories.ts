@@ -214,5 +214,36 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
         return result;
     }
 
+    async getMontlyDataForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]> {
+        return await this.model.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]> {
+        return await this.model.aggregate([
+            {
+                $group: {
+                    _id: { $year: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+    }
+
 
 }

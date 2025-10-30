@@ -44,7 +44,7 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
 
     async getRevenueByYear(year: number): Promise<{ month: string, revenue: number }[]> {
         const now = new Date();
-        const currentMonth = (year === now.getFullYear()) ? now.getMonth() + 1 : 12; 
+        const currentMonth = (year === now.getFullYear()) ? now.getMonth() + 1 : 12;
         const revenueData = await this.model.aggregate([
             {
                 $match: {
@@ -83,4 +83,38 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         return result;
     }
 
+    async getMontlyDataForGraphOverview(year: number): Promise<{ _id: number, total: number }[]> {
+        return await this.model.aggregate([
+            {
+                $match: {
+                    paymentStatus: "completed",
+                    paymentDate: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$paymentDate" },
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number, total: number }[]> {
+        return await this.model.aggregate([
+            {
+                $match: { paymentStatus: "completed" }
+            },
+            {
+                $group: {
+                    _id: { $year: "$paymentDate" },
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+    }
 }

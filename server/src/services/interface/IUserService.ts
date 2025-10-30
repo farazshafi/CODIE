@@ -22,6 +22,8 @@ export interface IUserService {
     adminDashboardUserData(): Promise<{ title: string, value: string, icon: string, change: string, positive: boolean }>;
     getAdminGraphData(): Promise<{ month: string; revenue: number; users: number }[]>;
     getContributorData(id: string): Promise<IUser>;
-    updateProfileVisiblity(userId: string, status:boolean):Promise<void>;
+    updateProfileVisiblity(userId: string, status: boolean): Promise<void>;
     getUsersGraphByYear(year: number): Promise<{ month: string, users: number }[]>;
+    getMontlyUserForGraphOverview(year: number): Promise<{ _id: number, count: number }[]>
+    getYearlyDataForGraphOverview(): Promise<{ _id: number, count: number }[]>
 }

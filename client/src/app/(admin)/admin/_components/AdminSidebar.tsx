@@ -90,6 +90,15 @@ const AdminSidebar = () => {
                     <span className="ml-3 hidden md:inline">Payment</span>
                 </Link>
 
+                <Link
+                    href="/admin/sales"
+                    className={`p-3 rounded-md transition-colors hover:scale-105 transform duration-200 flex items-center 
+    ${currentPath === '/admin/sales' ? 'bg-admin-selected' : 'text-admin-muted hover:bg-admin-card hover:text-white'}`}
+                >
+                    <HandCoins className={`h-5 w-5 ${currentPath === '/admin/sales' ? 'text-admin-accent' : 'text-admin-muted'}`} />
+                    <span className="ml-3 hidden md:inline">sales</span>
+                </Link>
+
             </div>
 
 

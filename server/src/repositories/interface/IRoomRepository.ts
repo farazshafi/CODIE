@@ -3,7 +3,6 @@ import { IRoom } from "../../models/RoomModel";
 import { CreateRoomType } from "../../types/roomType";
 import { IBaseRepository } from "./IBaseRepository";
 import { IRecentContributedProject } from "../../types/roomTypes";
-import { number } from "zod";
 
 
 export interface IRoomRepository extends IBaseRepository<IRoom> {
@@ -21,4 +20,7 @@ export interface IRoomRepository extends IBaseRepository<IRoom> {
     getContributedProjects(userId: string): Promise<IRoom[]>;
     getRecentContributedProjects(userId: string, limit: number): Promise<IRecentContributedProject[]>;
     getRoomsByYear(year: number): Promise<{ month: string, rooms: number, contributors: number }[]>;
+    getMontlyDataForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]>
+    getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]>
+
 }

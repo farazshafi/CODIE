@@ -74,6 +74,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     async count(filter: Record<string, unknown>): Promise<number> {
         return this.model.countDocuments(filter);
     }
+    
     async insertMany(items: Partial<T>[], options?: { session?: ClientSession }): Promise<T[]> {
         return this.model.insertMany(items, options);
     }

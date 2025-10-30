@@ -44,6 +44,7 @@
     "radix-ui": "^1.4.2",
     "razorpay": "^2.9.6",
     "react": "^19.0.0",
+    "react-datepicker": "^8.8.0",
     "react-dom": "^19.0.0",
     "react-h5-audio-player": "^3.10.0",
     "react-hook-form": "^7.56.4",

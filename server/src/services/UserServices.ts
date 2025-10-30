@@ -260,4 +260,12 @@ export class UserService implements IUserService {
         }
     }
 
+    async getMontlyUserForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]> {
+        return this._userRepository.getMontlyUserForGraphOverview(year)
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]> {
+        return this._userRepository.getYearlyDataForGraphOverview()
+    }
+
 }

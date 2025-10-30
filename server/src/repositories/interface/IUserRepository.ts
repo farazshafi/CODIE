@@ -9,4 +9,6 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     count(filter: Record<string, unknown>): Promise<number>;
     getMonthlyUsers(monthsBack: number): Promise<{ month: string; year: number; users: number }[]>;
     getUsersGraphByYear(year: number): Promise<{ month: string, users: number }[]>
+    getMontlyUserForGraphOverview(year: number): Promise<{ _id: number, count: number }[]>
+    getYearlyDataForGraphOverview(): Promise<{ _id: number, count: number }[]>
 }

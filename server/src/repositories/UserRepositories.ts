@@ -54,7 +54,7 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
                     users: { $sum: 1 }
                 }
             },
-            { $sort: { '_id.year': 1, '_id.month': 1 } }    
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
         ]);
 
         return data.map(d => {
@@ -107,5 +107,35 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
 
         return result;
     }
+
+    async getMontlyUserForGraphOverview(year: number): Promise<{ _id: number, count: number }[]> {
+        return await this.model.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+    }
     
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number, count: number }[]> {
+        return await this.model.aggregate([
+            {
+                $group: {
+                    _id: { $year: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+    }
 }

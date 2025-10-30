@@ -15,6 +15,8 @@ import jwt from "jsonwebtoken"
 import redis from "../config/redis"
 import { ApiResponse } from "../utils/ApiResponse";
 import { IRoomService } from "../services/interface/IRoomService";
+import { IAdminService } from "../services/interface/IAdminService";
+import { IDiscoverService } from '../services/interface/IDiscoverService';
 
 
 export class AdminController {
@@ -23,7 +25,9 @@ export class AdminController {
         private readonly _projectService: IProjectService,
         private readonly _paymentService: IPaymentService,
         private readonly _userSubscriptionService: IUserSubscriptionService,
-        private readonly _roomService: IRoomService
+        private readonly _roomService: IRoomService,
+        private readonly _adminService: IAdminService,
+        private readonly _discoverService: IDiscoverService
     ) { }
 
     loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -216,8 +220,9 @@ export class AdminController {
             const userData = await this._userService.adminDashboardUserData()
             const projectData = await this._projectService.adminDashboardProjectData()
             const paymentData = await this._paymentService.adminDashboardPaymenttData()
+            const discoverData = await this._discoverService.adminDashboardDiscoverData()
             const response = new ApiResponse(
-                HttpStatusCode.OK, { userData, projectData, paymentData }, "Dashboard data fetched successfully."
+                HttpStatusCode.OK, { userData, projectData, paymentData, discoverData }, "Dashboard data fetched successfully."
             )
             res.status(response.statusCode).json(response)
         } catch (error) {
@@ -229,7 +234,8 @@ export class AdminController {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
-            const { payments, totalPages } = await this._paymentService.getPaymentDataAdmin(page, limit)
+            const sort = (req.query.sort as string) || "all";
+            const { payments, totalPages } = await this._paymentService.getPaymentDataAdmin(page, limit, sort)
             const response = new ApiResponse(
                 HttpStatusCode.OK, { payments, totalPages }, "Payment fetched successfully."
             )
@@ -306,11 +312,45 @@ export class AdminController {
         }
     }
 
+    getDiscoveriesGraphByYear = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._discoverService.getDiscoverGraphByYear(Number(year))
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Disoveries graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
     getRoomGraphByYear = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { year } = req.query
             const data = await this._roomService.getRoomsByYear(Number(year))
             const response = new ApiResponse(HttpStatusCode.OK, data, "Found Projects graph data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getDashboardOverview = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._adminService.getDashboardOverview(Number(year))
+
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found Dashbaord overview data")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getAllPublishedSnippets = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const data = await this._adminService.getTotalPublishedSnippets()
+
+            const response = new ApiResponse(HttpStatusCode.OK, { totalPublishedSnippets: data.length }, "Found All published snippets data")
             res.status(response.statusCode).json(response);
         } catch (error) {
             next(error)

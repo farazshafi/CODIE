@@ -25,15 +25,17 @@ export const dashboardDataApi = async () => {
     return response.data;
 }
 
-export const getPaymentDataApi = async (page = 1,) => {
+// ✅ Fix this
+export const getPaymentDataApi = async ({ page = 1, sort = "all", }: { page?: number; sort?: string; }) => {
     try {
-        const response = await API.get(`/admin/payment?page=${page}&limit=10`)
-        return response.data
+        const response = await API.get(`/admin/payment?page=${page}&limit=10&sort=${sort}`);
+        return response.data;
     } catch (error) {
-        console.log("Error While fetching Payment", error)
-        throw error
+        console.log("Error while fetching payment", error);
+        throw error;
     }
-}
+};
+
 
 export const updatePaymentStatusApi = async (data: { id: string, status: "completed" | "failed" }) => {
     try {
@@ -120,6 +122,36 @@ export const getRoomsByYearApi = async (year: number) => {
         return response.data;
     } catch (error) {
         console.log("Error While fetching rooms graph data", error);
+        throw error;
+    }
+};
+
+export const getAdminDashbaordOverviewApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/dashboard_overview`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While dashboard_overview graph data", error);
+        throw error;
+    }
+};
+
+export const getTotalPublishedSnippetsApi = async () => {
+    try {
+        const response = await API.get(`/admin/total_published_snippets`);
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching snippets data", error);
+        throw error;
+    }
+};
+
+export const getSnippetsGraphByYearApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/snippets_by_year`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching snippets data", error);
         throw error;
     }
 };

@@ -18,7 +18,10 @@ adminRouter.get("/graph", authenticate, isAdmin, adminController.getAdminGraph)
 adminRouter.get("/revenue_by_year", authenticate, isAdmin, adminController.getRevenueByYear)
 adminRouter.get("/users_by_year", authenticate, isAdmin, adminController.getUsersGraphByYear)
 adminRouter.get("/projects_by_year", authenticate, isAdmin, adminController.getProjectsGraphByYear)
+adminRouter.get("/snippets_by_year", authenticate, isAdmin, adminController.getDiscoveriesGraphByYear)
 adminRouter.get("/rooms_by_year", authenticate, isAdmin, adminController.getRoomGraphByYear)
 adminRouter.get("/subscription_history", authenticate, isAdmin, adminController.getSubscriptionHistory)
+adminRouter.get("/dashboard_overview", authenticate, isAdmin, adminController.getDashboardOverview)
+adminRouter.get("/total_published_snippets", authenticate, isAdmin, adminController.getAllPublishedSnippets)
 
 export default adminRouter 

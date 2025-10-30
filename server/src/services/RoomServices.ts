@@ -309,5 +309,13 @@ export class RoomServices implements IRoomService {
             throw new HttpError(500, "Server error while Fetching room graph");
         }
     }
+
+    async getMontlyDataForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]> {
+        return this._roomRepository.getMontlyDataForGraphOverview(year)
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]> {
+        return this._roomRepository.getYearlyDataForGraphOverview()
+    }
 }
 

@@ -105,18 +105,39 @@ export class PaymentService implements IPaymentService {
         }
     }
 
-    async getPaymentDataAdmin(page: number, limit: number): Promise<{ payments: IPayment[], totalPages: number }> {
+    async getPaymentDataAdmin(page: number, limit: number, sort: string): Promise<{ payments: IPayment[]; totalPages: number }> {
         try {
             const skip = (page - 1) * limit;
-            const payments = await this._paymentRepository.getModel().find({}).populate("userId", ["name"]).select(["amount", "paymentStatus", "transactionId", "paymentDate"]).skip(skip).limit(limit);
-            const totalCount = await this._paymentRepository.getModel().countDocuments();
+
+            let filter: Record<string, string> = {};
+            if (sort !== "all") {
+                filter = { paymentStatus: sort.toLowerCase() }
+            }
+
+            console.log("sort and filter", sort, filter)
+
+            const payments = await this._paymentRepository
+                .getModel()
+                .find(filter)
+                .populate("userId", ["name"])
+                .select(["amount", "paymentStatus", "transactionId", "paymentDate"])
+                .skip(skip)
+                .limit(limit)
+                .sort({ paymentDate: -1 }); 
+
+            const totalCount = await this._paymentRepository
+                .getModel()
+                .countDocuments(filter);
+
             const totalPages = Math.ceil(totalCount / limit);
+
             return { payments, totalPages };
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new HttpError(500, "Server error while getting payment data");
         }
     }
+
 
     async updatePaymentStatus(id: string, status: "completed" | "failed"): Promise<IPayment> {
         try {
@@ -145,5 +166,13 @@ export class PaymentService implements IPaymentService {
             logger.error("Error while Fetching revenue")
             throw new HttpError(500, "Server error while Fetching revenue");
         }
+    }
+
+    async getMontlyDataForGraphOverview(year: number): Promise<{ _id: number, total: number }[]> {
+        return this._paymentRepository.getMontlyDataForGraphOverview(year)
+    }
+
+    async getYearlyDataForGraphOverview(): Promise<{ _id: number, total: number }[]> {
+        return this._paymentRepository.getYearlyDataForGraphOverview()
     }
 }

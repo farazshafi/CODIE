@@ -23,5 +23,6 @@ export interface IRoomService {
     }>;
     getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]>;
     getRoomsByYear(year: number): Promise<{ month: string, rooms: number, contributors: number }[]>;
-
+    getMontlyDataForGraphOverview(year: number): Promise<{ _id: number; count: number; }[]>
+    getYearlyDataForGraphOverview(): Promise<{ _id: number; count: number; }[]>
 }

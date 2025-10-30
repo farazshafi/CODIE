@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Users, Package, CreditCard } from 'lucide-react';
+import { Users, Package, CreditCard, Rocket } from 'lucide-react';
 import { useMutationHook } from '@/hooks/useMutationHook';
 import { dashboardDataApi } from '@/apis/adminApi';
 import Loading from '@/components/Loading';
@@ -9,6 +9,7 @@ import UsersGraph from './_components/UserGraph';
 import ProjectsGraph from './_components/ProjectsGraph';
 import OverviewGraph from './_components/OverveiwGraph';
 import RoomsContributorsGraph from './_components/RoomsGraph';
+import SnippetsGraph from './_components/SnippetGraph';
 
 type StatsType = {
     title: string;
@@ -28,7 +29,8 @@ const Dashboard = () => {
             setStatsCards([
                 data.data.userData,
                 data.data.projectData,
-                data.data.paymentData
+                data.data.paymentData,
+                data.data.discoverData
             ])
         }
 
@@ -60,6 +62,9 @@ const Dashboard = () => {
                                         )}
                                         {card.title === 'Total Payment' && (
                                             <CreditCard className="h-5 w-5 text-white" />
+                                        )}
+                                        {card.title === 'Total Snippets' && (
+                                            <Rocket className="h-5 w-5 text-white" />
                                         )}
                                     </div>
                                 </div>
@@ -100,11 +105,13 @@ const Dashboard = () => {
                         <UsersGraph year={selectedYear} />
                         <ProjectsGraph year={selectedYear} />
                         <RoomsContributorsGraph year={selectedYear} />
+                        <SnippetsGraph year={selectedYear} />
+
                     </div>
 
 
                     <div className='mt-10'>
-                        <OverviewGraph />
+                        <OverviewGraph year={selectedYear} />
                     </div>
                 </>
             )}

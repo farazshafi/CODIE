@@ -61,6 +61,7 @@ import CommentModel from './models/CommentModel';
 import { CommentRepository } from './repositories/CommentRepository';
 import { CommentService } from './services/CommentService';
 import { CommentController } from './controllers/CommentController';
+import { AdminService } from './services/AdminService';
 
 
 
@@ -99,6 +100,7 @@ export const paymentService = new PaymentService(paymentRepository)
 export const userSubscriptionService = new UserSubscriptionService(userSubscriptionRepository, subscriptionRepository, mailService, userRepository, paymentService)
 export const commentService = new CommentService(commentRepository)
 export const starredService = new StarredService(starredRepository, discoverRepository)
+export const adminService = new AdminService(discoverService, userService, roomService, projectService, paymentService)
 
 // Set up controller
 export const projectController = new ProjectController(projectService, roomService)
@@ -106,7 +108,7 @@ export const userController = new UserController(userService, otpService, mailSe
 export const requestController = new RequestController(requestService)
 export const roomController = new RoomController(roomService)
 export const invitationController = new InvitationController(invitationService)
-export const adminController = new AdminController(userService, projectService, paymentService, userSubscriptionService, roomService)
+export const adminController = new AdminController(userService, projectService, paymentService, userSubscriptionService, roomService, adminService, discoverService)
 export const subscriptionController = new SubscriptionController(subscriptionService)
 export const messageController = new MessageController(messageService)
 export const discoverController = new DiscoverController(discoverService)
@@ -114,4 +116,5 @@ export const userSubscriptionController = new UserSubscriptionController(userSub
 export const starredController = new StarredController(starredService)
 export const paymentController = new PaymentController(paymentService)
 export const commentController = new CommentController(commentService)
+export const adminContoller = new AdminController(userService,projectService,paymentService,userSubscriptionService,roomService,adminService, discoverService)
 

@@ -1,5 +1,6 @@
 "use client";
 import { getPaymentDataApi, updatePaymentStatusApi } from "@/apis/adminApi";
+import { Button } from "@/components/ui/button";
 import Pagination from "@/components/ui/Pagination";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import React, { useEffect, useState } from "react";
@@ -23,6 +24,8 @@ const PaymentPage = () => {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const [statusFilter, setStatusFilter] = useState("all");
+
 
     const { mutate: getPaymentData } = useMutationHook(getPaymentDataApi, {
         onSuccess(data) {
@@ -34,7 +37,7 @@ const PaymentPage = () => {
     const { mutate: updateStatus } = useMutationHook(updatePaymentStatusApi, {
         onSuccess() {
             toast.success("Updated Status")
-            getPaymentData(currentPage)
+            getPaymentData({ page: currentPage, sort: statusFilter });
         }
     })
 
@@ -71,20 +74,40 @@ const PaymentPage = () => {
 
 
     useEffect(() => {
-        getPaymentData(currentPage)
+        getPaymentData({ page: currentPage, sort: statusFilter });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage])
+    }, [currentPage, statusFilter])
 
     return (
         <div className="p-6 bg-gray-900 min-h-screen text-white">
             <h1 className="text-2xl font-bold mb-4">Payment History</h1>
-            <input
-                type="text"
-                placeholder="Search payments..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="mb-4 p-2 rounded bg-gray-800 text-white w-full max-w-sm"
-            />
+            <div className="flex justify-between">
+                <input
+                    type="text"
+                    placeholder="Search payments..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="mb-4 p-2 rounded bg-gray-800 text-white w-full max-w-sm"
+                />
+
+                <div className="">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setStatusFilter(newStatus);
+                            setCurrentPage(1);
+                        }}
+                        className="bg-gray-800 text-white p-2 rounded"
+                    >
+                        <option value="all">All Payments</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+            </div>
 
             <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-700 rounded-lg overflow-hidden">
@@ -103,7 +126,7 @@ const PaymentPage = () => {
                             <th className="p-3 cursor-pointer" onClick={() => handleSort("paymentDate")}>
                                 Date
                             </th>
-                            <th className="p-3">Action</th> {/* New column */}
+                            <th className="p-3">Action</th>
                         </tr>
                     </thead>
 

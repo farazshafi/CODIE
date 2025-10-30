@@ -6,6 +6,7 @@ import { HttpError } from "../utils/HttpError";
 import { generateCodeExplanation } from "../utils/geminiHelperl";
 import { IProjectRepository } from "../repositories/interface/IProjectRepository";
 import { IUserSubscriptionRepository } from "../repositories/interface/IUserSubscriptionRepository";
+import { logger } from "../utils/logger";
 
 interface FilterOptions {
     keyword: string;
@@ -155,4 +156,68 @@ export class DiscoverService implements IDiscoverService {
             throw error(500, "server Error")
         }
     }
+
+    async getTotalPublishedSnippets(): Promise<IDiscover[]> {
+        try {
+            return await this._discoverRepo.getTotalPublishedProjects()
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            logger.error("server error while getting total discoveies")
+            throw new HttpError(500, "server error while getting total discoveies")
+        }
+    }
+
+    async adminDashboardDiscoverData(): Promise<{ title: string, value: string, icon: string, change: string, isPositive: boolean }> {
+        try {
+            const totalSnippets = await this._discoverRepo.count({});
+
+            const now = new Date();
+            const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+            const snippetsThisMonth = await this._discoverRepo.count({ createdAt: { $gte: startOfThisMonth } });
+
+            const snippetsLastMonth = await this._discoverRepo.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+
+            let change = '0%';
+            let isPositive = true;
+            if (snippetsLastMonth > 0) {
+                const percentChange = ((snippetsThisMonth - snippetsLastMonth) / snippetsLastMonth) * 100;
+                change = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%`;
+                isPositive = percentChange >= 0;
+            } else if (snippetsThisMonth > 0) {
+                change = '+100%';
+                isPositive = true;
+            }
+
+            const icon = 'Code';
+
+            return {
+                title: 'Total Snippets',
+                value: totalSnippets.toLocaleString(),
+                icon,
+                change,
+                isPositive
+            };
+        } catch (error) {
+            console.log(error);
+            throw new HttpError(500, "Server error while getting dashboard discover data");
+        }
+    }
+
+    async getDiscoverGraphByYear(year: number): Promise<{ month: string, snippet: number }[]> {
+        try {
+            return await this._discoverRepo.getDiscoverStatsByYear(year)
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error
+            }
+            console.log(error);
+            logger.error("Error while Fetching snippet graph")
+            throw new HttpError(500, "Server error while Fetching snippet graph");
+        }
+    }
+
 }

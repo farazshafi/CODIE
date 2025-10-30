@@ -22,5 +22,4 @@ export interface IBaseRepository<T extends Document> {
     deleteOne(filter: FilterQuery<T>, session?: ClientSession): Promise<boolean>;
     count(filter: Record<string, unknown>): Promise<number>;
     insertMany(items: Partial<T>[], options?: { session?: ClientSession }): Promise<T[]>
-    aggregate(pipeline: any[]): Promise<any[]>;
 }
