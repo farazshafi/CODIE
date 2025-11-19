@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { downloadSalesReportApi, getDailySalesReportApi, getMonthlySalesReportApi, getYearlySalesReportApi } from "@/apis/adminApi";
+import { useMutationHook } from "@/hooks/useMutationHook";
+import React, { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -9,41 +11,106 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { toast } from "sonner";
 
 export default function SalesReportPage() {
   const [viewMode, setViewMode] = useState<"yearly" | "monthly" | "daily">(
     "monthly"
   );
-  const [selectedYear, setSelectedYear] = useState<number>(2024);
-  const [selectedMonth, setSelectedMonth] = useState<number>(10); // October (0-based)
-  const [selectedDate, setSelectedDate] = useState<string>("2024-10-01");
 
-  // ---- Dummy Data ---- //
-  const yearlyData = [
-    { year: 2022, revenue: 24000 },
-    { year: 2023, revenue: 32500 },
-    { year: 2024, revenue: 41200 },
-  ];
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1)
 
-  const monthlyData = [
-    { month: "Jan", revenue: 1200 },
-    { month: "Feb", revenue: 1900 },
-    { month: "Mar", revenue: 2500 },
-    { month: "Apr", revenue: 3100 },
-    { month: "May", revenue: 2800 },
-    { month: "Jun", revenue: 3400 },
-    { month: "Jul", revenue: 3000 },
-    { month: "Aug", revenue: 3600 },
-    { month: "Sep", revenue: 3900 },
-    { month: "Oct", revenue: 4200 },
-    { month: "Nov", revenue: 4600 },
-    { month: "Dec", revenue: 5000 },
-  ];
+  const [yearlyData, setYearlyData] = useState([])
+  const [monthlyData, setMonthlyData] = useState([])
+  const [dailyData, setDailyData] = useState([])
 
-  const dailyData = Array.from({ length: 31 }, (_, i) => ({
-    day: i + 1,
-    revenue: Math.floor(200 + Math.random() * 400),
-  }));
+  const { mutate: getYearlySales } = useMutationHook(getYearlySalesReportApi, {
+    onSuccess(response) {
+      console.log("yearly data: ", response.data)
+      setYearlyData(response.data)
+    }
+  })
+
+  const { mutate: getMonthlySales } = useMutationHook(getMonthlySalesReportApi, {
+    onSuccess(response) {
+      console.log("yearly data: ", response.data)
+      setMonthlyData(response.data)
+    }
+  })
+
+  const { mutate: getDailySales } = useMutationHook(getDailySalesReportApi, {
+    onSuccess(response) {
+      console.log("yearly data: ", response.data)
+      setDailyData(response.data)
+    }
+  })
+
+  const handleExportServerCSV = async () => {
+    try {
+      const params: Record<string, string | number> = { view: viewMode };
+      if (viewMode === "yearly") params.year = selectedYear;
+      if (viewMode === "monthly") {
+        params.year = selectedYear;
+       
+      }
+      if (viewMode === "daily") {
+        params.year = selectedYear;
+        params.month = selectedMonth;
+      }
+
+      const query = new URLSearchParams(params as any).toString();
+
+      // note: downloadSalesReportApi now returns the Axios response
+      const res = await downloadSalesReportApi(query);
+      console.log("download sales report api called", res);
+
+      // res.data is the blob
+      const blob = res.data;
+      // Try to extract filename from headers, fallback to constructed name
+      const contentDisposition = res.headers?.["content-disposition"] || res.headers?.["Content-Disposition"];
+      let filename = `sales_report_${viewMode}_${selectedYear}`;
+      if (viewMode === "monthly") filename += `_${selectedMonth + 1}`;
+      if (viewMode === "daily") filename += `_${selectedMonth + 1}`;
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+        if (match && match[1]) {
+          filename = decodeURIComponent(match[1]);
+        }
+      }
+      // ensure .csv
+      if (!filename.toLowerCase().endsWith(".csv")) filename += ".csv";
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Export started");
+    } catch (err: any) {
+      console.error("Export failed", err);
+      // If server returned HTML (auth redirect), give a helpful error
+      if (err?.response && err.response.type === "text/html") {
+        toast.error("Export failed: authentication issue or server returned HTML.");
+      } else {
+        toast.error("Export failed");
+      }
+    }
+  };
+
+
+
+  useEffect(() => {
+    getYearlySales()
+    getMonthlySales(selectedYear)
+    getDailySales({ year: selectedYear, month: selectedMonth })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, selectedMonth, viewMode])
 
   // ---- Select Data Based on View ---- //
   let chartData;
@@ -68,7 +135,7 @@ export default function SalesReportPage() {
       {/* Header */}
       <header className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-semibold text-white">Sales Report</h1>
-        <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">
+        <button onClick={handleExportServerCSV} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">
           Export CSV
         </button>
       </header>
@@ -77,7 +144,9 @@ export default function SalesReportPage() {
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <select
           value={viewMode}
-          onChange={(e) => setViewMode(e.target.value as any)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setViewMode(e.target.value as "yearly" | "monthly" | "daily")
+          }
           className="bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded-lg"
         >
           <option value="yearly">Yearly</option>
@@ -91,21 +160,18 @@ export default function SalesReportPage() {
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             className="bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded-lg"
           >
-            <option value={2022}>2022</option>
-            <option value={2023}>2023</option>
-            <option value={2024}>2024</option>
+            <option value={2025}>2025</option>
           </select>
         )}
 
-        {viewMode === "monthly" && (
+        {viewMode === "monthly" || viewMode === "daily" && (
           <>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
               className="bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded-lg"
             >
-              <option value={2023}>2023</option>
-              <option value={2024}>2024</option>
+              <option value={2025}>2025</option>
             </select>
 
             <select
@@ -127,7 +193,7 @@ export default function SalesReportPage() {
                 "Nov",
                 "Dec",
               ].map((m, i) => (
-                <option key={i} value={i}>
+                <option key={i} value={i + 1}>
                   {m}
                 </option>
               ))}
@@ -135,14 +201,6 @@ export default function SalesReportPage() {
           </>
         )}
 
-        {viewMode === "daily" && (
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-gray-800 text-white border border-gray-600 px-4 py-2 rounded-lg"
-          />
-        )}
       </div>
 
       {/* Chart Section */}
@@ -151,8 +209,8 @@ export default function SalesReportPage() {
           {viewMode === "yearly"
             ? "Yearly Revenue"
             : viewMode === "monthly"
-            ? "Monthly Revenue"
-            : "Daily Revenue"}
+              ? "Monthly Revenue"
+              : "Daily Revenue"}
         </h2>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -172,8 +230,8 @@ export default function SalesReportPage() {
           {viewMode === "yearly"
             ? "Yearly Summary"
             : viewMode === "monthly"
-            ? "Monthly Summary"
-            : "Daily Summary"}
+              ? "Monthly Summary"
+              : "Daily Summary"}
         </h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-gray-300">

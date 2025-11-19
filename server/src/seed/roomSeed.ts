@@ -8,6 +8,16 @@ dotenv.config();
 
 const generateRoomId = () => crypto.randomBytes(4).toString("hex");
 
+/**
+ * Return a random Date that falls in September, October or November
+ * of the given year. Defaults to the current year.
+ */
+function randomDateInSeptOctNov(year = new Date().getFullYear()): Date {
+  const start = new Date(`${year}-09-01T00:00:00.000Z`);
+  const end = new Date(`${year}-11-30T23:59:59.999Z`);
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
 async function seedRooms() {
   try {
     await mongoose.connect(process.env.DATABASE_URL as string);
@@ -23,7 +33,7 @@ async function seedRooms() {
     await roomRepository.deleteMany({}); 
     console.log("🧹 Cleared existing rooms");
 
-    const rooms = [];
+    const rooms: any[] = [];
 
     for (const project of projects) {
       const ownerId = project.userId; // owner is the project creator
@@ -34,11 +44,11 @@ async function seedRooms() {
       // Pick random collaborators
       const collaborators: { user: mongoose.Types.ObjectId, role: string, joinedAt?: Date }[] = [];
 
-      // Ensure owner is always in collaborators
+      // Owner joinedAt - random Sept/Oct/Nov date
       collaborators.push({
         user: ownerId,
         role: "owner",
-        joinedAt: project.createdAt || faker.date.recent({ days: 10 }),
+        joinedAt: randomDateInSeptOctNov(),
       });
 
       // Pick random other users excluding owner
@@ -52,22 +62,28 @@ async function seedRooms() {
         collaborators.push({
           user: user._id,
           role: faker.helpers.arrayElement(["editor", "viewer"]),
-          joinedAt: faker.date.between({
-            from: project.createdAt || new Date(),
-            to: new Date(),
-          }),
+          // joinedAt also restricted to Sept/Oct/Nov
+          joinedAt: randomDateInSeptOctNov(),
         });
       }
+
+      // Room createdAt also restricted to Sept/Oct/Nov
+      const roomCreatedAt = randomDateInSeptOctNov();
 
       rooms.push({
         roomId: generateRoomId(),
         projectId: project._id,
         owner: ownerId,
         collaborators,
+        createdAt: roomCreatedAt,
+        // optionally set updatedAt same as createdAt or leave it out
+        updatedAt: roomCreatedAt,
       });
     }
 
-    await roomRepository.insertMany(rooms);
+    if (rooms.length > 0) {
+      await roomRepository.insertMany(rooms);
+    }
     console.log(`🎉 Inserted ${rooms.length} rooms successfully!`);
 
     await mongoose.disconnect();

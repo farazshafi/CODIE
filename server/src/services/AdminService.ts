@@ -6,6 +6,7 @@ import { IPaymentService } from "./interface/IPaymentService";
 import { IProjectService } from "./interface/IProjectService";
 import { IRoomService } from "./interface/IRoomService";
 import { IUserService } from "./interface/IUserService";
+import { ViewMode, GenerateParams } from "./PaymentService";
 
 export class AdminService implements IAdminService {
     constructor(
@@ -29,7 +30,7 @@ export class AdminService implements IAdminService {
         const projects = await this._projectService.getMontlyDataForGraphOverview(year)
         const revenue = await this._paymentService.getMontlyDataForGraphOverview(year)
         const rooms = await this._roomService.getMontlyDataForGraphOverview(year)
-        
+
         const monthlyData = monthNames.slice(0, currentMonth).map((name, index) => {
             const month = index + 1;
             return {
@@ -67,4 +68,26 @@ export class AdminService implements IAdminService {
 
         return { monthlyData, yearlyData };
     }
+
+    async getYearlySalesReport(): Promise<{ revenue: number; year: number; }[]> {
+        return this._paymentService.getYearlySalesReport()
+    }
+
+    async getMonthlySalesReport(year: number): Promise<{ revenue: number; year: number; }[]> {
+        return this._paymentService.getMonthlySalesReport(year)
+    }
+
+    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; year: number; }[]> {
+        return this._paymentService.getDailySalesReport(year, month)
+    }
+
+    async getSalesReportByDate(date: string): Promise<{ revenue: number; date: string; }> {
+        return this._paymentService.getSalesReportByDate(date)
+    }
+
+    async generateSalesReportCsv(view: ViewMode, params: GenerateParams): Promise<{ csv: any; filename: string; }> {
+        return this._paymentService.generateSalesReportCsv(view, params)
+    }
+
+
 }

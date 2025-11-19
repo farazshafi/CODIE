@@ -155,3 +155,55 @@ export const getSnippetsGraphByYearApi = async (year: number) => {
         throw error;
     }
 };
+
+export const getYearlySalesReportApi = async () => {
+    try {
+        const response = await API.get(`/admin/sales/yearly`);
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching yearly sales report data", error);
+        throw error;
+    }
+};
+
+export const getMonthlySalesReportApi = async (year: number) => {
+    try {
+        const response = await API.get(`/admin/sales/monthly`, { params: { year } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching monthly sales report data", error);
+        throw error;
+    }
+};
+
+export const getDailySalesReportApi = async ({ year, month }: { year: number, month: number }) => {
+    try {
+        const response = await API.get(`/admin/sales/daily`, { params: { year, month } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching daily sales report data", error);
+        throw error;
+    }
+};
+
+export const getSalesReportByDateApi = async ({ date }: { date: string }) => {
+    try {
+        const response = await API.get(`/admin/sales`, { params: { date } });
+        return response.data;
+    } catch (error) {
+        console.log("Error While fetching sales report data", error);
+        throw error;
+    }
+};
+
+export const downloadSalesReportApi = async (query: string) => {
+    try {
+        const response = await API.get(`/admin/sales/download?${query}`, { responseType: "blob" });
+        return response
+    } catch (error) {
+        console.log("Error While fetching sales report data", error);
+        throw error;
+    }
+};
+
+

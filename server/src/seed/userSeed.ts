@@ -16,6 +16,11 @@ async function seedUsers() {
     const mockUsers = [];
 
     for (let i = 0; i < 30; i++) {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = now.getMonth()
+      const randomDay = faker.number.int({min:1, max: 28})
+
       mockUsers.push({
         name: faker.person.fullName(),
         email: faker.internet.email(),
@@ -27,6 +32,7 @@ async function seedUsers() {
         github: faker.internet.url(),
         portfolio: faker.internet.url(),
         isPublic: faker.datatype.boolean(),
+        createdAt: new Date(year, month, randomDay)
       });
     }
 

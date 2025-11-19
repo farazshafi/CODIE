@@ -117,4 +117,167 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
             }
         ]);
     }
+
+    async yearlySalesReport(): Promise<{ revenue: number, year: number }[]> {
+        const yearlyData = await this.model.aggregate([
+            { $match: { paymentStatus: "completed" } },
+            {
+                $group: {
+                    _id: { year: { $year: "$paymentDate" } },
+                    revenue: { $sum: "$amount" },
+                },
+            },
+            { $sort: { "_id.year": 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    year: "$_id.year",
+                    revenue: 1,
+                },
+            },
+        ]);
+
+        if (!yearlyData || yearlyData.length === 0) return [];
+
+        const map = new Map<number, number>();
+        yearlyData.forEach((r: any) => map.set(Number(r.year), Number(r.revenue ?? 0)));
+
+        const years = Array.from(map.keys());
+        const minYear = Math.min(...years);
+        const maxYear = Math.max(...years, new Date().getFullYear());
+
+        const result: { revenue: number; year: number }[] = [];
+        for (let y = minYear; y <= maxYear; y++) {
+            result.push({ year: y, revenue: map.get(y) ?? 0 });
+        }
+
+        return result;
+    }
+
+    async monthlySalesReport(year: number): Promise<{ revenue: number; month: string }[]> {
+        const monthlyData = await this.model.aggregate([
+            {
+                $match: {
+                    paymentStatus: "completed",
+                    paymentDate: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: { month: { $month: "$paymentDate" } },
+                    revenue: { $sum: "$amount" },
+                },
+            },
+            { $sort: { "_id.month": 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    monthNumber: "$_id.month",
+                    revenue: 1,
+                },
+            },
+        ]);
+
+        const monthNames = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const map = new Map<number, number>();
+        (monthlyData || []).forEach((r: any) => {
+            const mnum = Number(r.monthNumber);
+            map.set(mnum, Number(r.revenue ?? 0));
+        });
+
+        const result: { revenue: number; month: string }[] = [];
+        for (let m = 1; m <= 12; m++) {
+            result.push({
+                month: monthNames[m - 1],
+                revenue: map.get(m) ?? 0,
+            });
+        }
+
+        return result;
+    }
+
+    async dailySalesReport(year: number, month: number): Promise<{ revenue: number, year: number }[]> {
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 0);
+
+        const dailyData = await this.model.aggregate([
+            {
+                $match: {
+                    paymentStatus: "completed",
+                    paymentDate: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: { day: { $dayOfMonth: "$paymentDate" } },
+                    revenue: { $sum: "$amount" },
+                },
+            },
+            { $sort: { "_id.day": 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    day: "$_id.day",
+                    revenue: 1,
+                },
+            },
+        ]);
+
+        const daysInMonth = end.getDate();
+
+        const map = new Map<number, number>();
+        (dailyData || []).forEach((r: any) => {
+            const d = Number(r.day);
+            map.set(d, Number(r.revenue ?? 0));
+        });
+
+        const result: { revenue: number; year: number }[] = [];
+        for (let d = 1; d <= daysInMonth; d++) {
+            result.push({
+                day: d,
+                revenue: map.get(d) ?? 0,
+            });
+        }
+
+        return result;
+    }
+
+    async salesReportByDate(date: string): Promise<{ revenue: number; date: string }> {
+        const targetDate = new Date(date);
+
+        const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+
+        const report = await this.model.aggregate([
+            {
+                $match: {
+                    paymentStatus: "completed",
+                    paymentDate: { $gte: startOfDay, $lte: endOfDay },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    revenue: { $sum: "$amount" },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: date,
+                    revenue: 1,
+                },
+            },
+        ]);
+
+        return report[0] || { revenue: 0, date };
+    }
+
 }

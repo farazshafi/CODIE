@@ -24,4 +24,11 @@ adminRouter.get("/subscription_history", authenticate, isAdmin, adminController.
 adminRouter.get("/dashboard_overview", authenticate, isAdmin, adminController.getDashboardOverview)
 adminRouter.get("/total_published_snippets", authenticate, isAdmin, adminController.getAllPublishedSnippets)
 
+adminRouter.get("/sales/yearly", authenticate, isAdmin, adminController.getYearlySalesReport)
+adminRouter.get("/sales/monthly", authenticate, isAdmin, adminController.getMonthlySalesReport)
+adminRouter.get("/sales/daily", authenticate, isAdmin, adminController.getDailySalesReport)
+adminRouter.get("/sales", authenticate, isAdmin, adminController.getSalesReportByDate)
+adminRouter.get("/sales/download", authenticate, isAdmin, adminController.downloadSalesReport)
+
+
 export default adminRouter 

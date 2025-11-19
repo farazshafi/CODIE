@@ -49,8 +49,8 @@ async function seedProjects() {
           `println!("Hello ${lang}!");`,
         ]);
 
-        // 🎯 Generate a random creation date (some in Sept, some in Oct)
-        const randomMonth = faker.helpers.arrayElement([8, 9]); // 8 = September, 9 = October
+        // 🎯 Generate a random creation date (some in Sept, some in Oct , some in nov)
+        const randomMonth = faker.helpers.arrayElement([8, 9, 10]); // 8 = September, 9 = October
         const createdAt = faker.date.between({
           from: new Date(2025, randomMonth, 1),
           to: new Date(2025, randomMonth, 25),

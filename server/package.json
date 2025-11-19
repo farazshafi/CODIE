@@ -55,6 +55,7 @@
     "express": "^4.21.2",
     "graphql": "^16.10.0",
     "ioredis": "^5.7.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.1",

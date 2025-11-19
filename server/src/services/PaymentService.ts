@@ -4,6 +4,16 @@ import { IPaymentService } from "./interface/IPaymentService";
 import { HttpError } from "../utils/HttpError";
 import { IPaymentRepository } from "../repositories/interface/IPaymentRepository";
 import { logger } from "../utils/logger";
+import { Parser } from "json2csv";
+
+
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export type ViewMode = "yearly" | "monthly" | "daily" | "date";
+export interface GenerateParams {
+    year?: number;
+    month?: number
+    date?: string;
+}
 
 export class PaymentService implements IPaymentService {
     constructor(private _paymentRepository: IPaymentRepository) { }
@@ -123,7 +133,7 @@ export class PaymentService implements IPaymentService {
                 .select(["amount", "paymentStatus", "transactionId", "paymentDate"])
                 .skip(skip)
                 .limit(limit)
-                .sort({ paymentDate: -1 }); 
+                .sort({ paymentDate: -1 });
 
             const totalCount = await this._paymentRepository
                 .getModel()
@@ -174,5 +184,102 @@ export class PaymentService implements IPaymentService {
 
     async getYearlyDataForGraphOverview(): Promise<{ _id: number, total: number }[]> {
         return this._paymentRepository.getYearlyDataForGraphOverview()
+    }
+
+    async getYearlySalesReport(): Promise<{ revenue: number; year: number; }[]> {
+        try {
+            return await this._paymentRepository.yearlySalesReport()
+        } catch (error) {
+            console.log(error)
+            logger.error("Error while Fetching yearly sales report")
+            throw new HttpError(500, "Error while Fetching yearly sales report")
+        }
+    }
+
+    async getMonthlySalesReport(year: number): Promise<{ revenue: number; month: string; }[]> {
+        try {
+            return await this._paymentRepository.monthlySalesReport(year)
+        } catch (error) {
+            console.log(error)
+            logger.error("Error while Fetching monthly sales report")
+            throw new HttpError(500, "Error while Fetching monthly sales report")
+        }
+    }
+
+    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; year: number; }[]> {
+        try {
+            return await this._paymentRepository.dailySalesReport(year, month)
+        } catch (error) {
+            console.log(error)
+            logger.error("Error while Fetching daily sales report")
+            throw new HttpError(500, "Error while Fetching daily sales report")
+        }
+    }
+
+    async getSalesReportByDate(date: string): Promise<{ revenue: number; date: string; }> {
+        try {
+            return await this._paymentRepository.salesReportByDate(date)
+        } catch (error) {
+            console.log(error)
+            logger.error("Error while Fetching sales report by date")
+            throw new HttpError(500, "Error while Fetching sales report by date")
+        }
+    }
+
+    async generateSalesReportCsv(view: ViewMode, params: GenerateParams = {}): Promise<{ csv: any; filename: string; }> {
+        let rows: Array<Record<string, any>> = [];
+        let filename = `sales_report_${view}`;
+
+        switch (view) {
+            case "yearly": {
+                const data = await this._paymentRepository.yearlySalesReport();
+                rows = data.map((r) => ({ year: r.year, revenue: r.revenue }));
+                filename += `_${new Date().getFullYear()}`;
+                break;
+            }
+
+            case "monthly": {
+                const year = params.year ?? new Date().getFullYear();
+                const data = await this._paymentRepository.monthlySalesReport(year);
+                rows = data.map((r) => ({ month: r.month, revenue: r.revenue }));
+                filename += `_${year}`;
+                if (typeof params.month === "number") {
+                    filename += `_${params.month + 1}`;
+                }
+                break;
+            }
+
+            case "daily": {
+                const year = params.year ?? new Date().getFullYear();
+                if (params.month === undefined) {
+                    throw new Error("monthly index (month) is required for daily view");
+                }
+                const repoMonth = params.month;
+                const data = await this._paymentRepository.dailySalesReport(year, repoMonth);
+                rows = (data as Array<any>).map((r) => ({ day: r.day ?? r._id ?? r.dayOfMonth, revenue: r.revenue }));
+                filename += `_${year}_${repoMonth + 1}`;
+                break;
+            }
+
+            case "date": {
+                if (!params.date) throw new Error("date is required for date view");
+                const r = await this._paymentRepository.salesReportByDate(params.date);
+                rows = [{ date: r.date, revenue: r.revenue }];
+                filename += `_${params.date}`;
+                break;
+            }
+
+            default:
+                throw new Error("Unsupported view mode");
+        }
+
+        const fields = rows.length > 0 ? Object.keys(rows[0]) : ["label", "revenue"];
+        const json2csvParser = new Parser({ fields });
+        const csv = rows.length ? json2csvParser.parse(rows) : `${fields.join(",")}\n`;
+
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        filename = `${filename}_${timestamp}.csv`;
+
+        return { csv, filename };
     }
 }

@@ -357,5 +357,82 @@ export class AdminController {
         }
     }
 
+    getYearlySalesReport = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const data = await this._adminService.getYearlySalesReport()
+
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found All Yearly sales report")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getMonthlySalesReport = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year } = req.query
+            const data = await this._adminService.getMonthlySalesReport(Number(year))
+
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found All monthly sales report")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getDailySalesReport = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { year, month } = req.query
+            const data = await this._adminService.getDailySalesReport(Number(year), Number(month))
+
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found All Daily sales report")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    getSalesReportByDate = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { date } = req.query
+            const data = await this._adminService.getSalesReportByDate(String(date))
+
+            const response = new ApiResponse(HttpStatusCode.OK, data, "Found All sales report")
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    downloadSalesReport = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const view = (req.query.view as string) || "monthly";
+            const year = req.query.year ? Number(req.query.year) : undefined;
+            const month = req.query.month !== undefined ? Number(req.query.month) : undefined;
+            const date = req.query.date as string | undefined;
+
+            if (view === "monthly" && !year) {
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "year query param is required for monthly view")
+                res.status(response.statusCode).json(response);
+                return
+            }
+            if (view === "daily" && (year === undefined || month === undefined)) {
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "year and month query params are required for daily view")
+                res.status(response.statusCode).json(response);
+                return
+            }
+
+            const { csv, filename } = await this._adminService.generateSalesReportCsv(view as any, { year, month, date });
+
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            // Prefer 'filename*' for UTF-8 safe names and set fallback filename.
+            res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+            res.status(200).send(csv);
+            return
+        } catch (err) {
+            next(err)
+        }
+    }
+
 
 }
