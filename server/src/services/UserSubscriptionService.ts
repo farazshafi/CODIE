@@ -9,6 +9,7 @@ import { IUserSubscription } from "../models/UserSubscriptionModel";
 import { IMailService } from "./interface/IMailService";
 import { IUserRepository } from "../repositories/interface/IUserRepository";
 import { IPaymentService } from "./interface/IPaymentService";
+import { GetSubscriptionHistoryResult } from "../repositories/UserSubscriptionRepository";
 
 
 export class UserSubscriptionService implements IUserSubscriptionService {
@@ -277,7 +278,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         }
     }
 
-    async getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<any> {
+    async getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<GetSubscriptionHistoryResult> {
         try {
             return await this._userSubscriptionRepo.getSubscriptionHistory({ year, month, sort, currentPage, limit, search });
         } catch (error) {

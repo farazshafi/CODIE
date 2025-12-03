@@ -177,9 +177,9 @@ export class DiscoverService implements IDiscoverService {
             const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-            const snippetsThisMonth = await this._discoverRepo.count({ createdAt: { $gte: startOfThisMonth } });
+            const snippetsThisMonth = await this._discoverRepo.countDoc({ createdAt: { $gte: startOfThisMonth } });
 
-            const snippetsLastMonth = await this._discoverRepo.count({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
+            const snippetsLastMonth = await this._discoverRepo.countDoc({ createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } });
 
             let change = '0%';
             let isPositive = true;

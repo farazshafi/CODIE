@@ -1,8 +1,33 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { FilterQuery, Model, PipelineStage } from "mongoose";
 import UserSubscriptionModel, { IUserSubscription } from "../models/UserSubscriptionModel";
 import { BaseRepository } from "./BaseRepository";
 import { IUserSubscriptionRepository } from "./interface/IUserSubscriptionRepository";
 
+export interface GetSubscriptionHistoryParams {
+    year?: number;
+    month?: number;
+    sort?: string;
+    currentPage?: number;
+    limit?: number;
+    search?: string;
+}
+
+export interface SubscriptionAggregationResult {
+    user: string;
+    email: string;
+    plan: string;
+    amount: number;
+    status: "active" | "expired";
+    startDate?: Date;
+    endDate?: Date;
+}
+
+export interface GetSubscriptionHistoryResult {
+    subscriptions: SubscriptionAggregationResult[];
+    totalPages: number;
+    currentPage: number;
+    totalItems: number;
+}
 
 export class UserSubscriptionRepository extends BaseRepository<IUserSubscription> implements IUserSubscriptionRepository {
     constructor(model: Model<IUserSubscription>) {
@@ -15,47 +40,43 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
         return await UserSubscriptionModel.create({ userId: user, planId: plan })
     }
 
-    async getSubscriptionHistory(params: {
-        year?: number;
-        month?: number;
-        sort?: string;
-        currentPage?: number;
-        limit?: number;
-        search?: string;
-    }): Promise<any> {
-        console.log("params current page: ".yellow,params.currentPage)
+    async getSubscriptionHistory(params: GetSubscriptionHistoryParams): Promise<GetSubscriptionHistoryResult> {
+        console.log("params current page: ".yellow, params.currentPage);
+
         const { year, month, sort, search } = params;
         const limit = Number(params.limit) || 10;
         const currentPage = Number(params.currentPage) || 1;
         const skip = (currentPage - 1) * limit;
 
-        const pipeline: any[] = [];
+        const pipeline: PipelineStage[] = [];
 
-        const matchConditions: any = {};
+        const matchConditions: FilterQuery<Document> = {};
 
         // Filter by year
-        if (year) {
-            matchConditions.$expr = { $eq: [{ $year: "$startDate" }, year] };
+        if (year !== undefined) {
+            // Use $expr for year comparison
+            matchConditions.$expr = { $eq: [{ $year: "$startDate" }, year] } as unknown as FilterQuery<Document>;
         }
 
         // Filter by month
-        if (month) {
+        if (month !== undefined) {
+            const monthExpr = { $eq: [{ $month: "$startDate" }, month] } as unknown as FilterQuery<Document>;
             matchConditions.$expr = matchConditions.$expr
-                ? { $and: [matchConditions.$expr, { $eq: [{ $month: "$startDate" }, month] }] }
-                : { $eq: [{ $month: "$startDate" }, month] };
+                ? { $and: [matchConditions.$expr, monthExpr] } as unknown as FilterQuery<Document>
+                : monthExpr;
         }
 
-        // Filter by status
+        // Filter by status (active / expired)
         if (sort === "active") {
             matchConditions.isActive = true;
         } else if (sort === "expired") {
             matchConditions.isActive = false;
         }
-
         if (Object.keys(matchConditions).length > 0) {
             pipeline.push({ $match: matchConditions });
         }
 
+        // Lookups and unwinds
         pipeline.push(
             {
                 $lookup: {
@@ -77,6 +98,7 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
             { $unwind: "$plan" }
         );
 
+        // Search across user.name, user.email, plan.name
         if (search) {
             pipeline.push({
                 $match: {
@@ -86,9 +108,10 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
                         { "plan.name": { $regex: search, $options: "i" } },
                     ],
                 },
-            });
+            } as PipelineStage);
         }
 
+        // Lookup the first payment after (or on) startDate for this subscription
         pipeline.push(
             {
                 $lookup: {
@@ -117,7 +140,7 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
                     path: "$paymentInfo",
                     preserveNullAndEmptyArrays: true,
                 },
-            },
+            } as PipelineStage,
             {
                 $project: {
                     _id: 0,
@@ -129,19 +152,21 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
                     startDate: 1,
                     endDate: 1,
                 },
-            }
+            } as PipelineStage
         );
 
-        // Clone pipeline for counting total docs
-        const countPipeline = [...pipeline, { $count: "total" }];
-        const totalResult = await this.model.aggregate(countPipeline);
-        const total = totalResult.length > 0 ? totalResult[0].total : 0;
+        // Count total documents matching the pipeline (clone pipeline)
+        const countPipeline: PipelineStage[] = [...pipeline, { $count: "total" }];
+
+        const totalResult = (await this.model.aggregate<CountResult>(countPipeline)) ?? [];
+        const total = totalResult.length > 0 ? Number(totalResult[0].total) : 0;
         const totalPages = Math.ceil(total / limit);
 
-        // Add pagination to main pipeline
+        // add pagination stages to main pipeline
         pipeline.push({ $skip: skip }, { $limit: limit });
 
-        const subscriptions = await this.model.aggregate(pipeline);
+        // Projected subscription entries
+        const subscriptions = (await this.model.aggregate<SubscriptionAggregationResult>(pipeline)) ?? [];
 
         return {
             subscriptions,

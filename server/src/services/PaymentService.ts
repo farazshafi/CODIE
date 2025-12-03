@@ -7,8 +7,10 @@ import { logger } from "../utils/logger";
 import { Parser } from "json2csv";
 
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 export type ViewMode = "yearly" | "monthly" | "daily" | "date";
+type CsvRow = Record<string, string | number>;
+
+
 export interface GenerateParams {
     year?: number;
     month?: number
@@ -226,14 +228,19 @@ export class PaymentService implements IPaymentService {
         }
     }
 
-    async generateSalesReportCsv(view: ViewMode, params: GenerateParams = {}): Promise<{ csv: any; filename: string; }> {
-        let rows: Array<Record<string, any>> = [];
+    async generateSalesReportCsv(view: ViewMode, params: GenerateParams = {}): Promise<{ csv: string; filename: string }> {
+
+        let rows: CsvRow[] = [];
         let filename = `sales_report_${view}`;
 
         switch (view) {
+
             case "yearly": {
                 const data = await this._paymentRepository.yearlySalesReport();
-                rows = data.map((r) => ({ year: r.year, revenue: r.revenue }));
+                rows = data.map((r: { year: number, revenue: number }) => ({
+                    year: r.year,
+                    revenue: r.revenue,
+                }));
                 filename += `_${new Date().getFullYear()}`;
                 break;
             }
@@ -241,7 +248,10 @@ export class PaymentService implements IPaymentService {
             case "monthly": {
                 const year = params.year ?? new Date().getFullYear();
                 const data = await this._paymentRepository.monthlySalesReport(year);
-                rows = data.map((r) => ({ month: r.month, revenue: r.revenue }));
+                rows = data.map((r: { month: string, revenue: number }) => ({
+                    month: r.month,
+                    revenue: r.revenue,
+                }));
                 filename += `_${year}`;
                 if (typeof params.month === "number") {
                     filename += `_${params.month + 1}`;
@@ -255,15 +265,22 @@ export class PaymentService implements IPaymentService {
                     throw new Error("monthly index (month) is required for daily view");
                 }
                 const repoMonth = params.month;
+
                 const data = await this._paymentRepository.dailySalesReport(year, repoMonth);
-                rows = (data as Array<any>).map((r) => ({ day: r.day ?? r._id ?? r.dayOfMonth, revenue: r.revenue }));
+                rows = data.map((r: {day:number, revenue:number}) => ({
+                    day: r.day,
+                    revenue: r.revenue,
+                }));
+
                 filename += `_${year}_${repoMonth + 1}`;
                 break;
             }
 
             case "date": {
-                if (!params.date) throw new Error("date is required for date view");
-                const r = await this._paymentRepository.salesReportByDate(params.date);
+                if (!params.date) {
+                    throw new Error("date is required for date view");
+                }
+                const r: {date:string, revenue: number} = await this._paymentRepository.salesReportByDate(params.date);
                 rows = [{ date: r.date, revenue: r.revenue }];
                 filename += `_${params.date}`;
                 break;
@@ -273,9 +290,13 @@ export class PaymentService implements IPaymentService {
                 throw new Error("Unsupported view mode");
         }
 
+        // Determine CSV fields dynamically
         const fields = rows.length > 0 ? Object.keys(rows[0]) : ["label", "revenue"];
         const json2csvParser = new Parser({ fields });
-        const csv = rows.length ? json2csvParser.parse(rows) : `${fields.join(",")}\n`;
+
+        const csv: string = rows.length
+            ? json2csvParser.parse(rows)
+            : `${fields.join(",")}\n`;
 
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
         filename = `${filename}_${timestamp}.csv`;

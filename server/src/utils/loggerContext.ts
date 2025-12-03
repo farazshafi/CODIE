@@ -1,11 +1,10 @@
-import { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/logger";
 import { randomUUID } from "crypto";
 
-export function attachLogger(req: Request, res: Response, next: NextFunction) {
+export function attachLogger(req, res, next) {
     const requestId = randomUUID();
 
-    (req as any).logger = logger.child({
+    req.logger = logger.child({
         requestId,
         userId: req.headers["x-user-id"] || null,
     });

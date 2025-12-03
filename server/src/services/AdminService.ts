@@ -73,7 +73,7 @@ export class AdminService implements IAdminService {
         return this._paymentService.getYearlySalesReport()
     }
 
-    async getMonthlySalesReport(year: number): Promise<{ revenue: number; year: number; }[]> {
+    async getMonthlySalesReport(year: number): Promise<{ revenue: number; month: string; }[]> {
         return this._paymentService.getMonthlySalesReport(year)
     }
 
@@ -85,7 +85,7 @@ export class AdminService implements IAdminService {
         return this._paymentService.getSalesReportByDate(date)
     }
 
-    async generateSalesReportCsv(view: ViewMode, params: GenerateParams): Promise<{ csv: any; filename: string; }> {
+    async generateSalesReportCsv(view: ViewMode, params: GenerateParams): Promise<{ csv: string; filename: string; }> {
         return this._paymentService.generateSalesReportCsv(view, params)
     }
 

@@ -53,14 +53,19 @@ export default function SalesReportPage() {
       if (viewMode === "yearly") params.year = selectedYear;
       if (viewMode === "monthly") {
         params.year = selectedYear;
-       
+
       }
       if (viewMode === "daily") {
         params.year = selectedYear;
         params.month = selectedMonth;
       }
 
-      const query = new URLSearchParams(params as any).toString();
+      const stringParams: Record<string, string> = Object.fromEntries(
+        Object.entries(params).map(([k, v]) => [k, String(v)])
+      );
+
+      const query = new URLSearchParams(stringParams).toString();
+
 
       // note: downloadSalesReportApi now returns the Axios response
       const res = await downloadSalesReportApi(query);
@@ -92,16 +97,29 @@ export default function SalesReportPage() {
       link.remove();
       URL.revokeObjectURL(url);
       toast.success("Export started");
-    } catch (err: any) {
-      console.error("Export failed", err);
-      // If server returned HTML (auth redirect), give a helpful error
-      if (err?.response && err.response.type === "text/html") {
+    } catch (err: unknown) {
+      if (isHtmlRedirectError(err) && err.response.type === "text/html") {
         toast.error("Export failed: authentication issue or server returned HTML.");
       } else {
         toast.error("Export failed");
       }
     }
   };
+
+  function isHtmlRedirectError(
+    err: unknown
+  ): err is { response: { type?: string } } {
+    if (typeof err !== "object" || err === null) return false;
+
+    const maybe = err as Record<string, unknown>;
+    const response = maybe["response"];
+
+    return (
+      typeof response === "object" &&
+      response !== null &&
+      "type" in response
+    );
+  }
 
 
 

@@ -1,5 +1,6 @@
 import { ISubscription } from "../../models/SubscriptionModel";
 import { IUserSubscription } from "../../models/UserSubscriptionModel";
+import { GetSubscriptionHistoryResult } from "../../repositories/UserSubscriptionRepository";
 
 
 export interface IUserSubscriptionService {
@@ -10,5 +11,5 @@ export interface IUserSubscriptionService {
     getUserSubscription(userId: string): Promise<IUserSubscription>;
     downgradeToFreePlan(userId: string): Promise<IUserSubscription>;
     getAiUsage(userId: string): Promise<number>
-    getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<any>;
+    getSubscriptionHistory(year?: number, month?: number, sort?: string, currentPage?: number, limit?: number, search?: string): Promise<GetSubscriptionHistoryResult>;
 }

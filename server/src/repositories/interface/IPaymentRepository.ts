@@ -10,6 +10,6 @@ export interface IPaymentRepository extends IBaseRepository<IPayment> {
     getYearlyDataForGraphOverview(): Promise<{ _id: number, total: number }[]>;
     yearlySalesReport(): Promise<{ revenue: number, year: number }[]>;
     monthlySalesReport(year: number): Promise<{ revenue: number, month: string }[]>;
-    dailySalesReport(year: number, month: number): Promise<{ revenue: number, year: number }[]>;
+    dailySalesReport(year: number, month: number): Promise<{ revenue: number, day: number }[]>
     salesReportByDate(date: string): Promise<{ revenue: number; date: string }>
 }

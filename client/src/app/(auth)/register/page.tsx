@@ -141,8 +141,6 @@ const Page = () => {
     } else {
       setCheckingAuth(false);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, router]);
 
   if (checkingAuth) {

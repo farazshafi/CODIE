@@ -17,6 +17,7 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { IRoomService } from "../services/interface/IRoomService";
 import { IAdminService } from "../services/interface/IAdminService";
 import { IDiscoverService } from '../services/interface/IDiscoverService';
+import { ViewMode } from "../services/PaymentService";
 
 
 export class AdminController {
@@ -422,10 +423,9 @@ export class AdminController {
                 return
             }
 
-            const { csv, filename } = await this._adminService.generateSalesReportCsv(view as any, { year, month, date });
+            const { csv, filename } = await this._adminService.generateSalesReportCsv(view as ViewMode, { year, month, date });
 
             res.setHeader("Content-Type", "text/csv; charset=utf-8");
-            // Prefer 'filename*' for UTF-8 safe names and set fallback filename.
             res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
             res.status(200).send(csv);
             return

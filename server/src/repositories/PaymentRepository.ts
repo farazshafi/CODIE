@@ -140,7 +140,7 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         if (!yearlyData || yearlyData.length === 0) return [];
 
         const map = new Map<number, number>();
-        yearlyData.forEach((r: any) => map.set(Number(r.year), Number(r.revenue ?? 0)));
+        yearlyData.forEach((r: { year: number, revenue: number }) => map.set(Number(r.year), Number(r.revenue ?? 0)));
 
         const years = Array.from(map.keys());
         const minYear = Math.min(...years);
@@ -187,7 +187,7 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         ];
 
         const map = new Map<number, number>();
-        (monthlyData || []).forEach((r: any) => {
+        (monthlyData || []).forEach((r: { monthNumber: number, revenue: number }) => {
             const mnum = Number(r.monthNumber);
             map.set(mnum, Number(r.revenue ?? 0));
         });
@@ -203,7 +203,7 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         return result;
     }
 
-    async dailySalesReport(year: number, month: number): Promise<{ revenue: number, year: number }[]> {
+    async dailySalesReport(year: number, month: number): Promise<{ revenue: number, day: number }[]> {
         const start = new Date(year, month - 1, 1);
         const end = new Date(year, month, 0);
 
@@ -233,12 +233,12 @@ export class PaymentRepository extends BaseRepository<IPayment> implements IPaym
         const daysInMonth = end.getDate();
 
         const map = new Map<number, number>();
-        (dailyData || []).forEach((r: any) => {
+        (dailyData || []).forEach((r: { day: number, revenue: number }) => {
             const d = Number(r.day);
             map.set(d, Number(r.revenue ?? 0));
         });
 
-        const result: { revenue: number; year: number }[] = [];
+        const result: { revenue: number; day: number }[] = [];
         for (let d = 1; d <= daysInMonth; d++) {
             result.push({
                 day: d,

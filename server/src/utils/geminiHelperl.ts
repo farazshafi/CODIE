@@ -24,7 +24,7 @@ export const generateCodeExplanation = async (code: string) => {
     );
 
     return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error calling Gemini API:", err.response?.data || err.message);
     throw new HttpError(500, "Error generating code explanation");
   }

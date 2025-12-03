@@ -381,7 +381,7 @@ export class UserController {
             return
 
         } catch (err) {
-            const response = new ApiResponse(HttpStatusCode.FORBIDDEN, null, "Invalid refresh token")
+            const response = new ApiResponse(HttpStatusCode.FORBIDDEN, null, err.message || "Invalid refresh token")
             res.status(response.statusCode).json(response)
         }
     }
@@ -520,7 +520,7 @@ export class UserController {
     getProfileVisibility = async (req: Request, res: Response, next: NextFunction) => {
         try {
 
-            const {id} = req.params
+            const { id } = req.params
 
             const user = await this._userService.findUserById(id)
             const result = {
@@ -534,6 +534,6 @@ export class UserController {
         }
     }
 
-    
+
 
 }

@@ -1,6 +1,5 @@
 "use client";
 import { getPaymentDataApi, updatePaymentStatusApi } from "@/apis/adminApi";
-import { Button } from "@/components/ui/button";
 import Pagination from "@/components/ui/Pagination";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import React, { useEffect, useState } from "react";

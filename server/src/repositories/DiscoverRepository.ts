@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { FilterQuery, Model } from "mongoose";
 import { IDiscover } from "../models/DiscoverModel";
 import { BaseRepository } from "./BaseRepository";
 import { IDiscoverRepository } from "./interface/IDiscoverRepository";
@@ -16,8 +16,8 @@ export class DiscoverRepository extends BaseRepository<IDiscover> implements IDi
         return this.model.find({})
     }
 
-    async count(condition: any): Promise<number> {
-        return this.model.countDocuments(condition)
+    async countDoc(condition: FilterQuery<IDiscover>): Promise<number> {
+        return this.model.countDocuments(condition).exec();
     }
 
     async getDiscoverStatsByYear(year: number): Promise<{ month: string, snippet: number }[]> {

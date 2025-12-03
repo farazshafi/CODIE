@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 import dotenv from "dotenv";
 import { faker } from "@faker-js/faker";
 import crypto from "crypto";
@@ -11,13 +11,55 @@ import {
 
 dotenv.config();
 
-function randomInt(min: number, max: number) {
+interface UserDoc extends Document<Types.ObjectId> {
+  _id: Types.ObjectId;
+  name?: string;
+  email?: string;
+}
+
+interface SubscriptionDoc extends Document<Types.ObjectId> {
+  _id: Types.ObjectId;
+  name?: string;
+  pricePerMonth?: number;
+}
+
+interface UserSubscriptionDoc extends Document<Types.ObjectId> {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  planId: Types.ObjectId;
+  isActive?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+type PaymentStatus = "completed" | "pending" | "failed";
+
+type NewPayment = {
+  userId: Types.ObjectId;
+  subscriptionId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  paymentStatus: PaymentStatus;
+  transactionId: string;
+  paymentDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+/* -------------------------
+   Helpers
+   ------------------------- */
+
+function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// return a random Date inside a given month (year, monthIndex are numbers). monthIndex is 0-based.
-function randomDateInMonth(year: number, monthIndex: number, maxDayInclusive?: number) {
-  const first = new Date(year, monthIndex, 1, 0, 0, 0, 0);
+/**
+ * Return a random Date inside a given month (year, monthIndex are numbers).
+ * monthIndex is 0-based.
+ */
+function randomDateInMonth(year: number, monthIndex: number, maxDayInclusive?: number): Date {
+  // const first = new Date(year, monthIndex, 1, 0, 0, 0, 0);
   // determine last day of month
   const lastDay = new Date(year, monthIndex + 1, 0).getDate();
   const lastDayAllowed = Math.min(lastDay, maxDayInclusive ?? lastDay);
@@ -29,19 +71,25 @@ function randomDateInMonth(year: number, monthIndex: number, maxDayInclusive?: n
   return new Date(year, monthIndex, day, hour, minute, second);
 }
 
-async function seedPayments() {
+/* -------------------------
+   Seeder
+   ------------------------- */
+
+async function seedPayments(): Promise<void> {
   try {
     await mongoose.connect(process.env.DATABASE_URL as string);
     console.log("✅ Connected to MongoDB");
 
-    const users = await userRepository.find({});
-    const userSubscriptions = await userSubscriptionRepository.find({});
-    const subscriptions = await subscriptionRepository.find({});
+    // Cast repository returns to typed arrays (no `any`)
+    const users = (await userRepository.find({})) as UserDoc[];
+    const userSubscriptions = (await userSubscriptionRepository.find({})) as UserSubscriptionDoc[];
+    const subscriptions = (await subscriptionRepository.find({})) as SubscriptionDoc[];
 
     if (users.length === 0 || subscriptions.length === 0) {
       console.error(
         "❌ Need users and subscriptions before seeding payments! (userSubscriptions optional)"
       );
+      await mongoose.disconnect();
       process.exit(1);
     }
 
@@ -49,7 +97,7 @@ async function seedPayments() {
     await paymentRepository.deleteMany({});
     console.log("🧹 Cleared old payments");
 
-    const payments: Array<Record<string, any>> = [];
+    const payments: NewPayment[] = [];
 
     // Which months we will use: September, October, November 2025
     // months are 0-indexed: Sept=8, Oct=9, Nov=10
@@ -64,7 +112,8 @@ async function seedPayments() {
       const userSub = userSubscriptions.find(
         (us) => us.userId?.toString() === user._id?.toString()
       );
-      let plan: any = null;
+
+      let plan: SubscriptionDoc | undefined;
       if (userSub) {
         plan = subscriptions.find((s) => s._id.toString() === userSub.planId.toString());
       }
@@ -75,10 +124,8 @@ async function seedPayments() {
 
       // decide payment status with similar distribution
       const statusChance = randomInt(1, 100);
-      let paymentStatus: "completed" | "pending" | "failed";
-      if (statusChance <= 80) paymentStatus = "completed";
-      else if (statusChance <= 95) paymentStatus = "pending";
-      else paymentStatus = "failed";
+      const paymentStatus: PaymentStatus =
+        statusChance <= 80 ? "completed" : statusChance <= 95 ? "pending" : "failed";
 
       // pick a random month from September/October/November
       const monthIndex = MONTH_OPTIONS[randomInt(0, MONTH_OPTIONS.length - 1)];
@@ -98,22 +145,22 @@ async function seedPayments() {
       // updatedAt: if paymentDate < now -> random between paymentDate and now, else createdAt
       let updatedAt: Date;
       if (paymentDate.getTime() < now.getTime()) {
-        // ensure faker-safe interval, but we can just create a random timestamp between two dates
         const t0 = paymentDate.getTime();
         const t1 = now.getTime();
-        const randTs = randomInt(t0, t1);
+        // randomInt expects numbers; make sure inputs are integers
+        const randTs = randomInt(Math.floor(t0), Math.floor(t1));
         updatedAt = new Date(randTs);
       } else {
         updatedAt = paymentDate;
       }
 
       const amount =
-        (plan && (typeof plan.pricePerMonth === "number" ? plan.pricePerMonth : undefined)) ??
+        (plan && typeof plan.pricePerMonth === "number" ? plan.pricePerMonth : undefined) ??
         faker.number.int({ min: 199, max: 1499 });
 
-      const payment = {
+      const payment: NewPayment = {
         userId: user._id,
-        subscriptionId: plan._id,
+        subscriptionId: plan!._id,
         amount,
         currency: "INR",
         paymentStatus,
