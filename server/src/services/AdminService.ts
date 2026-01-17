@@ -77,7 +77,7 @@ export class AdminService implements IAdminService {
         return this._paymentService.getMonthlySalesReport(year)
     }
 
-    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; year: number; }[]> {
+    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; day: number; }[]> {
         return this._paymentService.getDailySalesReport(year, month)
     }
 

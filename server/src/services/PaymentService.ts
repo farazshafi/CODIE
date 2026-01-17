@@ -208,7 +208,7 @@ export class PaymentService implements IPaymentService {
         }
     }
 
-    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; year: number; }[]> {
+    async getDailySalesReport(year: number, month: number): Promise<{ revenue: number; day: number; }[]> {
         try {
             return await this._paymentRepository.dailySalesReport(year, month)
         } catch (error) {

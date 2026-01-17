@@ -158,7 +158,7 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
         // Count total documents matching the pipeline (clone pipeline)
         const countPipeline: PipelineStage[] = [...pipeline, { $count: "total" }];
 
-        const totalResult = (await this.model.aggregate<CountResult>(countPipeline)) ?? [];
+        const totalResult = (await this.model.aggregate(countPipeline)) ?? [];
         const total = totalResult.length > 0 ? Number(totalResult[0].total) : 0;
         const totalPages = Math.ceil(total / limit);
 

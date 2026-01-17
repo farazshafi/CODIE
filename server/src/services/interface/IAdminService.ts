@@ -7,7 +7,7 @@ export interface IAdminService {
     getDashboardOverview(year: number): Promise<IGetDashboardOverview>;
     getYearlySalesReport(): Promise<{ revenue: number, year: number }[]>;
     getMonthlySalesReport(year: number): Promise<{ revenue: number, month: string }[]>;
-    getDailySalesReport(year: number, month: number): Promise<{ revenue: number, year: number }[]>;
+    getDailySalesReport(year: number, month: number): Promise<{ revenue: number, day: number }[]>;
     getSalesReportByDate(date: string): Promise<{ revenue: number; date: string }>
     generateSalesReportCsv(view: ViewMode, params: GenerateParams): Promise<{ csv: string; filename: string; }>
 }

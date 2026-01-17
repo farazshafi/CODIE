@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: collab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: 599525540247.dkr.ecr.ap-south-1.amazonaws.com/app:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "5000"
+            - name: DATABASE_URL
+              value: "mongodb+srv://..."
+            - name: RAZORPAY_KEY_ID
+              value: "rzp_test_kvk33t7GvztJdR"
+            - name: RAZORPAY_SECRET_ID
+              value: "otyaDCMXE4DTtkFJYWw2R0DA"

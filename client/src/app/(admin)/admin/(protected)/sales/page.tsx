@@ -13,6 +13,11 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 
+type YearlyRow = { year: number; revenue: number };
+type MonthlyRow = { month: number; revenue: number };
+type DailyRow = { day: number; revenue: number };
+
+
 export default function SalesReportPage() {
   const [viewMode, setViewMode] = useState<"yearly" | "monthly" | "daily">(
     "monthly"
@@ -22,28 +27,29 @@ export default function SalesReportPage() {
   const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1)
 
-  const [yearlyData, setYearlyData] = useState([])
-  const [monthlyData, setMonthlyData] = useState([])
-  const [dailyData, setDailyData] = useState([])
+  const [yearlyData, setYearlyData] = useState<YearlyRow[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyRow[]>([]);
+  const [dailyData, setDailyData] = useState<DailyRow[]>([]);
+
 
   const { mutate: getYearlySales } = useMutationHook(getYearlySalesReportApi, {
     onSuccess(response) {
       console.log("yearly data: ", response.data)
-      setYearlyData(response.data)
+      setYearlyData(response.data as YearlyRow[])
     }
   })
 
   const { mutate: getMonthlySales } = useMutationHook(getMonthlySalesReportApi, {
     onSuccess(response) {
-      console.log("yearly data: ", response.data)
-      setMonthlyData(response.data)
+      setMonthlyData(response.data as MonthlyRow[]);
     }
+
   })
 
   const { mutate: getDailySales } = useMutationHook(getDailySalesReportApi, {
     onSuccess(response) {
       console.log("yearly data: ", response.data)
-      setDailyData(response.data)
+      setDailyData(response.data as DailyRow[])
     }
   })
 
@@ -130,9 +136,9 @@ export default function SalesReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear, selectedMonth, viewMode])
 
-  // ---- Select Data Based on View ---- //
-  let chartData;
-  let xKey;
+  let chartData: YearlyRow[] | MonthlyRow[] | DailyRow[] = [];
+  let xKey: "year" | "month" | "day" = "month";
+
   switch (viewMode) {
     case "yearly":
       chartData = yearlyData;
@@ -147,6 +153,7 @@ export default function SalesReportPage() {
       xKey = "day";
       break;
   }
+
 
   return (
     <div className="min-h-screen p-8 bg-gray-900">
@@ -260,13 +267,31 @@ export default function SalesReportPage() {
               </tr>
             </thead>
             <tbody>
-              {chartData.map((row, i) => (
-                <tr key={i} className="border-b border-gray-700">
-                  <td className="py-2 px-4">{row[xKey]}</td>
-                  <td className="py-2 px-4">{row.revenue.toLocaleString()}</td>
-                </tr>
-              ))}
+              {viewMode === "yearly" &&
+                (chartData as YearlyRow[]).map((row, i) => (
+                  <tr key={i} className="border-b border-gray-700">
+                    <td className="py-2 px-4">{row.year}</td>
+                    <td className="py-2 px-4">{row.revenue.toLocaleString()}</td>
+                  </tr>
+                ))}
+
+              {viewMode === "monthly" &&
+                (chartData as MonthlyRow[]).map((row, i) => (
+                  <tr key={i} className="border-b border-gray-700">
+                    <td className="py-2 px-4">{row.month}</td>
+                    <td className="py-2 px-4">{row.revenue.toLocaleString()}</td>
+                  </tr>
+                ))}
+
+              {viewMode === "daily" &&
+                (chartData as DailyRow[]).map((row, i) => (
+                  <tr key={i} className="border-b border-gray-700">
+                    <td className="py-2 px-4">{row.day}</td>
+                    <td className="py-2 px-4">{row.revenue.toLocaleString()}</td>
+                  </tr>
+                ))}
             </tbody>
+
           </table>
         </div>
       </div>

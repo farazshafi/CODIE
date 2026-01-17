@@ -17,7 +17,7 @@ export interface IPaymentService {
     getYearlyDataForGraphOverview(): Promise<{ _id: number, total: number }[]>;
     getYearlySalesReport(): Promise<{ revenue: number, year: number }[]>;
     getMonthlySalesReport(year: number): Promise<{ revenue: number, month: string }[]>;
-    getDailySalesReport(year: number, month: number): Promise<{ revenue: number, year: number }[]>;
+    getDailySalesReport(year: number, month: number): Promise<{ revenue: number, day: number }[]>;
     getSalesReportByDate(date: string): Promise<{ revenue: number; date: string }>
     generateSalesReportCsv(view: ViewMode, params: GenerateParams): Promise<{ csv: string; filename: string; }>
 }
