@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import CodeAnimation from '@/components/codeAnimation'
 import FeatureCard from '@/components/featureCard'
 import Subscription from '@/components/Subscription'
