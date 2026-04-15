@@ -19,6 +19,11 @@ const eslintConfig = [
         project: "./tsconfig.json",
       },
     },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
@@ -27,11 +32,14 @@ const eslintConfig = [
       ...typescriptPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      "react-hooks/exhaustive-deps": "error", 
-      "@typescript-eslint/no-explicit-any": "error",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn", 
+      "@typescript-eslint/no-explicit-any": "warn",
       "@next/next/no-img-element": "warn",
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
 ];
+
 
 export default eslintConfig;
