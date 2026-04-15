@@ -5,7 +5,7 @@ import { subscriptionRepository, userRepository, userSubscriptionRepository } fr
 
 dotenv.config();
 
-async function seedUserSubscriptions() {
+export default async function seedUserSubscriptions() {
     try {
         await mongoose.connect(process.env.DATABASE_URL as string);
         console.log("✅ Connected to MongoDB");
@@ -74,5 +74,3 @@ async function seedUserSubscriptions() {
         process.exit(1);
     }
 }
-
-seedUserSubscriptions();

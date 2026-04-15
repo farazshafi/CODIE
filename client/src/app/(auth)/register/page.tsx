@@ -152,7 +152,7 @@ const Page = () => {
   }
 
   if (isLoading) {
-    return <Loading />
+    return <Loading fullScreen={true}/>
   }
 
   return (

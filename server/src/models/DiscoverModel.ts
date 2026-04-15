@@ -10,7 +10,7 @@ export interface IDiscoverBase {
 export interface IDiscover extends IDiscoverBase, Document { }
 
 const discoverSchema: Schema = new Schema({
-    projectId: { type: mongoose.Types.ObjectId, ref: "Project", requied: true },
+    projectId: { type: Schema.Types.ObjectId, ref: "Project", required: true },
     like: { type: Number, default: 0 },
     views: { type: Number, default: 0 },
     starred: { type: Number, default: 0 }

@@ -6,7 +6,7 @@ import { projectRepository, userRepository } from "../container";
 
 dotenv.config();
 
-async function seedProjects() {
+export default async function seedProjects() {
   try {
     await mongoose.connect(process.env.DATABASE_URL as string);
     console.log("✅ Connected to MongoDB");
@@ -83,5 +83,3 @@ async function seedProjects() {
     process.exit(1);
   }
 }
-
-seedProjects();

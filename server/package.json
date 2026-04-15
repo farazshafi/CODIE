@@ -8,6 +8,7 @@
     "start": "node dist/server.js",
     "lint": "eslint . --ext .ts",
     "worker": "node dist/worker.js",
+    "seed": "ts-node --transpile-only src/seed/seedAll.ts",
     "seed:users": "ts-node --transpile-only src/seed/userSeed.ts",
     "seed:userSubs": "ts-node --transpile-only src/seed/userSubscriptionSeed.ts",
     "seed:projects": "ts-node --transpile-only src/seed/projectSeed.ts",

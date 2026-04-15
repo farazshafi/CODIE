@@ -7,7 +7,7 @@ import { commentRepository, projectRepository, userRepository } from "../contain
 
 dotenv.config();
 
-async function seedComments() {
+export default async function seedComments() {
   try {
     await mongoose.connect(process.env.DATABASE_URL as string);
     console.log("✅ Connected to MongoDB");
@@ -65,5 +65,3 @@ async function seedComments() {
     process.exit(1);
   }
 }
-
-seedComments();

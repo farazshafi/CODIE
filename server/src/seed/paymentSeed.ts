@@ -75,7 +75,7 @@ function randomDateInMonth(year: number, monthIndex: number, maxDayInclusive?: n
    Seeder
    ------------------------- */
 
-async function seedPayments(): Promise<void> {
+export default async function seedPayments(): Promise<void> {
   try {
     await mongoose.connect(process.env.DATABASE_URL as string);
     console.log("✅ Connected to MongoDB");
@@ -187,5 +187,3 @@ async function seedPayments(): Promise<void> {
     process.exit(1);
   }
 }
-
-seedPayments();

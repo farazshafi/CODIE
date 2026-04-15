@@ -85,7 +85,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
     useEffect(() => {
         if (!isAiExplanationOn) {
             setAiExplanation(null);
-        } else if (project?.projectId.projectCode && aiExplanation === null) {
+        } else if (project?.projectId?.projectCode && aiExplanation === null) {
             getExplanation(project.projectId.projectCode);
         }
 
@@ -94,7 +94,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
 
 
     const handleCopy = () => {
-        if (!project) return;
+        if (!project || !project.projectId) return;
         navigator.clipboard.writeText(project.projectId.projectCode);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
@@ -122,7 +122,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
                             </div>
                             <div className="flex justify-between items-center mb-2">
                                 <p className="text-black text-2xl font-semibold">
-                                    {project.projectId.projectName}
+                                    {project.projectId?.projectName}
                                 </p>
                                 <button
                                     onClick={() => setIsCodeVisible(prev => !prev)}
@@ -153,7 +153,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
 
                                     <div className="max-h-[40vh] overflow-auto pr-2">
                                         <pre className="whitespace-pre-wrap break-words font-mono text-xs">
-                                            <code>{project.projectId.projectCode}</code>
+                                            <code>{project.projectId?.projectCode}</code>
                                         </pre>
                                     </div>
                                 </div>

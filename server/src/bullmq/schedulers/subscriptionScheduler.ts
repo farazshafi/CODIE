@@ -1,7 +1,7 @@
 import subscriptionQueue from "../queues/subscriptionQueue";
 import { logger } from "../../utils/logger";
 
-const scheduleSubscriptionJobs = async () => {
+export const scheduleSubscriptionJobs = async () => {
   await subscriptionQueue.add("applyDowngrade", {}, {
     jobId: "applyDowngrade",
     repeat: { pattern: "0 1 * * *" }
@@ -13,7 +13,5 @@ const scheduleSubscriptionJobs = async () => {
   });
 
   logger.info("✅ Subscription jobs scheduled");
-  process.exit(0);
 };
 
-scheduleSubscriptionJobs();

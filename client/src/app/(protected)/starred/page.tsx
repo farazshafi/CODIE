@@ -6,13 +6,14 @@ import React, { useEffect, useState } from 'react'
 import { useUserStore } from '@/stores/userStore'
 import SnippetCardSkeleton from '../discover/_components/SnippetCardSkeleton'
 import SnippetCard from '@/components/snippetCard'
+import { IDiscover } from '../discover/page'
 import { toast } from 'sonner'
 import Loading from '@/components/Loading'
 
 const Page = () => {
     const user = useUserStore((state) => state.user)
 
-    const [snippets, setSnippets] = useState([])
+    const [snippets, setSnippets] = useState<IDiscover[]>([])
 
     const { mutate: getStarredSnippets, isLoading } = useMutationHook(getStarredSnippetsApi, {
         onSuccess(data) {
@@ -55,7 +56,18 @@ const Page = () => {
             <div className='px-5 mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-5 text-white'>
                 {isLoading && snippets.length === 0
                     ? Array(6).fill(0).map((_, index) => <SnippetCardSkeleton key={index} />)
-                    : snippets.map((item, index) => <SnippetCard refetchSnippets={() => { }} isStarred={true} onUnstarHanlder={removeSnippet} onDelete={() => { }} project={item} key={index} />)
+                    : snippets
+                        .filter((item) => item.projectId !== null)
+                        .map((item, index) => (
+                            <SnippetCard
+                                refetchSnippets={() => { }}
+                                isStarred={true}
+                                onUnstarHanlder={removeSnippet}
+                                onDelete={() => { }}
+                                project={item}
+                                key={index}
+                            />
+                        ))
                 }
             </div>
         </div>

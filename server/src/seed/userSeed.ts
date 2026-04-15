@@ -5,13 +5,11 @@ import { userRepository } from "../container";
 
 config(); // load env vars
 
-async function seedUsers() {
+export default async function seedUsers() {
   try {
-    await mongoose.connect(process.env.DATABASE_URL as string);
-    console.log("✅ Connected to MongoDB");
 
-    // await userRepository.deleteMany({});
-    // console.log("🧹 Cleared existing users");
+    await userRepository.deleteMany({});
+    console.log("🧹 Cleared existing users");
 
     const mockUsers = [];
 
@@ -38,13 +36,8 @@ async function seedUsers() {
 
     await userRepository.insertMany(mockUsers);
     console.log("🎉 Inserted mock users successfully!");
-
-    await mongoose.disconnect();
-    console.log("🔌 Disconnected from MongoDB");
   } catch (error) {
     console.error("❌ Seeding failed:", error);
     process.exit(1);
   }
 }
-
-seedUsers();
