@@ -15,13 +15,15 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    return [
+    const backend = process.env.API_BASE_URL;
+    return backend ? [
       {
         source: "/api/:path*",
-        destination: `${process.env.API_BASE_URL || "http://localhost:5000/api"}/:path*`,
+        destination: `${backend}/:path*`,
       },
-    ];
+    ] : [];
   },
+
 };
 
 export default nextConfig;
