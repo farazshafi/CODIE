@@ -16,15 +16,16 @@ const nextConfig = {
   },
   async rewrites() {
     const backend = process.env.API_BASE_URL;
-    if (!backend) return [];
-    
-    return [
+    return backend ? [
       {
         source: "/api/:path*",
         destination: `${backend}/:path*`,
       },
-    ];
+    ] : [];
   },
+
 };
 
 export default nextConfig;
+
+
