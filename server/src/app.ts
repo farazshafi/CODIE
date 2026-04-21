@@ -18,31 +18,37 @@ import starredRouter from "./routes/StarredRouter";
 import { attachLogger } from "./utils/loggerContext";
 import commentRouter from "./routes/commentRouter";
 import executeRouter from "./routes/executeRouter";
+import cors from "cors";
+import { getAllowedOrigins, isOriginAllowed } from "./config/origins";
 
 const app = express();
-
-// Fully permissive CORS for quick local testing.
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Vary", "Origin");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-
-  if (req.method === "OPTIONS") {
-    res.sendStatus(204);
-    return;
-  }
-  next();
-});
+const allowedOrigins = getAllowedOrigins();
+const corsOptions: cors.CorsOptions = {
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS rejected origin: ${origin || "unknown"}`));
+  },
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(attachLogger)
 colors.enable()
+if (!allowedOrigins.length) {
+  console.warn("No CORS origins configured. Set CLIENT_URL and/or CORS_ORIGINS.");
+}
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 // User Routes
 app.use("/api", userRouter);

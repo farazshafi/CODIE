@@ -13,6 +13,7 @@ import { editorService, roomSocketService, messageService, userSocketService, us
 import { IEventHandler } from './events/EventHandler';
 import redis from '../config/redis';
 import { logger } from '../utils/logger';
+import { getAllowedOrigins } from '../config/origins';
 
 export class SocketManager {
     private io: Server;
@@ -21,10 +22,12 @@ export class SocketManager {
     private _eventHandlers: IEventHandler[];
 
     constructor(server: http.Server) {
+        const allowedOrigins = getAllowedOrigins();
         this.io = new Server(server, {
             cors: {
-                origin: "*",
-                methods: ["GET", "POST"]
+                origin: allowedOrigins,
+                methods: ["GET", "POST"],
+                credentials: true
             }
         });
 

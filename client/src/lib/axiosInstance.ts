@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
+
 const API = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseURL: API_BASE_URL,
     withCredentials: true,
 });
 
@@ -45,7 +47,7 @@ API.interceptors.response.use(
 
             try {
                 const tokenResponse = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh-token`,
+                    `${API_BASE_URL}/auth/refresh-token`,
                     {},
                     { withCredentials: true }
                 );

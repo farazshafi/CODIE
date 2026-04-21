@@ -18,6 +18,7 @@ import { IRoomService } from "../services/interface/IRoomService";
 import { IAdminService } from "../services/interface/IAdminService";
 import { IDiscoverService } from '../services/interface/IDiscoverService';
 import { ViewMode } from "../services/PaymentService";
+import { getRefreshTokenCookieOptions } from "../utils/authCookie";
 
 
 export class AdminController {
@@ -69,12 +70,7 @@ export class AdminController {
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // 7 days
-            })
+            res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions())
 
             const response = new ApiResponse(
                 HttpStatusCode.OK,

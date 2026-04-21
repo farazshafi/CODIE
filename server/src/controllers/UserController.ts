@@ -10,6 +10,7 @@ import { IMailService } from "../services/interface/IMailService"
 import jwt from "jsonwebtoken"
 import { HttpStatusCode } from "../utils/httpStatusCodes"
 import { ApiResponse } from "../utils/ApiResponse"
+import { getRefreshTokenCookieOptions } from "../utils/authCookie"
 
 export class UserController {
     constructor(
@@ -72,12 +73,7 @@ export class UserController {
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // 7 days
-            })
+            res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions())
 
             const response = new ApiResponse(
                 HttpStatusCode.CREATED,
@@ -193,12 +189,7 @@ export class UserController {
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE), // 7 days
-            })
+            res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions())
 
             const response = new ApiResponse(
                 HttpStatusCode.OK,
@@ -276,12 +267,7 @@ export class UserController {
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE),
-            })
+            res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions())
 
             const response = new ApiResponse(
                 HttpStatusCode.OK,
@@ -335,12 +321,7 @@ export class UserController {
             const accessToken = generateAccessToken(payload)
             const refreshToken = generateRefreshToken(payload)
 
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE),
-            })
+            res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions())
 
             const response = new ApiResponse(
                 HttpStatusCode.OK,
