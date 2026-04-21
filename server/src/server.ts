@@ -6,10 +6,19 @@ import { SocketManager } from './sockets/SocketManager';
 import { logger } from './utils/logger';
 
 const PORT = ENV.PORT;
+const shouldRunBackgroundJobs = String(process.env.RUN_BACKGROUND_JOBS).toLowerCase() === "true";
 
 const startServer = async () => {
     try {
         await connectDB();
+
+        if (shouldRunBackgroundJobs) {
+            await import("./bullmq/schedulers/subscriptionScheduler").then((module) => module.scheduleSubscriptionJobs());
+            await import("./bullmq/workers/subscriptionWorker");
+            logger.info("Embedded worker and scheduler enabled");
+        } else {
+            logger.info("Embedded worker and scheduler disabled (RUN_BACKGROUND_JOBS=false)");
+        }
 
         const server = http.createServer(app);
 

@@ -3,20 +3,18 @@
 ## 1) Render services
 
 Use `render.yaml` at repo root to provision:
-- `codie-api` (web service)
-- `codie-worker` (background worker)
-- `codie-scheduler` (scheduler worker)
+- `codie-api` (single web service, free-tier friendly)
 
-All three services build from `server/` with:
+Service builds from `server/` with:
 - Build: `npm ci && npm run build`
 - API start: `npm run start`
-- Worker start: `npm run worker`
-- Scheduler start: `npm run scheduler`
+- Optional embedded jobs in same API process: `RUN_BACKGROUND_JOBS=true`
 
 ## 2) Required backend environment variables (Render)
 
-Set these on all services unless noted:
+Set these on the API service:
 - `NODE_ENV=production`
+- `RUN_BACKGROUND_JOBS=false` (set `true` only if you want worker/scheduler in same process)
 - `DATABASE_URL`
 - `REDIS_URL` (managed Redis URL, `rediss://` for TLS)
 - `ACCESS_TOKEN_SECRET`
@@ -52,11 +50,11 @@ Set in Vercel project:
 Run before going live:
 1. `cd server && npm run build`
 2. `cd client && npm run build`
-3. Deploy Render API first, then worker and scheduler, then Vercel frontend.
+3. Deploy Render API, then deploy Vercel frontend.
 
 Verify after deploy:
 1. `GET https://<render-api-domain>/api/health` returns `200`.
 2. Login works from Vercel domain and refresh token cookie is set.
 3. Authenticated API calls from browser succeed with credentials.
 4. WebSocket connection establishes from production frontend.
-5. Scheduled/queued jobs are processed by worker/scheduler logs.
+5. If `RUN_BACKGROUND_JOBS=true`, scheduled/queued jobs are processed in API logs.
