@@ -16,5 +16,15 @@ export const resolvers = {
             return contributedProjects
         }
 
+    },
+    Project: {
+        codePreview: (project) => {
+            const code = typeof project?.projectCode === "string" ? project.projectCode : ""
+            return code
+                .split(/\r?\n/)
+                .map((line: string) => line.trimEnd())
+                .filter((line: string) => line.trim().length > 0)
+                .slice(0, 5)
+        }
     }
 }

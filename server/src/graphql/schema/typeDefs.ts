@@ -5,6 +5,7 @@ export const typeDefs = gql`
     id: ID!
     projectName: String
     projectCode: String
+    codePreview: [String]
     projectLanguage: String
     userId: String
     createdAt: String

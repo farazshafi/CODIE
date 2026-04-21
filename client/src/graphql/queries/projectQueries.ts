@@ -7,6 +7,7 @@ export const GET_PROJECTS_BY_USER_ID = gql`
             createdAt
             updatedAt
             projectLanguage
+            codePreview
             id
         }
     }
@@ -18,6 +19,7 @@ export const GET_CONTRIBUTED_PROJECTS_BY_USER_ID = gql`
             createdAt
             updatedAt
             projectLanguage
+            codePreview
             id
         }
     }

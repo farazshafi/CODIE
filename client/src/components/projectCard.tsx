@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from "next/image";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,13 +19,14 @@ type ProjectCardProps = {
     title: string;
     id: string;
     language: string;
+    codePreview?: string[];
     refetchProject(): void
     // thumbnail: string;
     updatedAt: string;
     isContributer: boolean
 };
 
-const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContributer = false }: ProjectCardProps) => {
+const ProjectCard = ({ title, language, codePreview = [], updatedAt, id, refetchProject, isContributer = false }: ProjectCardProps) => {
 
     const router = useRouter()
     const user = useUserStore((state) => state.user)
@@ -77,19 +77,26 @@ const ProjectCard = ({ title, language, updatedAt, id, refetchProject, isContrib
         shareDiscover(projectId)
     }
 
+    const previewLines = codePreview.slice(0, 5)
+
     return (
         <div className="rounded-b-lg mt-5 text-white w-full transform transition-transform duration-300 hover:scale-105">
-            <Image
-                src={"https://undsgn.com/wp-content/uploads/2018/02/image009.jpg"}
-                className="rounded-t-lg w-full h-[120px] sm:h-[100px] object-cover"
-                width={0}
-                height={0}
-                sizes="100vw"
-                alt={title}
+            <div
+                className="rounded-t-lg w-full h-[120px] sm:h-[100px] bg-[#0b0b0b] border border-neutral-800 px-3 py-2 font-mono text-[10px] sm:text-xs text-neutral-300 cursor-pointer overflow-hidden"
                 onClick={() => {
                     router.push(`/editor/${id}`)
                 }}
-            />
+            >
+                {previewLines.length > 0 ? (
+                    previewLines.map((line, index) => (
+                        <p key={`${id}-line-${index}`} className="leading-5 truncate">
+                            {line}
+                        </p>
+                    ))
+                ) : (
+                    <p className="leading-5 text-neutral-500 truncate">// No code saved yet</p>
+                )}
+            </div>
             <div className="flex items-center justify-between w-full px-3 py-2 rounded-b-lg bg-black">
                 <div className="flex flex-col">
                     <p className='text-sm font-bold'>{title}</p>

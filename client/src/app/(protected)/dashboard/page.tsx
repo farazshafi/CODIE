@@ -164,6 +164,7 @@ export default function Home() {
                                     refetchProject={refetch}
                                     title={project.projectName}
                                     language={project.projectLanguage}
+                                    codePreview={project.codePreview}
                                     id={project.id}
                                     updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
                                 />
@@ -192,6 +193,7 @@ export default function Home() {
                                     refetchProject={refetchContributedProject}
                                     title={project.projectName}
                                     language={project.projectLanguage}
+                                    codePreview={project.codePreview}
                                     id={project.id}
                                     isContributer={true}
                                     updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}

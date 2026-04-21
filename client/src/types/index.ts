@@ -38,6 +38,7 @@ export interface ProjectCardType {
     createdAt: Date;
     updatedAt: Date;
     id: string;
+    codePreview?: string[];
 }
 
 export interface ICollaborator {
