@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor';
 import { create } from "zustand";
 import { CodeEditorState } from "@/types";
 import { LANGUAGE_CONFIG } from "@/app/(protected)/editor/_constants";
+import API from "@/lib/axiosInstance";
 
 
 
@@ -53,19 +54,13 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
 
         try {
             const runtime = LANGUAGE_CONFIG[language].pistonRuntime;
-            const response = await fetch("https://emkc.org/api/v2/piston/execute", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    language: runtime.language,
-                    version: runtime.version,
-                    files: [{ content: code }],
-                }),
+            const response = await API.post("/execute", {
+                language: runtime.language,
+                version: runtime.version,
+                files: [{ content: code }],
             });
 
-            const data = await response.json();
+            const data = response.data;
 
 
             // handle API-level erros

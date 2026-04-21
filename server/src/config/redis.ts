@@ -1,7 +1,9 @@
 import Redis from "ioredis";
 import { logger } from "../utils/logger";
 
-const redis = process.env.REDIS_URL 
+const isLocal = String(process.env.REDIS_LOCAL).toLowerCase() === "true";
+
+const redis = isLocal && process.env.REDIS_URL
   ? new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: null,
       tls: process.env.REDIS_URL.startsWith("rediss://") ? {} : undefined

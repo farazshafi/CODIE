@@ -1,7 +1,10 @@
 import { createClient } from "redis";
 import { IOnlineUserRepository } from "./interface/IOnlineUserRepository";
 
-const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'redis'}:${process.env.REDIS_PORT || 6379}`;
+const isLocal = String(process.env.REDIS_LOCAL).toLowerCase() === 'true';
+const redisUrl = isLocal && process.env.REDIS_URL
+    ? process.env.REDIS_URL
+    : process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'redis'}:${process.env.REDIS_PORT || 6379}`;
 
 
 export class OnlineUserRepository implements IOnlineUserRepository {

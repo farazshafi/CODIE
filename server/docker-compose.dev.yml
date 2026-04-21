@@ -15,8 +15,11 @@ services:
     environment:
       - NODE_ENV=development
       - SERVICE_NAME=app
+      - REDIS_LOCAL=false
+      - PISTON_URL=http://piston:2000
     depends_on:
       - redis
+      - piston
 
   redis:
     image: redis:alpine
@@ -35,6 +38,7 @@ services:
     environment:
       - NODE_ENV=development
       - SERVICE_NAME=scheduler
+      - REDIS_LOCAL=false
     networks:
       - backend
     depends_on:
@@ -52,9 +56,23 @@ services:
     environment:
       - NODE_ENV=development
       - SERVICE_NAME=worker
+      - REDIS_LOCAL=false
+    networks:
+      - backend
+
+  piston:
+    image: ghcr.io/engineer-man/piston
+    privileged: true
+    volumes:
+      - piston_data:/piston
+    ports:
+      - "2000:2000"
     networks:
       - backend
 
 networks:
   backend:
     driver: bridge
+
+volumes:
+  piston_data:
