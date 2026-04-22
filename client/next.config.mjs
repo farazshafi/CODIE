@@ -16,12 +16,18 @@ const nextConfig = {
   },
   async rewrites() {
     const backend = process.env.API_BASE_URL;
-    return backend ? [
+    if (!backend) return [];
+    
+    return [
       {
         source: "/api/:path*",
-        destination: `${backend}/:path*`,
+        destination: `${backend.replace(/\/$/, "")}/:path*`,
       },
-    ] : [];
+      {
+        source: "/graphql",
+        destination: `${backend.replace(/\/api\/?$/, "").replace(/\/$/, "")}/graphql`,
+      },
+    ];
   },
 
 };

@@ -32,7 +32,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     }, [user])
 
     if (!user) {
-        console.log("user illa bro", user)
         return <Loading fullScreen text='Redirecting to login page...' />
     }
 
