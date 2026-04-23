@@ -44,4 +44,15 @@ services:
       - key: RAZORPAY_SECRET_ID
         sync: false
       - key: PISTON_URL
-        sync: false
+        value: http://piston:2000
+
+  - type: web
+    name: piston
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: piston/Dockerfile
+    plan: free # Change to a paid plan if you need more RAM or Persistent Disks
+    healthCheckPath: /api/v2/packages
+    envVars:
+      - key: PISTON_DISABLE_SANDBOX # Attempt to run without nsjail if possible (experimental)
+        value: "true"
