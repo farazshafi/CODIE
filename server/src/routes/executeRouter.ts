@@ -7,12 +7,14 @@ const executeRouter = Router();
 
 executeRouter.get("/runtimes", async (req: Request, res: Response) => {
     try {
+        console.log(`[Execute] Fetching runtimes from Piston at: ${PISTON_URL}/api/v2/runtimes`);
         const response = await axios.get(`${PISTON_URL}/api/v2/runtimes`, {
             headers: {
                 Accept: "application/json",
             },
         });
 
+        console.log(`[Execute] Successfully fetched runtimes. Status: ${response.status}`);
         res.status(response.status).json(response.data);
     } catch (error: any) {
         console.error("Error fetching runtimes from piston:", error?.response?.data || error.message);
@@ -30,12 +32,16 @@ executeRouter.get("/runtimes", async (req: Request, res: Response) => {
 
 executeRouter.post("/", async (req: Request, res: Response) => {
     try {
+        console.log(`[Execute] Proxying execution request to Piston at: ${PISTON_URL}/api/v2/execute`);
+        console.log(`[Execute] Language: ${req.body.language}`);
+        
         const response = await axios.post(`${PISTON_URL}/api/v2/execute`, req.body, {
             headers: {
                 "Content-Type": "application/json",
             },
         });
 
+        console.log(`[Execute] Piston returned success. Status: ${response.status}`);
         res.status(response.status).json(response.data);
     } catch (error: any) {
         console.error("Error executing code via piston proxy:", error?.response?.data || error.message);

@@ -12,6 +12,7 @@ app.use(express.json());
  */
 app.post('/api/v2/execute', (req, res) => {
     const { language, files } = req.body;
+    console.log(`[Piston-Lite] Received execution request for: ${language}`);
     
     if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files provided" });
