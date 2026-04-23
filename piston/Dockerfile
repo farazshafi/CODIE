@@ -1,12 +1,21 @@
-FROM ghcr.io/engineer-man/piston:latest
+FROM node:18-slim
 
-# Note: Render does not support privileged mode. 
-# Piston might struggle with nsjail/sandboxing on Render.
-# We set PISTON_RUN_TIMEOUT to prevent long running processes from hanging.
-ENV PISTON_RUN_TIMEOUT=3000
+# Install Python and clean up
+RUN apt-get update && \
+    apt-get install -y python3 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Pre-install common languages (highly recommended for Render Free tier)
-COPY install_packages.sh /tmp/install_packages.sh
-RUN chmod +x /tmp/install_packages.sh && /tmp/install_packages.sh
+WORKDIR /app
 
+# Copy dependency files first for better caching
+COPY package.json ./
+RUN npm install
+
+# Copy the server code
+COPY server.js .
+
+# Expose the Piston port
 EXPOSE 2000
+
+# Run the lite server
+CMD ["node", "server.js"]
