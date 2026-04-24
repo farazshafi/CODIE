@@ -91,10 +91,10 @@ export default function Home() {
         <div>
             <Navbar ref={navbarRef} refetchProjects={refetchContributedProject} />
             <PageTransitionWrapper>
-                <div className="px-10 py-6">
+                <div className="px-5 py-6">
 
                     {/* Action Buttons */}
-                    <div className="flex flex-row justify-center gap-10">
+                    <div className="flex flex-row justify-center gap-4 sm:gap-6">
                         {
                             userSubscription && data?.getProjectsByUserId?.length < userSubscription?.maxPrivateProjects ? (
                                 <CreateProjectModal
@@ -105,12 +105,15 @@ export default function Home() {
                                     trigger={
                                         <div>
                                             <SpotlightCard
-                                                className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105"
+                                                className="cursor-pointer custom-spotlight-card w-[120px] sm:w-[250px] h-[90px] sm:h-[140px] text-white p-3 flex items-center justify-center transform transition-transform duration-300 hover:scale-105"
                                                 spotlightColor="rgba(255, 255, 255, 0.4)"
                                             >
                                                 <div className="flex flex-col items-center justify-center">
-                                                    <FilePlus className="w-6 h-6 sm:w-12 sm:h-12" />
-                                                    <p className="text-center text-xs sm:text-base mt-2">Create Project</p>
+                                                    <FilePlus className="hidden sm:block w-12 h-12" />
+
+                                                    <p className="text-center text-sm sm:text-base">
+                                                        Create Project
+                                                    </p>
                                                 </div>
                                             </SpotlightCard>
                                         </div>
@@ -119,22 +122,34 @@ export default function Home() {
                             ) : (
                                 <div className="w-[100px] sm:w-[250px] text-white p-2 bg-gray-700 opacity-50 rounded-md cursor-not-allowed">
                                     <div className="flex flex-col items-center justify-center">
-                                        <Lock className="w-6 h-6 sm:w-12 sm:h-12 text-gray-400" />
-                                        <p className="text-center text-xs sm:text-base mt-2">Limit Reached</p>
+                                        <HousePlus className="hidden sm:block w-12 h-12" />
+                                        <p className="text-center text-sm sm:text-base">
+                                            Join Room
+                                        </p>
                                     </div>
                                 </div>
                             )
                         }
 
-                        <CreateProjectModal title="Join a room" language={false} trigger={<div > <SpotlightCard className=" cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105 " spotlightColor="rgba(255, 255, 255, 0.4)" > <div className="flex flex-col items-center justify-center"> <HousePlus className="w-6 h-6 sm:w-12 sm:h-12" /> <p className="text-center text-xs sm:text-base mt-2">Join Room</p> </div> </SpotlightCard> </div >} />
+                        <CreateProjectModal title="Join a room" language={false} trigger={<div >
+                            <SpotlightCard className="cursor-pointer custom-spotlight-card w-[120px] sm:w-[250px] h-[90px] sm:h-[140px] text-white p-3 flex items-center justify-center transform transition-transform duration-300 hover:scale-105"
+                                spotlightColor="rgba(255, 255, 255, 0.4)" >
+                                <div className="flex flex-col items-center justify-center">
+                                    <HousePlus className="hidden sm:block w-12 h-12" />
+                                    <p className="text-center text-xs sm:text-base mt-2">Join Room</p>
+                                </div>
+                            </SpotlightCard>
+                        </div >} />
                         <Link href="/discover">
                             <SpotlightCard
-                                className="cursor-pointer custom-spotlight-card w-[100px] sm:w-[250px] text-white p-2 transform transition-transform duration-300 hover:scale-105"
+                                className="cursor-pointer custom-spotlight-card w-[120px] sm:w-[250px] h-[90px] sm:h-[140px] text-white p-3 flex items-center justify-center transform transition-transform duration-300 hover:scale-105"
                                 spotlightColor="rgba(255, 255, 255, 0.4)"
                             >
                                 <div className="flex flex-col items-center justify-center">
-                                    <Rocket className="w-6 h-6 sm:w-12 sm:h-12" />
-                                    <p className="text-center text-xs sm:text-base mt-2">Discover Snippets</p>
+                                    <Rocket className="hidden sm:block w-12 h-12" />
+                                    <p className="text-center text-sm sm:text-base">
+                                        Discover Snippets
+                                    </p>
                                 </div>
                             </SpotlightCard>
                         </Link>
@@ -145,7 +160,9 @@ export default function Home() {
                     {data?.getProjectsByUserId?.length < 1 && (
                         <div className="px-6 py-3">
                             <div className="w-full bg-tertiary rounded-md text-center py-10 outline-dashed">
-                                <p className="text-xl text-white">No Projects Found!. Create First Project</p>
+                                <p className="text-sm sm:text-lg md:text-xl text-white">
+                                    No Projects Found!. Create First Project
+                                </p>
                             </div>
                         </div>
                     )}
@@ -176,7 +193,7 @@ export default function Home() {
 
                     {contributedProjects?.getContributedProjectsByUserId?.length < 1 && (
                         <div className="text-center mx-3 mt-5">
-                            <p className="text-lg text-white outline-dashed px-4 py-2">You Never did Contribution to any project!</p>
+                            <p className="text-sm sm:text-lg md:text-xl text-white outline-dashed px-4 py-2">You Never did Contribution to any project!</p>
                         </div>
                     )}
 
