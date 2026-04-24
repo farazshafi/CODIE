@@ -1,27 +1,24 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Split from "react-split"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle, CheckCircle, CirclePlay, ClipboardCheck, Clock, Copy, RotateCw, } from "lucide-react"
 import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore"
-import { toast } from "sonner"
 import Header from "../_component/Header"
-import EditorPanel from "../_component/EditorPanel"
-import RunningCodeSkeleton from "../_component/RunningCodingSkelton"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
 import ChatArea from "../_component/ChatArea"
 import { useSocket } from "@/context/SocketContext"
 import { useUserStore } from "@/stores/userStore"
+import ConsolePanel from "../_component/ConsolePanel"
+import OutputPanel from "../_component/OutputPanel"
+import CollaborationSection from "../_component/CollaborationSection"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
     const [showChat, setShowChat] = useState(false)
-    const [copyLoading, setCopyLoading] = useState(false)
     const { id } = useParams()
     const setProjectId = useEditorStore((state) => state.setProjectId)
     const userRole = useEditorStore((state) => state.userRole)
-    const { output, isRunning, error, runCode } = useCodeEditorStore()
+    const { runCode } = useCodeEditorStore()
     const [chatSupport, setChatSupport] = useState({
         text: false,
         voice: false
@@ -43,21 +40,7 @@ const Page = () => {
         console.log("code exicution result: ", result)
     }
 
-    const handleCopy = () => {
-        if (output) {
-            setCopyLoading(true)
-            setTimeout(() => {
-                setCopyLoading(false)
-            }, 3000)
-            navigator.clipboard.writeText(output).then(() => {
-                toast.success("Copied")
-            }).catch((err) => {
-                console.error("Failed to copy output: ", err)
-            })
-        } else {
-            toast.info("No output to copy")
-        }
-    }
+
 
     useEffect(() => {
         const handleResize = () => {
@@ -103,41 +86,32 @@ const Page = () => {
 
             <div className="flex-1 overflow-hidden">
                 {isMobile ? (
-                    <div className="bg-red-500 w-full h-screen">
-
+                    <div className="w-full h-screen">
                         <Split
-                            className="split text-white w-full flex flex-col h-screen"
                             direction="vertical"
-                            color="#1bf07c"
+                            className="flex flex-col h-screen"
                             minSize={200}
-                            gutterSize={8}
+                            gutterSize={16}
+                            sizes={[70, 30]} // initial sizes
+                            expandToMin={false}
                         >
-                            <div className="bg-gray-900 overflow-auto">
-                                <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
-                                    <p>Console</p>
-                                    <div className="flex gap-x-3">
-                                        <Button onClick={handleReset} className="bg-gray text-white hover:bg-gray-700 hover:text-white">
-                                            <RotateCw />
-                                        </Button>
-                                        <Button className="bg-green text-black hover:bg-gray-700 hover:text-white">
-                                            <CirclePlay /> Run
-                                        </Button>
-                                    </div>
+                            {/* Top (fixed-ish) */}
+                            <div className="overflow-hidden">
+                                <div className="bg-[#1e1e2e] p-3 border-b border-white/5 flex items-center justify-between">
+                                    <CollaborationSection />
                                 </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <EditorPanel id={id as string} />
-                                </div>
+                                <ConsolePanel
+                                    id={id as string}
+                                    onReset={handleReset}
+                                    onRun={handleRun}
+                                />
                             </div>
-                            <div className="bg-slate-700 overflow-auto">
-                                <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
-                                    <p>Output</p>
-                                    <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
-                                        {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
-                                    </Button>
-                                </div>
+
+                            {/* Bottom (output - resizable focus) */}
+                            <div className="overflow-auto">
+                                <OutputPanel />
                             </div>
                         </Split>
-
                     </div>
                 ) : (
                     <Split
@@ -157,89 +131,11 @@ const Page = () => {
                                     gutterSize={4}
                                     className="flex flex-col h-full w-full"
                                 >
-                                    {/* Console */}
-                                    <div className="bg-gray-900 h-full flex flex-col">
-                                        <div className="flex flex-row justify-between items-center px-5 py-2 text-white">
-                                            <p>Console</p>
-                                            <div className="flex gap-x-3">
-                                                <Button onClick={handleReset} className="bg-tertiary text-white hover:bg-gray-700 hover:text-white">
-                                                    <RotateCw />
-                                                </Button>
-                                                <Button onClick={handleRun} className="bg-green text-black hover:bg-gray-700 hover:text-white">
-                                                    <CirclePlay /> Run
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 overflow-hidden">
-                                            <EditorPanel id={id as string}/>
-                                        </div>
-                                    </div>
-
-                                    {/* Output */}
-                                    <div className="bg-slate-800 h-screen flex flex-col">
-                                        <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
-                                            <p>Output</p>
-                                            <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
-                                                {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
-                                            </Button>
-                                        </div>
-
-                                        <div className="flex-grow text-white px-4 py-2 flex flex-col">
-                                            <div className="relative flex-grow">
-                                                <div
-                                                    className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] 
-                rounded-xl p-4 h-full overflow-auto font-mono text-sm">
-
-                                                    {isRunning ? (
-                                                        <RunningCodeSkeleton />
-                                                    ) : error ? (
-                                                        <div className="flex items-start gap-3 text-red-400">
-                                                            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" />
-                                                            <div className="space-y-1">
-                                                                <div className="font-medium">Execution Error</div>
-                                                                <pre className="whitespace-pre-wrap text-red-400/80">{error}</pre>
-                                                            </div>
-                                                        </div>
-                                                    ) : output ? (
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center gap-2 text-emerald-400 mb-3">
-                                                                <CheckCircle className="w-5 h-5" />
-                                                                <span className="font-medium">Execution Successful</span>
-                                                            </div>
-                                                            <pre className="whitespace-pre-wrap text-gray-300">{output}</pre>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                                                            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-800/50 ring-1 ring-gray-700/50 mb-4">
-                                                                <Clock className="w-6 h-6" />
-                                                            </div>
-                                                            <p className="text-center">Run your code to see the output here...</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
+                                    <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
+                                    <OutputPanel />
                                 </Split>
                             ) : (
-                                <div className="bg-gray-800 overflow-hidden h-full flex flex-col">
-                                    <div className="flex flex-row justify-between items-center px-5 py-2 text-white bg-black">
-                                        <p>Console</p>
-                                        <div className="flex gap-x-3">
-                                            <Button onClick={handleReset} className="bg-gray-800 text-white hover:bg-gray-700 hover:text-white">
-                                                <RotateCw />
-                                            </Button>
-                                            <Button onClick={handleRun} className="bg-green text-black hover:bg-gray-700 hover:text-white">
-                                                <CirclePlay /> Run
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <EditorPanel id={id as string}/>
-                                    </div>
-                                </div>
+                                <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
                             )}
                         </div>
 
@@ -248,52 +144,7 @@ const Page = () => {
                             {showChat && userRole ? (
                                 <ChatArea chatSupport={chatSupport} userRole={userRole} />
                             ) : (
-                                <div className="bg-slate-800 h-screen flex flex-col">
-                                    <div className="w-full text-white bg-black flex items-center px-4 py-2 justify-between">
-                                        <p>Output</p>
-                                        <Button disabled={copyLoading} onClick={handleCopy} className="hover:bg-gray-600 text-white bg-primary hover:text-white">
-                                            {copyLoading ? (<><ClipboardCheck /> Copied</>) : (<><Copy /> Copy</>)}
-                                        </Button>
-
-                                    </div>
-
-                                    <div className="flex-grow text-white px-4 py-2 flex flex-col">
-                                        <div className="relative flex-grow">
-                                            <div
-                                                className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] 
-                                            rounded-xl p-4 h-full overflow-auto font-mono text-sm">
-
-                                                {isRunning ? (
-                                                    <RunningCodeSkeleton />
-                                                ) : error ? (
-                                                    <div className="flex items-start gap-3 text-red-400">
-                                                        <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" />
-                                                        <div className="space-y-1">
-                                                            <div className="font-medium">Execution Error</div>
-                                                            <pre className="whitespace-pre-wrap text-red-400/80">{error}</pre>
-                                                        </div>
-                                                    </div>
-                                                ) : output ? (
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-2 text-emerald-400 mb-3">
-                                                            <CheckCircle className="w-5 h-5" />
-                                                            <span className="font-medium">Execution Successful</span>
-                                                        </div>
-                                                        <pre className="whitespace-pre-wrap text-gray-300">{output}</pre>
-                                                    </div>
-                                                ) : (
-                                                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                                                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-800/50 ring-1 ring-gray-700/50 mb-4">
-                                                            <Clock className="w-6 h-6" />
-                                                        </div>
-                                                        <p className="text-center">Run your code to see the output here...</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
+                                <OutputPanel />
                             )}
                         </div>
                     </Split>

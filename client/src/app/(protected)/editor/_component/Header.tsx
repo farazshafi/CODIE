@@ -13,10 +13,7 @@ import {
     Palette,
     TypeOutline,
     CircleSmall,
-    Handshake,
-    UserRoundPlus,
     MessageSquareOff,
-
 } from "lucide-react";
 import Logo from "../../../../../public/logo.png";
 import { Slider } from "@/components/ui/slider";
@@ -30,19 +27,12 @@ import {
 import { THEMES } from "../_constants";
 import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { enableCollabrationApi, getRoomByProjectIdApi } from "@/apis/roomApi";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
-import { useSocket } from "@/context/SocketContext";
 import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
-import InvitationModal from "./InvitationModal";
+import CollaborationSection from "./CollaborationSection";
 import { useEditorStore } from "@/stores/editorStore";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 
 
@@ -56,66 +46,25 @@ const Header = ({
     const [isOpen, setIsOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
     const [textIsOpened, setTextIsOpened] = useState(false)
-    const [isWantToCollab, setIsWantToCollab] = useState(false)
-    const [showInvitationModal, setShowInvitationModal] = useState(false)
-    const [ownerId, setOwnerId] = useState("")
-    const [copyMessage, setCopyMessage] = useState("")
-    const [tooltipOpen, setTooltipOpen] = useState(false);
     const [chatSupport, setChatSupport] = useState({ text: true, voice: true })
 
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-
     const roomId = useEditorStore((state) => state.roomId)
-    const setRoomId = useEditorStore((state) => state.setRoomId)
+    const ownerId = useEditorStore((state) => state.ownerId)
     const user = useUserStore((state) => state.user)
-    const storeOnwerId = useEditorStore((state) => state.setOwnerId)
-    const { socket } = useSocket()
 
     const params = useParams()
     const { id } = params
 
     const { setFontSize, theme, setTheme } = useCodeEditorStore()
 
-    // mutations
-    const { mutate } = useMutationHook(enableCollabrationApi, {
-        onSuccess(res) {
-            setIsWantToCollab(true)
-            setRoomId(res.data.data.roomId)
-            toast.message("Enabled collabration!")
-
-        },
-        onError(error) {
-            if (error instanceof Error) {
-                toast.error(error.message);
-            } else {
-                toast.error(String(error));
-            }
-        },
-    })
-
-    const { mutate: getRoomByProjectId } = useMutationHook(getRoomByProjectIdApi, {
-        onSuccess(res) {
-            console.log("get room by project id: data", res.data)
-            setRoomId(res.data.roomId)
-            setIsWantToCollab(true)
-            setOwnerId(res.data.owner)
-            storeOnwerId(res.data.owner)
-        },
-        onError(error) {
-            console.log("room getting error: ", error)
-            setIsWantToCollab(false)
-        },
-    })
-
     const { mutate: getUserSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
-            console.log(data.data.text)
             setChatSupport({
                 text: data.data.text,
                 voice: data.data.voice
             })
-        }, onError(error) {
+        },
+        onError(error) {
             console.log("server error", error)
         },
     })
@@ -126,11 +75,6 @@ const Header = ({
         localStorage.setItem("editor-font-size", size.toString());
     }, [setFontSize]);
 
-
-    const handleCollabration = () => {
-        mutate(id as string)
-    }
-
     const handleSubscription = () => {
         if (ownerId === user?.id) {
             toast.info("Please upgrade Your Plan")
@@ -139,272 +83,148 @@ const Header = ({
         }
     }
 
-    const handleInvitation = () => {
-        setShowInvitationModal(true)
-    }
-
-    const hanldeModalClose = () => {
-        setShowInvitationModal(false)
-    }
-
     useEffect(() => {
         if (ownerId) {
             getUserSubscription(ownerId);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ownerId]);
-
-
-
-    const copyRoomId = async () => {
-        if (!roomId) return;
-
-        try {
-            await navigator.clipboard.writeText(roomId);
-            setCopyMessage("Copied!");
-        } catch {
-            setCopyMessage("Failed to copy!");
-        }
-
-        setTooltipOpen(false);
-        setTimeout(() => {
-            setTooltipOpen(true);
-        }, 0);
-
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = setTimeout(() => {
-            setCopyMessage("Click to copy");
-            setTooltipOpen(false);
-        }, 2000);
-    };
-
-    useEffect(() => {
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (id) {
-            getRoomByProjectId(id as string);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isWantToCollab]);
-
 
     useEffect(() => {
         const storedSize = typeof window !== "undefined"
             ? localStorage.getItem("editor-font-size")
             : null;
-
         if (storedSize) {
             setTextSize(Number(storedSize));
         }
     }, []);
 
-
-
-    useEffect(() => {
-        if (!socket) return;
-
-        const refetchCollabrators = () => {
-            if (id) getRoomByProjectId(id as string);
-        };
-
-        socket.on("update-request", refetchCollabrators);
-
-        return () => {
-            socket.off("update-request", refetchCollabrators);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [socket, id]);
-
-
     return (
-        <nav className="text-white bg-primary px-10 py-3 flex justify-between items-center relative">
-            {" "}
-            <div className="flex flex-row items-center space-x-4">
-                <Link href="/dashboard">
-                    <div className="flex flex-row items-center cursor-pointer">
-                        <Image src={Logo} alt="logo" className="w-[40px]" />
-                        <p className="text-xl font-semibold mt-2">
-                            COD<span className="text-green-400 font-semibold">IE</span>
-                        </p>
-                    </div>
+        <nav className="text-white bg-primary px-4 md:px-10 py-3 flex justify-between items-center relative border-b border-white/5">
+            <div className="flex flex-row items-center space-x-6">
+                <Link href="/dashboard" className="flex flex-row items-center cursor-pointer group">
+                    <Image src={Logo} alt="logo" className="w-[35px] md:w-[40px] group-hover:scale-110 transition-transform" />
+                    <p className="text-lg md:text-xl font-bold ml-2">
+                        COD<span className="text-green-400">IE</span>
+                    </p>
                 </Link>
-                {isWantToCollab ? (
-                    <div className="flex gap-x-3 flex-row mt-2 items-center justify-between sm:justify-normal">
-                        <div className="flex p-3 rounded-md bg-tertiary">
-                            <p>
-                                RoomId:
-                                {roomId && (
-                                    <Tooltip open={tooltipOpen}>
-                                        <TooltipTrigger asChild>
-                                            <span
-                                                onClick={copyRoomId}
-                                                className="ml-2 px-2 cursor-pointer hover:text-green-500 font-bold py-1 bg-white text-black rounded-md"
-                                            >
-                                                #{roomId}
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{copyMessage}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
 
-                                )}
-
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <Button onClick={handleCollabration}
-                            className="bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer transition-all duration-[2000] ease-in-out hover:bg-gray-700 hover:from-gray-700 hover:to-gray-400">
-                            <Handshake />
-                            Enable Collaboration
+                <div className="hidden md:flex items-center gap-x-4">
+                    <CollaborationSection />
+                    
+                    <Link
+                        className="hover:opacity-80 transition-opacity"
+                        href={"/dashboard"}
+                    >
+                        <Button variant="ghost" className="bg-tertiary/50 hover:bg-red-500/20 text-white">
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Exit
                         </Button>
-                    </>
-                )}
-                <Link
-                    className="hover:bg-red-950 rounded-md hover:transition-opacity hover:duration-300 hover:ease-in-out"
-                    href={"/dashboard"}
-                >
-                    <Button className="bg-tertiary cursor-pointer ">
-                        <LogOut />
-                        Exit
+                    </Link>
+                </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex items-center gap-2 md:hidden">
+                 <Link href="/dashboard">
+                    <Button size="icon" variant="ghost" className="bg-tertiary/50">
+                        <LogOut className="w-5 h-5 text-red-400" />
                     </Button>
                 </Link>
+                <button
+                    className="cursor-pointer text-white p-2 hover:bg-white/10 rounded-md transition-colors"
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    {isOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
             </div>
-            {/* Mobile Menu */}
-            <button
-                className="md:hidden cursor-pointer text-white"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                {isOpen ? <X size={30} /> : <Menu size={30} />}
-            </button>
 
             {/* Mobile Dropdown */}
             {isOpen && (
-                <div className="absolute top-[70px] left-0 w-full bg-primary flex flex-col p-5 mt-3 space-y-4 md:hidden">
-                    <div className="bg-tertiary rounded-md" onClick={() => onChatToggle(chatSupport)}>
-                        <div className="flex items-center gap-2 p-2">
-                            <MessageSquare />
-                            <p>Chat</p>
-                        </div>
-                    </div>
-                    <div className="bg-tertiary rounded-md">
-                        <div
-                            onClick={onCollaboratorsToggle}
-                            className="flex items-center gap-2 p-2"
-                        >
-                            <Users />
-                            <p>Collaborators</p>
-                        </div>
-                    </div>
-                    <div className="bg-tertiary rounded-md">
-                        <div className="flex items-center gap-2 p-2">
-                            <Palette />
-                            <p>Theme</p>
-                        </div>
-                    </div>
-                    <div className="bg-tertiary rounded-md">
-                        <div className="flex items-center gap-2 p-2">
-                            <TypeOutline />
-                            <p>Text size</p>
-                        </div>
-                    </div>
-                    <div className="bg-gray-800 rounded-md">
-                        <div className="flex items-center gap-2 p-2">
-                            <MoonStar />
-                            <p>Dark</p>
-                        </div>
-                    </div>
+                <div className="absolute top-[65px] left-0 w-full bg-[#0a0a0c] border-b border-white/10 flex flex-col p-4 z-50 md:hidden space-y-2 shadow-2xl animate-in slide-in-from-top duration-200">
+                    <MobileMenuItem icon={<MessageSquare />} label="Chat" onClick={() => onChatToggle(chatSupport)} />
+                    <MobileMenuItem icon={<Users />} label="Collaborators" onClick={onCollaboratorsToggle} />
+                    <MobileMenuItem icon={<Palette />} label="Theme" />
+                    <MobileMenuItem icon={<TypeOutline />} label="Text Size" />
+                    <MobileMenuItem icon={<MoonStar />} label="Dark Mode" />
                 </div>
             )}
 
-            {/* Desktop Icons */}
-            <div className="flex-row gap-x-6 hidden md:flex relative">
-
-                {/* Inbox */}
+            {/* Desktop Tools */}
+            <div className="hidden md:flex flex-row items-center gap-x-4">
                 {roomId && ownerId === user?.id && <RoomRequests roomID={roomId} />}
 
-                {isWantToCollab && (
+                {roomId && (
                     <>
-                        {/* invite btn */}
-                        {user?.id === ownerId && <Button onClick={handleInvitation}
-                            className="bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer transition-all duration-[2000] ease-in-out hover:bg-gray-700 hover:from-gray-700 hover:to-gray-400">
-                            <UserRoundPlus />
-                            Invite
-                        </Button>}
-
-                        {/* mesage */}
                         <div
-                            className="bg-tertiary p-2 hover:scale-125 rounded-md"
+                            className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all active:scale-95"
                             onClick={chatSupport.text ? () => onChatToggle(chatSupport) : handleSubscription}
                         >
-                            {chatSupport.text ? <MessageSquare /> : <MessageSquareOff />}
-
+                            {chatSupport.text ? <MessageSquare className="w-5 h-5" /> : <MessageSquareOff className="w-5 h-5 opacity-50" />}
                         </div>
-
                         <Contributers ownerId={ownerId} />
                     </>
                 )}
 
-                <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
+                <div className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all">
                     <DropdownMenu>
-                        <DropdownMenuTrigger className="outline-none focus:outline-none">
-                            <Palette />
+                        <DropdownMenuTrigger className="outline-none focus:outline-none flex items-center">
+                            <Palette className="w-5 h-5" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="mt-5 bg-slate-800 text-white space-y-3 focus:outline-none outline-none">
+                        <DropdownMenuContent className="mt-2 bg-[#1e1e2e] border-white/10 text-white min-w-[150px]">
                             {THEMES.map((t, i) => (
-                                <DropdownMenuItem disabled={theme === t.id} className="hover:bg-black px-5 hover:text-white" onClick={() => setTheme(t.id)} key={i}>
+                                <DropdownMenuItem 
+                                    disabled={theme === t.id} 
+                                    className="hover:bg-white/10 cursor-pointer flex justify-between items-center" 
+                                    onClick={() => setTheme(t.id)} 
+                                    key={i}
+                                >
                                     {t.label}
-                                    {theme === t.id && (
-                                        <CircleSmall className="text-white" />
-                                    )}
+                                    {theme === t.id && <CircleSmall className="text-green-400" />}
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
 
-                <div onClick={() => setTextIsOpened(prev => !prev)} className={`bg-tertiary p-2 hover:scale-125 rounded-md ${textIsOpened ? "flex flex-col items-center" : ""}`}>
-                    <TypeOutline />
+                <div className="relative">
+                    <div 
+                        onClick={() => setTextIsOpened(prev => !prev)} 
+                        className={`bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all ${textIsOpened ? "bg-white/10" : ""}`}
+                    >
+                        <TypeOutline className="w-5 h-5" />
+                    </div>
                     {textIsOpened && (
-                        <Slider
-                            defaultValue={[textSize]}
-                            min={12}
-                            max={24}
-                            step={1}
-                            className="
-                            w-[150px] mt-2
-                            [&_.radix-slider-track]:bg-gray-400  // full track color
-                            [&_.radix-slider-range]:bg-green-500 // progress color
-                            [&_[role=slider]]:bg-green-500       // thumb color
-                            [&_[role=slider]]:border-none"
-                            onValueChange={setFontChange}
-                        />
+                        <div className="absolute top-full right-0 mt-3 p-4 bg-[#1e1e2e] border border-white/10 rounded-lg shadow-xl z-50 w-[200px]">
+                            <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider font-bold">Font Size: {textSize}px</p>
+                            <Slider
+                                defaultValue={[textSize]}
+                                min={12}
+                                max={24}
+                                step={1}
+                                className="[&_.radix-slider-track]:bg-gray-700 [&_.radix-slider-range]:bg-green-500 [&_[role=slider]]:bg-green-500"
+                                onValueChange={setFontChange}
+                            />
+                        </div>
                     )}
                 </div>
 
-                <div className="bg-tertiary p-2 hover:scale-125 rounded-md">
-                    <MoonStar />
+                <div className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all">
+                    <MoonStar className="w-5 h-5" />
                 </div>
             </div>
-
-            {
-                showInvitationModal && roomId && (
-                    <InvitationModal hanldeModalClose={hanldeModalClose} roomId={roomId} />
-                )
-            }
         </nav >
     );
 };
+
+const MobileMenuItem = ({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick?: () => void }) => (
+    <div 
+        onClick={onClick}
+        className="flex items-center gap-3 p-3 rounded-lg bg-tertiary/30 hover:bg-tertiary/50 active:bg-tertiary cursor-pointer transition-colors"
+    >
+        {React.cloneElement(icon as React.ReactElement, { size: 20 })}
+        <p className="text-sm font-medium">{label}</p>
+    </div>
+)
+
 
 export default Header;

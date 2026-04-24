@@ -124,7 +124,7 @@ export default function Home() {
                                     <div className="flex flex-col items-center justify-center">
                                         <HousePlus className="hidden sm:block w-12 h-12" />
                                         <p className="text-center text-sm sm:text-base">
-                                            Join Room
+                                            Create project
                                         </p>
                                     </div>
                                 </div>
