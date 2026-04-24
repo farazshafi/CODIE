@@ -81,7 +81,7 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
 
     return (
 
-        <div className='rounded-lg p-5 transform transition-transform duration-300 hover:scale-105 text-white'>
+        <div className='rounded-lg p-3 sm:p-5 transform transition-transform duration-300 hover:scale-105 text-white'>
             <SpotlightCard spotlightColor="rgba(77, 79, 79, 0.3)"
             >
 
@@ -108,7 +108,7 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
                         )}
 
                         <Button onClick={() => project.projectId && starSnippet(project.projectId._id)} className={`bg-green cursor-pointer ${project.projectId && starred.includes(project.projectId._id) ? "bg-green-600 hover:bg-green-400" : "bg-black hover:bg-gray-500"}`}>
-                            <p>Stared <span>{project.starred}</span></p>
+                            <p><span>{project.starred}</span></p>
                             <Star />
                         </Button>
 
@@ -121,25 +121,16 @@ const SnippetCard = ({ isStarred, project, onDelete, onUnstarHanlder, refetchSni
                     </div>}
                 </div>
                 <div className='mt-5'>
-                    <p className='font-bold text-lg'>{project.projectId?.projectName}</p>
+                    <p className='font-bold text-sm sm:text-lg'>{project.projectId?.projectName}</p>
                     <div className='text-white p-1 rounded-sm bg-primary flex items-center w-fit mt-2 gap-x-3'>
                         <Avatar className="ml-2 text-xs">
                             <AvatarImage src="https://github.com/shadcn.png" />
                             <AvatarFallback>US</AvatarFallback>
                         </Avatar>
-                        <p className='text-xs'>{project.projectId?.userId?.name}</p>
+                        <p className='text-[10px] sm:text-xs'>{project.projectId?.userId?.name}</p>
                     </div>
                 </div>
 
-                <div className='mt-5 '>
-                    <Image
-                        src="https://images.ctfassets.net/lzny33ho1g45/5hzHWhjxP8bM3Ew2SJgKuS/ae69008c04ab864f602254bf349725e7/acode.webp"
-                        alt="code-image"
-                        width={235}
-                        height={155}
-                        className="rounded-md"
-                    />
-                </div>
                 <div className='mt-3'>
                     <button onClick={() => {
                         if (project.projectId) {
