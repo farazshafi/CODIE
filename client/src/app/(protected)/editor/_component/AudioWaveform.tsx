@@ -54,7 +54,7 @@ const AudioWaveform: React.FC<Props> = ({ analyser }) => {
             ref={canvasRef}
             width={300}
             height={60}
-            className="rounded bg-black"
+            className="rounded bg-black w-full max-w-[200px] md:max-w-[300px] h-[40px] md:h-[60px]"
         />
     );
 };

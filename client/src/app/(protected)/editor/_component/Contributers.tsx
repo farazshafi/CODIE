@@ -26,11 +26,12 @@ type Collaborator = {
 
 type ContributersProps = {
     ownerId: string;
+    isModal?: boolean;
 };
 
 
 
-const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
+const Contributers: React.FC<ContributersProps> = ({ ownerId, isModal = false }) => {
     const params = useParams()
 
     const { id: projectId } = params
@@ -109,6 +110,90 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, projectId])
 
+    const ListContent = (
+        <div className={`flex flex-col w-full ${isModal ? 'bg-transparent' : ''}`}>
+            {!isModal && (
+                <>
+                    <DropdownMenuLabel>
+                        <div className="text-center py-2 font-bold">
+                            <p>Collabrators</p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                </>
+            )}
+            <div className={`space-y-1 ${isModal ? 'max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar' : ''}`}>
+                {collaborators.length === 0 && (
+                    <div className="text-center py-10 text-gray-500">
+                        No collaborators found.
+                    </div>
+                )}
+                {collaborators.map((item, index) => (
+                    <div key={index} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${isModal ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-slate-100'}`}>
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border border-white/10">
+                                <AvatarImage src={item.user._id === user?.id ? user?.avatar : ""} alt={item.user.name} />
+                                <AvatarFallback className={`text-black font-bold text-sm ${isUserOnline(item.user._id, onlineUsers) ? 'bg-green-400' : 'bg-red-400'
+                                    }`}>
+                                    {item.user.name.split(" ").map((n) => n[0]).join("")}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-sm">{item.user.name}</p>
+                                    {isUserOnline(item.user._id, onlineUsers) ? (
+                                        <span className="w-2 h-2 rounded-full bg-green-500" title="online" />
+                                    ) : (
+                                        <span className="w-2 h-2 rounded-full bg-red-500" title="offline" />
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-400">{item.user.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${item.role === "owner" ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30" :
+                                item.role === "editor" ? "bg-green-500/20 text-green-500 border border-green-500/30" :
+                                    "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+                                }`}>
+                                {item.role}
+                            </span>
+
+                            {ownerId === user?.id && item.role !== "owner" && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="h-7 px-2 text-[10px] font-medium rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
+                                            Role
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="bg-[#1e1e2e] border-white/10 text-white">
+                                        <DropdownMenuItem
+                                            disabled={item.role === "editor" || isRoleLoading}
+                                            onClick={() => handleUpdateRole(item.user._id, "editor")}
+                                            className="hover:bg-white/10 cursor-pointer"
+                                        >
+                                            {isRoleLoading ? "Updating..." : "Make Editor"}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            disabled={item.role === "viewer" || isRoleLoading}
+                                            onClick={() => handleUpdateRole(item.user._id, "viewer")}
+                                            className="hover:bg-white/10 cursor-pointer"
+                                        >
+                                            Make Viewer
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            {!isModal && <DropdownMenuSeparator />}
+        </div>
+    );
+
+    if (isModal) return ListContent;
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger>
@@ -116,78 +201,8 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId }) => {
                     <Users />
                 </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="">
-                <DropdownMenuLabel>
-                    <div className="text-center py-2 font-bold">
-                        <p>Collabrators</p>
-                    </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {collaborators.map((item, index) => (
-                    <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
-                        <div className="flex items-center gap-x-6 justify-between w-full">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage alt={item.user.name} />
-                                    <AvatarFallback className={`text-black font-bold text-sm ${isUserOnline(item.user._id, onlineUsers) ? 'bg-green-400' : 'bg-red-400'
-                                        }`}>
-                                        {item.user.name.split(" ").map((n) => n[0]).join("")}
-                                    </AvatarFallback>
-
-                                </Avatar>
-                                <div>
-                                    <div className="flex flex-row items-center space-x-3">
-                                        <p className="font-medium">{item.user.name}</p>
-
-                                        {onlineUsers && onlineUsers.some(onlineId => onlineId === item.user._id) ? (
-                                            <span className="text-[10px] bg-green rounded-lg px-[5px] py-[2px]">
-                                                online
-                                            </span>
-                                        ) : (
-                                            <span className='text-[10px] bg-red-400 rounded-lg px-[5px] py-[2px]'>offline</span>
-                                        )}
-
-                                    </div>
-
-                                    <p className="text-xs text-gray-500">{item.user.email}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-md text-xs ${item.role === "editor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                                    {item.role}
-                                </span>
-                                {ownerId === user?.id && item.role !== "owner" && (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <div className="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-sm shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none">
-                                                Change Role
-                                            </div>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent className="bg-white">
-                                            <DropdownMenuItem
-                                                disabled={item.role === "editor" || isRoleLoading}
-                                                onClick={() => handleUpdateRole(item.user._id, "editor")}
-                                                onSelect={(e) => e.preventDefault()}
-                                                className="hover:bg-slate-100 text-sm"
-                                            >
-                                                {isRoleLoading ? "Updating..." : "Make Editor"}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                disabled={item.role === "viewer" || isRoleLoading}
-                                                onClick={() => handleUpdateRole(item.user._id, "viewer")}
-                                                onSelect={(e) => e.preventDefault()}
-                                                className="hover:bg-slate-100 text-sm"
-                                            >
-                                                Make Viewer
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                )}
-                            </div>
-                        </div>
-                    </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
+            <DropdownMenuContent className="w-[300px] bg-[#1e1e2e] border-white/10 text-white">
+                {ListContent}
             </DropdownMenuContent>
         </DropdownMenu>
     )

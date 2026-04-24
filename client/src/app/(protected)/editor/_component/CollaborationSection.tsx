@@ -15,6 +15,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import InvitationModal from "./InvitationModal";
+import RoomRequests from "./RoomRequests";
 
 const CollaborationSection = () => {
     const [isWantToCollab, setIsWantToCollab] = useState(false);
@@ -103,9 +104,9 @@ const CollaborationSection = () => {
     }, [socket, id]);
 
     return (
-        <div className="flex flex-row items-center gap-x-3">
+        <div className="flex flex-row items-center justify-between w-full md:w-auto md:justify-start gap-x-3">
             {isWantToCollab ? (
-                <div className="flex flex-row items-center gap-x-3">
+                <div className="flex flex-row items-center justify-between w-full md:w-auto md:justify-start gap-x-3">
                     <div className="flex p-2 px-3 rounded-md bg-tertiary border border-white/10">
                         <p className="text-sm text-white font-medium">
                             Room:
@@ -127,14 +128,17 @@ const CollaborationSection = () => {
                         </p>
                     </div>
                     {user?.id === ownerId && (
-                        <Button
-                            onClick={handleInvitation}
-                            size="sm"
-                            className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/20"
-                        >
-                            <UserRoundPlus className="w-4 h-4 mr-2" />
-                            Invite
-                        </Button>
+                        <div className="flex items-center gap-x-3">
+                            <Button
+                                onClick={handleInvitation}
+                                size="sm"
+                                className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/20"
+                            >
+                                <UserRoundPlus className="w-4 h-4 mr-2" />
+                                Invite
+                            </Button>
+                            <RoomRequests roomID={roomId as string} />
+                        </div>
                     )}
                 </div>
             ) : (
