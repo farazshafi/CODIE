@@ -137,7 +137,7 @@ export default function CreateProjectModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="text-white border border-[#1bf07c] backdrop-blur-[2px] bg-white/15">
+      <DialogContent className="text-white border border-[#1bf07c] backdrop-blur-[4px] bg-white/20">
         <DialogHeader>
           <DialogTitle className="mygreen">{title}</DialogTitle>
           <DialogDescription className="text-gray-400">{subtitle}</DialogDescription>
