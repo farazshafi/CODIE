@@ -75,7 +75,7 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
                 if (isOpen) setHasUnread(false)
             }}>
                 <DropdownMenuTrigger>
-                    <div className="relative bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer">
+                    <div className="relative bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer text-white">
                         <Inbox />
                         {hasUnread && (
                             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 animate-ping" />

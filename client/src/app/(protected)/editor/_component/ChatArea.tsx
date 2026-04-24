@@ -27,6 +27,7 @@ interface Message {
 interface ChatProps {
     userRole: 'owner' | 'editor' | 'viewer';
     chatSupport: { text: boolean; voice: boolean };
+    isModal?: boolean;
 }
 const roles = ["owner", "editor", "viewer"] as const;
 type Role = typeof roles[number];
@@ -36,7 +37,7 @@ const roleColors: Record<Role, string> = {
     editor: 'bg-blue-400 text-white',
     viewer: 'bg-gray-500 text-white',
 };
-const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
+const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false }) => {
     const { socket } = useSocket();
     const user = useUserStore((state) => state.user);
     const { roomId, projectId, ownerId } = useEditorStore();
@@ -199,22 +200,22 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
     }, [enableEmoji]);
 
     return (
-        <div className="bg-tertiary text-center overflow-auto py-5 flex flex-col justify-between gap-y-5 h-full px-5">
-            <p className="text-white text-center text-3xl font-semibold">Chat With Collaborators</p>
+        <div className={`bg-tertiary text-center overflow-hidden py-5 flex flex-col justify-between gap-y-4 h-full ${isModal ? 'px-4 py-2' : 'px-5'}`}>
+            {!isModal && <p className="text-white text-center text-3xl font-semibold">Chat With Collaborators</p>}
 
             {/* Role Legend */}
-            <div className="flex justify-center items-center gap-x-4 text-white text-sm">
+            <div className="flex justify-center items-center gap-x-4 text-white text-[10px] md:text-sm">
                 {roles.map((role) => (
                     <div key={role} className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full ${roleColors[role].split(" ")[0]}`}></div>
+                        <div className={`w-2 h-2 md:w-4 md:h-4 rounded-full ${roleColors[role].split(" ")[0]}`}></div>
                         <span className="capitalize">{role}</span>
                     </div>
                 ))}
             </div>
 
             {/* Chat Messages */}
-            <div className="h-[500px] w-full bg-primary rounded-lg px-5 py-3">
-                <div className="h-[80%] flex flex-col gap-y-5 overflow-y-auto pr-2 relative">
+            <div className={`flex-1 min-h-0 w-full bg-primary rounded-lg px-4 py-3 flex flex-col`}>
+                <div className="flex-1 flex flex-col gap-y-4 overflow-y-auto pr-2 relative custom-scrollbar">
                     {messages.map((msg, idx) => {
                         const isMe = msg.senderId === user?.id;
                         const showAvatar = idx === 0 || messages[idx - 1].senderId !== msg.senderId;
@@ -282,40 +283,43 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport }) => {
                 </div>
 
                 {/* Chat Input */}
-                <div className="h-fit gap-x-3 px-5 py-3 bg-white flex items-center justify-between rounded-md relative">
+                <div className="h-fit gap-x-2 md:gap-x-3 px-2 md:px-5 py-3 bg-white flex items-center justify-between rounded-md relative">
                     <SmilePlus
-                        size={40}
-                        className={`${enableEmoji ? "bg-gray-700 text-white" : ""} hover:bg-gray-600 transition p-1 cursor-pointer rounded-full text-black`}
+                        size={32}
+                        className={`${enableEmoji ? "bg-gray-700 text-white" : ""} hover:bg-gray-600 transition p-1 cursor-pointer rounded-full text-black flex-shrink-0`}
                         onClick={() => setEnableEmoji((p) => !p)}
                     />
-                    {isRecording ? (
-                        <div className="flex flex-col items-center gap-2 py-2">
-                            <AudioWaveform analyser={analyser} />
-                            <span className="text-sm text-black font-mono">
-                                ⏺ {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
-                            </span>
-                        </div>
-                    ) : (
-                        <Input
-                            placeholder="Message..."
-                            value={messageText}
-                            onChange={(e) => setMessageText(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            disabled={isRecording}
-                        />
-                    )}
-                    <div className="flex gap-x-5 items-center">
+                    <div className="flex-1 min-w-0">
+                        {isRecording ? (
+                            <div className="flex flex-col items-center gap-1">
+                                <AudioWaveform analyser={analyser} />
+                                <span className="text-[10px] md:text-sm text-black font-mono whitespace-nowrap">
+                                    ⏺ {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
+                                </span>
+                            </div>
+                        ) : (
+                            <Input
+                                placeholder="Message..."
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                disabled={isRecording}
+                                className="w-full h-9 md:h-10"
+                            />
+                        )}
+                    </div>
+                    <div className="flex gap-x-2 md:gap-x-5 items-center flex-shrink-0">
                         <div
                             onClick={!chatSupport.voice ? handleVoiceWarning : isRecording ? stopRecording : startRecorder}
-                            className={`px-3 py-2 rounded-md transition ${chatSupport.voice ? 'bg-green hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`}
+                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-md transition ${chatSupport.voice ? 'bg-green hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`}
                         >
-                            {isRecording ? <CircleStop /> : chatSupport.voice ? <Mic /> : <MicOff />}
+                            {isRecording ? <CircleStop size={20} /> : chatSupport.voice ? <Mic size={20} /> : <MicOff size={20} />}
                         </div>
                         <div
                             onClick={handleSend}
-                            className="bg-primary text-white px-3 py-2 rounded-md cursor-pointer"
+                            className="bg-primary text-white px-2 md:px-3 py-1.5 md:py-2 rounded-md cursor-pointer"
                         >
-                            <Send />
+                            <Send size={20} />
                         </div>
                     </div>
                     {enableEmoji && (
