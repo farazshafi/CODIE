@@ -10,6 +10,7 @@ import { useSocket } from "@/context/SocketContext"
 import { useUserStore } from "@/stores/userStore"
 import ConsolePanel from "../_component/ConsolePanel"
 import OutputPanel from "../_component/OutputPanel"
+import CollaborationSection from "../_component/CollaborationSection"
 
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
@@ -87,13 +88,29 @@ const Page = () => {
                 {isMobile ? (
                     <div className="w-full h-screen">
                         <Split
-                            className="split text-white w-full flex flex-col h-screen"
                             direction="vertical"
+                            className="flex flex-col h-screen"
                             minSize={200}
-                            gutterSize={8}
+                            gutterSize={16}
+                            sizes={[70, 30]} // initial sizes
+                            expandToMin={false}
                         >
-                            <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
-                            <OutputPanel />
+                            {/* Top (fixed-ish) */}
+                            <div className="overflow-hidden">
+                                <div className="bg-[#1e1e2e] p-3 border-b border-white/5 flex items-center justify-between">
+                                    <CollaborationSection />
+                                </div>
+                                <ConsolePanel
+                                    id={id as string}
+                                    onReset={handleReset}
+                                    onRun={handleRun}
+                                />
+                            </div>
+
+                            {/* Bottom (output - resizable focus) */}
+                            <div className="overflow-auto">
+                                <OutputPanel />
+                            </div>
                         </Split>
                     </div>
                 ) : (
