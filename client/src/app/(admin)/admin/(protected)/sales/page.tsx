@@ -136,7 +136,7 @@ export default function SalesReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear, selectedMonth, viewMode])
 
-  let chartData: YearlyRow[] | MonthlyRow[] | DailyRow[] = [];
+  let chartData: (YearlyRow | MonthlyRow | DailyRow)[] = [];
   let xKey: "year" | "month" | "day" = "month";
 
   switch (viewMode) {
@@ -189,7 +189,7 @@ export default function SalesReportPage() {
           </select>
         )}
 
-        {viewMode === "monthly" || viewMode === "daily" && (
+        {(viewMode === "monthly" || viewMode === "daily") && (
           <>
             <select
               value={selectedYear}
