@@ -75,7 +75,7 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
           currency,
           name: "<CODIE> Online collabrative code editor",
           description: "Test transaction",
-          order_id: order_id,
+          order_id: data.data.id,
           handler: (response: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) => {
             const verifyData = {
               razorpay_order_id: response.razorpay_order_id,
