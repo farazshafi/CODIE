@@ -4,20 +4,32 @@ import { projectService, roomService } from "../../container"
 export const resolvers = {
     Query: {
         getProjectsByUserId: async (parent, args) => {
-            const { userId } = args
-            const projects = await projectService.getProjectsByUserId(userId)
-            return projects.projects
+            try {
+                const { userId } = args;
+                if (!userId) return [];
+                const projects = await projectService.getProjectsByUserId(userId);
+                return projects?.projects || [];
+            } catch (error) {
+                console.error("GraphQL getProjectsByUserId error:", error);
+                return [];
+            }
         },
 
         getContributedProjectsByUserId: async (parent, args) => {
-            const { userId } = args
-            const contributedProjects = await roomService.getContributedProjectsOld(userId)
-            console.log("resolver : contributed projects".yellow, contributedProjects)
-            return contributedProjects
+            try {
+                const { userId } = args;
+                if (!userId) return [];
+                const contributedProjects = await roomService.getContributedProjectsOld(userId);
+                return contributedProjects || [];
+            } catch (error) {
+                console.error("GraphQL getContributedProjectsByUserId error:", error);
+                return [];
+            }
         }
-
     },
     Project: {
+        id: (project) => project._id ? project._id.toString() : (project.id ? project.id.toString() : ""),
+        userId: (project) => project.userId ? project.userId.toString() : "",
         codePreview: (project) => {
             const code = typeof project?.projectCode === "string" ? project.projectCode : ""
             return code

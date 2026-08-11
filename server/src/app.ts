@@ -26,7 +26,7 @@ const allowedOrigins = getAllowedOrigins();
 const corsOptions: cors.CorsOptions = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "authorization"],
   origin: (origin, callback) => {
     if (isOriginAllowed(origin)) {
       callback(null, true);
