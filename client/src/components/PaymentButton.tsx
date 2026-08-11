@@ -62,14 +62,20 @@ const PaymentButton = ({ amount, currency, planId, planName }: PaymentBtnProps) 
     onSuccess(data) {
       try {
         if (!user) return
-        const { id: order_id, amount, currency } = data.data
+        const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        if (!razorpayKey) {
+          console.error("Razorpay Key ID is missing! Please check your environment variables.");
+          toast.error("Payment configuration error. Please contact support.");
+          return;
+        }
+
         const options: RazorpayOptions = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string,
+          key: razorpayKey,
           amount,
           currency,
           name: "<CODIE> Online collabrative code editor",
           description: "Test transaction",
-          order_id: order_id,
+          order_id: data.data.id,
           handler: (response: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) => {
             const verifyData = {
               razorpay_order_id: response.razorpay_order_id,

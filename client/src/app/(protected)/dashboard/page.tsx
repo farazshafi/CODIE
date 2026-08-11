@@ -34,11 +34,13 @@ export default function Home() {
 
 
     const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
-        variables: { userId }
+        variables: { userId: userId || "" },
+        skip: !userId,
     });
 
     const { data: contributedProjects, loading: contributedLoading, error: contributeError, refetch: refetchContributedProject } = useQuery(GET_CONTRIBUTED_PROJECTS_BY_USER_ID, {
-        variables: { userId },
+        variables: { userId: userId || "" },
+        skip: !userId,
     });
 
     useEffect(() => {
@@ -173,17 +175,17 @@ export default function Home() {
                             Array.from({ length: 8 }).map((_, index) => (
                                 <ProjectCardSkeleton key={index} />
                             ))
-                        ) : data?.getProjectsByUserId?.length > 0 && (
-                            data.getProjectsByUserId.map((project: ProjectCardType, index: number) => (
+                        ) : (
+                            data?.getProjectsByUserId?.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
                                     isContributer={false}
-                                    key={index}
+                                    key={project.id || index}
                                     refetchProject={refetch}
                                     title={project.projectName}
                                     language={project.projectLanguage}
                                     codePreview={project.codePreview}
                                     id={project.id}
-                                    updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
+                                    updatedAt={project.updatedAt ? new Date(isNaN(Number(project.updatedAt)) ? project.updatedAt : Number(project.updatedAt)).toLocaleTimeString() : ""}
                                 />
                             ))
                         )}
@@ -203,17 +205,17 @@ export default function Home() {
                             Array.from({ length: 8 }).map((_, index) => (
                                 <ProjectCardSkeleton key={index} />
                             ))
-                        ) : contributedProjects?.getContributedProjectsByUserId?.length > 0 && (
-                            contributedProjects.getContributedProjectsByUserId.map((project: ProjectCardType, index: number) => (
+                        ) : (
+                            contributedProjects?.getContributedProjectsByUserId?.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
-                                    key={index}
+                                    key={project.id || index}
                                     refetchProject={refetchContributedProject}
                                     title={project.projectName}
                                     language={project.projectLanguage}
                                     codePreview={project.codePreview}
                                     id={project.id}
                                     isContributer={true}
-                                    updatedAt={new Date(Number(project.updatedAt)).toLocaleTimeString()}
+                                    updatedAt={project.updatedAt ? new Date(isNaN(Number(project.updatedAt)) ? project.updatedAt : Number(project.updatedAt)).toLocaleTimeString() : ""}
                                 />
                             ))
                         )}

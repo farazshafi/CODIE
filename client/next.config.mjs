@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  allowedDevOrigins: ['192.168.1.2'],
+  allowedDevOrigins: ['192.168.1.2', 'localhost', '127.0.0.1', '0.0.0.0'],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "i.pravatar.cc" },
@@ -12,7 +12,7 @@ const nextConfig = {
   async rewrites() {
     const backend = process.env.API_BASE_URL;
     if (!backend) return [];
-    
+
     return [
       {
         source: "/api/:path*",

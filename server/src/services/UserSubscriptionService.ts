@@ -4,6 +4,7 @@ import { ISubscriptionRepository } from "../repositories/interface/ISubscription
 import { IUserSubscriptionRepository } from "../repositories/interface/IUserSubscriptionRepository";
 import { HttpError } from "../utils/HttpError";
 import { IUserSubscriptionService } from "./interface/IUserSubscriptionService";
+import { ENV } from "../config/env";
 import * as crypto from "crypto";
 import { IUserSubscription } from "../models/UserSubscriptionModel";
 import { IMailService } from "./interface/IMailService";
@@ -66,7 +67,7 @@ export class UserSubscriptionService implements IUserSubscriptionService {
         try {
             const sign = `${razorpay_order_id}|${razorpay_payment_id}`;
             const expectedSign = crypto
-                .createHmac("sha256", process.env.RAZORPAY_SECRET_ID!)
+                .createHmac("sha256", ENV.RAZORPAY_SECRET_ID!)
                 .update(sign, "utf-8")
                 .digest("hex");
 
