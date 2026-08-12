@@ -100,7 +100,7 @@ const Page = () => {
                             Contributor Profile
                         </h1>
                         <p className="text-muted">
-                            Track your contributions and project involvement
+                            Track {condributer.name}'s contributions and project involvement
                         </p>
                     </div>
 

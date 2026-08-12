@@ -122,6 +122,7 @@ export class ProjectController {
       const userId = req.user.id
 
       const projects = await this._projectService.getProjectsByUserId(userId)
+      console.log("projects from controller : ", projects)
 
       const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Project")
       res.status(response.statusCode).json(response)

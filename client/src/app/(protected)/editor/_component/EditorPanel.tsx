@@ -221,6 +221,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
 
     // Always save the code to DB
     debouncedSaveCode(value);
+    console.log("code changed , value: ",value)
 
     // Emit code update only if there is a room
     if (roomId) {

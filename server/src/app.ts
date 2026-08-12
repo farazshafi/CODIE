@@ -2,7 +2,6 @@ import express from "express";
 import userRouter from "./routes/userRouter";
 import projectRouter from "./routes/projectRouter";
 import roomRouter from "./routes/roomRouter";
-import { setupGraphQl } from "./graphql";
 import { errorHandler } from "./middlewares/errorHandler";
 import requestRouter from "./routes/requestRouter";
 import cookieParser from "cookie-parser"
@@ -67,9 +66,6 @@ app.use("/api/execute", executeRouter);
 // Admin Routes
 app.use("/api/admin", adminRouter)
 app.use("/api/payment", paymentRouter)
-
-// GraphQL Setup
-setupGraphQl(app);
 
 // Error Handler
 app.use(errorHandler);

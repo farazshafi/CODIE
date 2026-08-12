@@ -1,22 +1,21 @@
 "use client";
 import Navbar from "@/components/ui/navbar";
-import { FilePlus, HousePlus, Lock, Rocket } from "lucide-react";
+import { FilePlus, HousePlus, Rocket } from "lucide-react";
 import SpotlightCard from "@/components/ui/SpotlightCard/SpotlightCard";
 import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import CreateProjectModal from "./_component/CreateProjectModal";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
-import { useQuery } from "@apollo/client";
-import { GET_CONTRIBUTED_PROJECTS_BY_USER_ID, GET_PROJECTS_BY_USER_ID } from "@/graphql/queries/projectQueries";
 import { ProjectCardType } from "@/types";
 import { toast } from "sonner";
 import ProjectCardSkeleton from "./_component/ProjectCardSkelton";
 import SectionTitle from "./_component/SectionTitle";
 import { useSocket } from "@/context/SocketContext";
+import { getProjectsByUserIdApi, getContributedProjectsApi } from "@/apis/projectApi";
 
 export type NavbarRef = {
     updateNotificationData: () => void;
@@ -32,16 +31,39 @@ export default function Home() {
     const userSubscription = useUserStore((state) => state.subscription)
     const navbarRef = useRef<NavbarRef>(null);
 
+    const [projects, setProjects] = useState<ProjectCardType[]>([]);
+    const [loading, setLoading] = useState(false);
 
-    const { data, loading, error, refetch } = useQuery(GET_PROJECTS_BY_USER_ID, {
-        variables: { userId: userId || "" },
-        skip: !userId,
-    });
+    const [contributedProjectsList, setContributedProjectsList] = useState<ProjectCardType[]>([]);
+    const [contributedLoading, setContributedLoading] = useState(false);
 
-    const { data: contributedProjects, loading: contributedLoading, error: contributeError, refetch: refetchContributedProject } = useQuery(GET_CONTRIBUTED_PROJECTS_BY_USER_ID, {
-        variables: { userId: userId || "" },
-        skip: !userId,
-    });
+    const fetchProjects = useCallback(async () => {
+        if (!userId) return;
+        try {
+            setLoading(true);
+            const response = await getProjectsByUserIdApi();
+            setProjects(response?.data?.projects || response?.data || []);
+        } catch (err) {
+            console.error("Error fetching projects:", err);
+            toast.error("Failed to load projects. Please try again later.");
+        } finally {
+            setLoading(false);
+        }
+    }, [userId]);
+
+    const fetchContributedProjects = useCallback(async () => {
+        if (!userId) return;
+        try {
+            setContributedLoading(true);
+            const response = await getContributedProjectsApi(userId);
+            setContributedProjectsList(response?.data || []);
+        } catch (err) {
+            console.error("Error fetching contributed projects:", err);
+            toast.error("Failed to load contributed projects. Please try again later.");
+        } finally {
+            setContributedLoading(false);
+        }
+    }, [userId]);
 
     useEffect(() => {
         if (!user?.token) {
@@ -49,41 +71,34 @@ export default function Home() {
             router.push("/login");
         }
     }, [user, router]);
-    useEffect(() => {
-        console.log("My Projects:", data?.getProjectsByUserId);
-        console.log("Contributed Projects:", contributedProjects?.getContributedProjectsByUserId);
-    }, [data, contributedProjects]);
 
     useEffect(() => {
-        if (error || contributeError) {
-            console.error("Error fetching projects:", error);
-            toast.error("Failed to load projects. Please try again later.");
-        }
-    }, [error, contributeError]);
+        fetchProjects();
+        fetchContributedProjects();
+    }, [fetchProjects, fetchContributedProjects]);
 
     useEffect(() => {
-        if (!socket) return
-        const fetchProjects = () => {
-            refetchContributedProject()
+        if (!socket) return;
+        const handleInvitationAccepted = () => {
+            fetchContributedProjects();
             if (navbarRef.current) {
-                navbarRef.current.updateNotificationData()
+                navbarRef.current.updateNotificationData();
             }
-        }
+        };
 
         const handleSocketError = (error: string) => {
-            console.log("error in socket", error)
-            toast.error(error || "Socket Error")
-        }
+            console.log("error in socket", error);
+            toast.error(error || "Socket Error");
+        };
 
-        socket.on("invitation-accepted-success", fetchProjects)
-        socket.on("error", handleSocketError)
+        socket.on("invitation-accepted-success", handleInvitationAccepted);
+        socket.on("error", handleSocketError);
 
         return () => {
-            socket.off("invitation-accepted-success", fetchProjects)
-            socket.off("error", handleSocketError)
-
-        }
-    }, [socket, refetchContributedProject])
+            socket.off("invitation-accepted-success", handleInvitationAccepted);
+            socket.off("error", handleSocketError);
+        };
+    }, [socket, fetchContributedProjects]);
 
     if (isRedirecting) {
         return <Loading fullScreen text="Redirecting to Login page" />;
@@ -91,16 +106,16 @@ export default function Home() {
 
     return (
         <div>
-            <Navbar ref={navbarRef} refetchProjects={refetchContributedProject} />
+            <Navbar ref={navbarRef} refetchProjects={fetchContributedProjects} />
             <PageTransitionWrapper>
                 <div className="px-5 py-6">
 
                     {/* Action Buttons */}
                     <div className="flex flex-row justify-center gap-4 sm:gap-6">
                         {
-                            userSubscription && data?.getProjectsByUserId?.length < userSubscription?.maxPrivateProjects ? (
+                            userSubscription && projects.length < userSubscription?.maxPrivateProjects ? (
                                 <CreateProjectModal
-                                    refetchProject={refetch}
+                                    refetchProject={fetchProjects}
                                     title="Create a project"
                                     subtitle="Please enter the details below"
                                     language={true}
@@ -159,7 +174,7 @@ export default function Home() {
 
                     <SectionTitle title="My Projects" tagColor="bg-black" />
 
-                    {data?.getProjectsByUserId?.length < 1 && (
+                    {projects.length < 1 && (
                         <div className="px-6 py-3">
                             <div className="w-full bg-tertiary rounded-md text-center py-10 outline-dashed">
                                 <p className="text-sm sm:text-lg md:text-xl text-white">
@@ -176,15 +191,16 @@ export default function Home() {
                                 <ProjectCardSkeleton key={index} />
                             ))
                         ) : (
-                            data?.getProjectsByUserId?.map((project: ProjectCardType, index: number) => (
+                            projects.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
                                     isContributer={false}
                                     key={project.id || index}
-                                    refetchProject={refetch}
+                                    refetchProject={fetchProjects}
                                     title={project.projectName}
                                     language={project.projectLanguage}
                                     codePreview={project.codePreview}
-                                    id={project.id}
+                                    projectCode={project.projectCode}
+                                    id={project._id ? project._id : project.id}
                                     updatedAt={project.updatedAt ? new Date(isNaN(Number(project.updatedAt)) ? project.updatedAt : Number(project.updatedAt)).toLocaleTimeString() : ""}
                                 />
                             ))
@@ -193,7 +209,7 @@ export default function Home() {
 
                     <SectionTitle title="Contributed proejcts" tagColor="bg-white" />
 
-                    {contributedProjects?.getContributedProjectsByUserId?.length < 1 && (
+                    {contributedProjectsList.length < 1 && (
                         <div className="text-center mx-3 mt-5">
                             <p className="text-sm sm:text-lg md:text-xl text-white outline-dashed px-4 py-2">You Never did Contribution to any project!</p>
                         </div>
@@ -206,13 +222,14 @@ export default function Home() {
                                 <ProjectCardSkeleton key={index} />
                             ))
                         ) : (
-                            contributedProjects?.getContributedProjectsByUserId?.map((project: ProjectCardType, index: number) => (
+                            contributedProjectsList.map((project: ProjectCardType, index: number) => (
                                 <ProjectCard
                                     key={project.id || index}
-                                    refetchProject={refetchContributedProject}
+                                    refetchProject={fetchContributedProjects}
                                     title={project.projectName}
                                     language={project.projectLanguage}
                                     codePreview={project.codePreview}
+                                    projectCode={project.projectCode}
                                     id={project.id}
                                     isContributer={true}
                                     updatedAt={project.updatedAt ? new Date(isNaN(Number(project.updatedAt)) ? project.updatedAt : Number(project.updatedAt)).toLocaleTimeString() : ""}

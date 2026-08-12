@@ -1,0 +1,343 @@
+# CODIE — Project Architecture
+
+## Overview
+
+CODIE is a **full-stack collaborative coding platform** that allows users to create shared rooms, write/run code together in real-time, discover public projects, manage subscriptions, and communicate via messaging.
+
+---
+
+## 1. High-Level System Architecture
+
+```mermaid
+graph TB
+    subgraph Client["🖥️ Client (Next.js 15 + React 19)"]
+        UI["Pages & Components\n(App Router)"]
+        ZS["Zustand Stores"]
+        RQ["TanStack Query\n(REST Caching)"]
+        GQL["Apollo Client\n(GraphQL)"]
+        SIO_C["Socket.IO Client\n(Real-time)"]
+        MON["Monaco Editor\n(Code Input)"]
+    end
+
+    subgraph Server["⚙️ Server (Node.js + Express + TypeScript)"]
+        REST["REST API\n(/api/*)"]
+        GQL_S["GraphQL\n(/graphql)"]
+        SOCK["Socket.IO Server\n(Real-time Events)"]
+        BG["BullMQ\n(Background Jobs)"]
+    end
+
+    subgraph Infrastructure["🏗️ Infrastructure"]
+        MONGO["MongoDB\n(Primary DB)"]
+        REDIS["Redis\n(Pub/Sub + Queue)"]
+        PISTON["Piston / Piston-Lite\n(Code Execution Engine)"]
+        CLOUD["Cloudinary\n(Asset Storage)"]
+        MAIL["Nodemailer\n(Email)"]
+        RAZORPAY["Razorpay\n(Payments)"]
+        FIREBASE["Firebase\n(Auth / Storage)"]
+    end
+
+    subgraph Observability["📊 Observability"]
+        PINO["Pino Logger"]
+        LOKI["Grafana Loki"]
+        PROMTAIL["Promtail"]
+        GRAFANA["Grafana Dashboard"]
+    end
+
+    UI --> ZS
+    UI --> RQ
+    UI --> GQL
+    UI --> SIO_C
+    UI --> MON
+
+    RQ -->|HTTP REST| REST
+    GQL -->|GraphQL Query| GQL_S
+    SIO_C <-->|WebSocket| SOCK
+
+    REST --> MONGO
+    GQL_S --> MONGO
+    SOCK --> REDIS
+    BG --> REDIS
+    BG --> MONGO
+
+    REST --> PISTON
+    REST --> CLOUD
+    REST --> MAIL
+    REST --> RAZORPAY
+    Client --> FIREBASE
+
+    PINO --> LOKI
+    PROMTAIL --> LOKI
+    LOKI --> GRAFANA
+```
+
+---
+
+## 2. Server — Layered Architecture
+
+The server follows a clean **layered / dependency-injection** pattern wired together in [container.ts](file:///d:/projects/Next%20Project/CODIE/server/src/container.ts).
+
+```mermaid
+graph TD
+    R["Routes\n(Express Router)"]
+    MW["Middlewares\n(Auth · Rate-Limit · Logger · Error)"]
+    C["Controllers\n(HTTP Adapters)"]
+    S["Services\n(Business Logic)"]
+    REPO["Repositories\n(Data Access Layer)"]
+    M["Mongoose Models\n(Schema / ODM)"]
+    DB[("MongoDB")]
+
+    R --> MW --> C --> S --> REPO --> M --> DB
+```
+
+### Key Layers
+
+| Layer | Files | Responsibility |
+|---|---|---|
+| **Routes** | `routes/*.ts` | Mount endpoints, attach middlewares |
+| **Middlewares** | `middlewares/` | Auth (JWT), error handler, rate limiter, logger |
+| **Controllers** | `controllers/` | Validate request, call service, send response |
+| **Services** | `services/` | Business rules, orchestrate repositories |
+| **Repositories** | `repositories/` | Abstract Mongoose CRUD operations |
+| **Models** | `models/` | Mongoose schemas & document types |
+
+---
+
+## 3. Data Models (MongoDB)
+
+```mermaid
+erDiagram
+    User ||--o{ Project : "owns"
+    User ||--o{ UserSubscription : "has"
+    User ||--o{ Invitation : "receives"
+    User ||--o{ Request : "sends"
+    User ||--o{ Starred : "stars"
+    User ||--o{ Payment : "makes"
+    User ||--o{ Comment : "writes"
+
+    Project ||--|| Room : "has"
+    Project ||--o{ Discover : "listed in"
+    Project ||--o{ Comment : "has"
+    Project ||--o{ Starred : "starred by"
+
+    Room ||--o{ Message : "contains"
+    Room ||--o{ Invitation : "receives"
+    Room ||--o{ Request : "receives"
+
+    Subscription ||--o{ UserSubscription : "defines"
+    UserSubscription ||--o{ Payment : "billed by"
+
+    User { string id; string email; string avatar }
+    Project { string id; string name; string language }
+    Room { string id; string[] memberIds }
+    Subscription { string id; string tier; number price }
+    UserSubscription { string id; string status; date expiry }
+    Payment { string id; string status; number amount }
+    Message { string id; string content; date createdAt }
+    Comment { string id; string text }
+    Starred { string id }
+    Invite { string id; string status }
+    Request { string id; string status }
+    Discover { string id; boolean isPublic }
+```
+
+---
+
+## 4. Real-Time Socket.IO Layer
+
+```mermaid
+graph LR
+    subgraph Client
+        CE["Code Editor"]
+        Chat["Chat / Messaging"]
+        RM["Room Management"]
+    end
+
+    subgraph SocketManager["Socket.IO Server"]
+        SM["SocketManager.ts\n(initializes namespaces)"]
+        EH["EventHandler.ts"]
+        EE["EditorEvents.ts\n(CRDT-like sync)"]
+        IE["InvitationEvents.ts"]
+        ME["MessageEvents.ts"]
+        RE["RequestEvents.ts"]
+        UE["UserEvents.ts\n(online presence)"]
+    end
+
+    subgraph Redis["Redis Adapter"]
+        PUB["Pub/Sub\n(multi-instance scaling)"]
+    end
+
+    CE <-->|code-change, cursor| EE
+    Chat <-->|send-message| ME
+    RM <-->|invite, kick, join| IE & RE
+
+    SM --> EH --> EE & IE & ME & RE & UE
+    SM <--> PUB
+```
+
+> **Scaling**: The Socket.IO server uses `@socket.io/redis-adapter` so multiple app replicas (2 in production via Docker) share real-time state through Redis pub/sub.
+
+---
+
+## 5. Code Execution Pipeline
+
+```mermaid
+sequenceDiagram
+    participant U as Client (Editor)
+    participant API as /api/execute
+    participant P as Piston Engine
+    U->>API: POST { language, code }
+    API->>P: POST /api/v2/execute
+    P-->>API: { stdout, stderr, exitCode }
+    API-->>U: Execution result
+```
+
+- **Local / Docker**: Uses the official `ghcr.io/engineer-man/piston` container (supports 50+ languages, requires `privileged: true`).
+- **Cloud (Render)**: Uses the custom **Piston-Lite** ([piston/server.js](file:///d:/projects/Next%20Project/CODIE/piston/server.js)) — a lightweight Express server that runs Python & JavaScript via `child_process.exec` with a 5-second timeout.
+
+---
+
+## 6. Background Jobs (BullMQ)
+
+```mermaid
+graph LR
+    SC["Scheduler\n(node-cron)"] -->|enqueue job| Q["BullMQ Queue\n(Redis-backed)"]
+    Q --> W["Worker\n(subscriptionWorker.ts)"]
+    W --> DB[(MongoDB)]
+    W --> MAIL[Nodemailer\nExpiry emails]
+```
+
+- **Queue**: `bullmq/queues/` — defines `subscriptionQueue`
+- **Scheduler**: `bullmq/schedulers/subscriptionScheduler.ts` — fires subscription expiry checks on a cron schedule
+- **Worker**: `bullmq/workers/subscriptionWorker.ts` — processes jobs, expires subscriptions, sends emails
+
+> In production, scheduler & worker run as **separate Docker containers** to avoid blocking the main API process.
+
+---
+
+## 7. GraphQL Layer
+
+| File | Purpose |
+|---|---|
+| [graphql/index.ts](file:///d:/projects/Next%20Project/CODIE/server/src/graphql/index.ts) | Mounts Apollo Server as Express middleware |
+| `graphql/schema/` | GraphQL type definitions |
+| `graphql/resolvers/` | Resolver functions (call services) |
+
+The client uses **Apollo Client** to query/mutate via `/graphql`.
+
+---
+
+## 8. Subscription & Payment Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as Server REST
+    participant RZP as Razorpay
+    participant DB as MongoDB
+
+    U->>API: POST /api/payment/create-order
+    API->>RZP: Create Razorpay order
+    RZP-->>API: orderId + key
+    API-->>U: Payment details
+    U->>RZP: Complete payment (client SDK)
+    RZP-->>U: payment_id, signature
+    U->>API: POST /api/payment/verify
+    API->>API: Verify HMAC signature
+    API->>DB: Create Payment + UserSubscription records
+    API-->>U: Subscription activated
+```
+
+---
+
+## 9. Deployment Topology
+
+### Docker Compose (Self-hosted / Local Prod)
+
+```mermaid
+graph TD
+    subgraph Docker Network ["Docker bridge network: backend"]
+        FE["frontend\nNext.js :3000"]
+        NGINX["nginx\n:5000 (load balancer)"]
+        APP1["app replica 1\n:5000"]
+        APP2["app replica 2\n:5000"]
+        WORKER["worker\n(BullMQ consumer)"]
+        SCHED["scheduler\n(BullMQ producer)"]
+        REDIS_D["redis:alpine"]
+        PISTON_D["piston\n:2000"]
+        LOKI_D["grafana/loki\n:3100"]
+        PROMTAIL_D["grafana/promtail"]
+        GRAFANA_D["grafana\n:3001"]
+    end
+
+    Internet -->|port 3000| FE
+    Internet -->|port 5000| NGINX
+    Internet -->|port 3001| GRAFANA_D
+    NGINX --> APP1 & APP2
+    APP1 <--> REDIS_D
+    APP2 <--> REDIS_D
+    APP1 --> PISTON_D
+    WORKER --> REDIS_D
+    SCHED --> REDIS_D
+    PROMTAIL_D --> LOKI_D --> GRAFANA_D
+```
+
+### Kubernetes (k8s/)
+
+| Manifest | Purpose |
+|---|---|
+| [backend-deployment.yaml](file:///d:/projects/Next%20Project/CODIE/k8s/backend-deployment.yaml) | Express server Deployment |
+| [backend-service.yaml](file:///d:/projects/Next%20Project/CODIE/k8s/backend-service.yaml) | ClusterIP Service for backend |
+| [frontend-deployment.yaml](file:///d:/projects/Next%20Project/CODIE/k8s/frontend-deployment.yaml) | Next.js Deployment |
+| [frontend-service.yaml](file:///d:/projects/Next%20Project/CODIE/k8s/frontend-service.yaml) | LoadBalancer / NodePort for frontend |
+
+---
+
+## 10. Client — Application Structure
+
+```
+client/src/
+├── app/
+│   ├── (auth)/           # Login, Register, OTP pages
+│   ├── (protected)/      # Authenticated pages
+│   │   ├── dashboard/    # User's projects overview
+│   │   ├── editor/       # Collaborative code editor
+│   │   ├── discover/     # Browse public projects
+│   │   ├── profile/      # User profile & settings
+│   │   ├── plan/         # Subscription plans
+│   │   ├── starred/      # Starred projects
+│   │   └── contributor/  # Contributor management
+│   └── (admin)/          # Admin dashboard
+├── components/           # Shared UI components (Radix + shadcn/ui)
+├── apis/                 # Axios API call functions
+├── graphql/              # Apollo queries & mutations
+├── hooks/                # Custom React hooks
+├── stores/               # Zustand global state
+├── context/              # React context providers
+├── types/                # TypeScript interfaces
+└── lib/                  # Utility helpers
+```
+
+---
+
+## 11. Tech Stack Summary
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | Next.js 15, React 19, TypeScript, TailwindCSS v4 |
+| **UI Components** | Radix UI, shadcn/ui, Lucide Icons, Framer Motion |
+| **State Management** | Zustand, TanStack Query, Apollo Client |
+| **Code Editor** | Monaco Editor (@monaco-editor/react) |
+| **Backend** | Node.js, Express 4, TypeScript |
+| **Database** | MongoDB + Mongoose ODM |
+| **Cache / Queue** | Redis (ioredis), BullMQ |
+| **Real-time** | Socket.IO 4 (client + server) |
+| **API Style** | REST + GraphQL (Apollo Server) |
+| **Auth** | JWT (jsonwebtoken) + bcryptjs + Firebase |
+| **Payments** | Razorpay |
+| **Email** | Nodemailer |
+| **File Storage** | Cloudinary |
+| **Code Execution** | Piston (Docker) / Piston-Lite (Cloud) |
+| **Logging** | Pino → Loki → Grafana |
+| **Containerization** | Docker + Docker Compose |
+| **Orchestration** | Kubernetes (k8s/) |
+| **Reverse Proxy** | Nginx |

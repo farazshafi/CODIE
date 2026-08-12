@@ -35,13 +35,13 @@ const CommentSection = () => {
     useEffect(() => {
         if (!projectId) return
         getAllComments(projectId)
-        
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (
-        <div className='flex flex-col gap-y-4'>
-            <div className='flex justify-between items-center'>
+        <div className='flex flex-col gap-y-4 flex-1 min-h-0'>
+            <div className='flex justify-between items-center shrink-0'>
                 <div className="flex gap-x-3">
                     <MessagesSquare />
                     <p className='font-semibold text-xl'>Share your Thoughts</p>
@@ -51,7 +51,7 @@ const CommentSection = () => {
                 </div>
             </div>
 
-            <div className='w-full border-gray-200 border rounded-md text-black px-3 py-2 max-h-[150px] overflow-auto'>
+            <div className='w-full border-gray-200 border rounded-md text-black px-3 py-2 flex-1 min-h-0 overflow-auto'>
                 {comments.length < 1 && (<p>No Comments Yet.</p>)}
                 {comments.map((comment, idx) => (
                     <div key={idx} className="mb-3">

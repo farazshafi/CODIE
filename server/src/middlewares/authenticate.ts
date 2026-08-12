@@ -6,7 +6,7 @@ import { HttpStatusCode } from "../utils/httpStatusCodes"
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
-
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Unauthorized" })
         return

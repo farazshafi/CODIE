@@ -18,10 +18,6 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${backend.replace(/\/$/, "")}/:path*`,
       },
-      {
-        source: "/graphql",
-        destination: `${backend.replace(/\/api\/?$/, "").replace(/\/$/, "")}/graphql`,
-      },
     ];
   },
 

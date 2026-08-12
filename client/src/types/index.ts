@@ -37,6 +37,8 @@ export interface ProjectCardType {
     projectLanguage: string;
     createdAt: Date;
     updatedAt: Date;
+    _id?: string;
+    projectCode?: string;
     id: string;
     codePreview?: string[];
 }

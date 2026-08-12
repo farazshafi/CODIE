@@ -12,7 +12,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.13.8",
     "@hookform/resolvers": "^5.0.1",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-alert-dialog": "^1.1.13",
@@ -37,7 +36,6 @@
     "emoji-picker-react": "^4.13.2",
     "firebase": "^11.6.0",
     "framer-motion": "^11.18.2",
-    "graphql": "^16.10.0",
     "input-otp": "^1.4.2",
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",

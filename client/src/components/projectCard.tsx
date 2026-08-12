@@ -19,14 +19,14 @@ type ProjectCardProps = {
     title: string;
     id: string;
     language: string;
-    codePreview?: string[];
-    refetchProject(): void
-    // thumbnail: string;
+    codePreview?: string[] | string;
+    projectCode?: string;
+    refetchProject(): void;
     updatedAt: string;
-    isContributer: boolean
+    isContributer: boolean;
 };
 
-const ProjectCard = ({ title, language, codePreview = [], updatedAt, id, refetchProject, isContributer = false }: ProjectCardProps) => {
+const ProjectCard = ({ title, language, codePreview, projectCode, updatedAt, id, refetchProject, isContributer = false }: ProjectCardProps) => {
 
     const router = useRouter()
     const user = useUserStore((state) => state.user)
@@ -77,7 +77,15 @@ const ProjectCard = ({ title, language, codePreview = [], updatedAt, id, refetch
         shareDiscover(projectId)
     }
 
-    const previewLines = codePreview.slice(0, 5)
+    const rawLines = Array.isArray(codePreview) && codePreview.length > 0
+        ? codePreview
+        : typeof projectCode === 'string'
+            ? projectCode.split(/\r?\n/)
+            : typeof codePreview === 'string'
+                ? codePreview.split(/\r?\n/)
+                : [];
+
+    const previewLines = rawLines.slice(0, 5);
 
     return (
         <div className="rounded-b-lg mt-5 text-white w-full transform transition-transform duration-300 hover:scale-105">

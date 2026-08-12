@@ -74,13 +74,18 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
         }
     });
 
+    const filteredContributors = contributors.filter((contributor) => contributor.role !== "owner");
+
     useEffect(() => {
-        if (user?.id && projectId) {
-            getSubscription(user.id);
-            getContributers(projectId)
+        const targetProjectId = project?.projectId?._id || projectId;
+        if (targetProjectId) {
+            if (user?.id) {
+                getSubscription(user.id);
+            }
+            getContributers(targetProjectId);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.id]);
+    }, [user?.id, project?.projectId?._id, projectId]);
 
     useEffect(() => {
         if (!isAiExplanationOn) {
@@ -106,13 +111,13 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="bg-white w-[95vw] max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] h-[90vh] max-h-[90vh] p-4 overflow-hidden">
+            <DialogContent className="bg-white w-[95vw] max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] h-[90vh] max-h-[90vh] p-4 overflow-hidden flex flex-col">
                 <VisuallyHidden>
                     <DialogTitle>Project Code Modal</DialogTitle>
                 </VisuallyHidden>
-                <div className="flex flex-col md:flex-row gap-4 h-full">
-                    <div className="flex flex-col w-full md:w-[70%] gap-y-3">
-                        <div className="rounded-lg p-4 border border-gray-200">
+                <div className="flex flex-col md:flex-row gap-4 h-full flex-1 min-h-0 overflow-hidden">
+                    <div className="flex flex-col w-full md:w-[70%] gap-y-3 h-full flex-1 min-h-0 overflow-hidden">
+                        <div className="rounded-lg p-4 border border-gray-200 shrink-0">
                             <div className="flex items-center gap-x-3">
                                 <Avatar>
                                     <AvatarImage src="https://github.com/shadcn.png" />
@@ -164,7 +169,7 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
                     </div>
 
                     {/* Right Sidebar */}
-                    <div className="flex flex-col gap-y-4 w-full md:w-[30%] bg-gray-100 rounded-lg p-4 overflow-auto border border-gray-200">
+                    <div className="flex flex-col gap-y-4 w-full md:w-[30%] bg-gray-100 rounded-lg p-4 overflow-auto border border-gray-200 shrink-0 md:shrink">
                         <div>
 
                             {/* Contributors */}
@@ -173,14 +178,13 @@ const SnippetModal: React.FC<SnippetModalProps> = ({ open, onClose, project, own
                                     <UsersRound />
                                     <p className="font-medium">Contributors</p>
                                     <div className="flex items-center justify-center p-1 w-[30px] h-[30px] rounded-full bg-green-600 text-white text-sm">
-                                        {contributors.length < 1 ? 0 : contributors.length - 1}
+                                        {filteredContributors.length}
                                     </div>
                                 </div>
 
                                 {/* Contributors Grid */}
                                 <div className="grid grid-cols-2 gap-4 mt-4">
-                                    {loadingContributers ? <p>Loading...</p> : contributors
-                                        .filter((contributor) => contributor.role !== "owner")
+                                    {loadingContributers ? <p>Loading...</p> : filteredContributors
                                         .map((contributor) => (
                                             <Link href={`/contributor/${contributor.user._id}`} key={contributor._id}>
                                                 <div className="flex items-center gap-x-2 bg-gray-600 p-2 rounded-lg text-white cursor-pointer">
