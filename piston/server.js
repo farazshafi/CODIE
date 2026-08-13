@@ -13,7 +13,7 @@ app.use(express.json());
 app.post('/api/v2/execute', (req, res) => {
     const { language, files } = req.body;
     console.log(`[Piston-Lite] Received execution request for: ${language}`);
-    
+
     if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files provided" });
     }
@@ -23,20 +23,26 @@ app.post('/api/v2/execute', (req, res) => {
     let command = '';
     let filePath = '';
 
+    const os = require('os');
+    const tempFolder = path.join(os.tmpdir(), 'piston-lite');
+    if (!fs.existsSync(tempFolder)) {
+        fs.mkdirSync(tempFolder, { recursive: true });
+    }
+
     // Map language to command
     if (language === 'python' || language === 'py') {
-        filePath = path.join('/tmp', `${fileName}.py`);
-        command = `python3 ${filePath}`;
+        filePath = path.join(tempFolder, `${fileName}.py`);
+        const pyCmd = process.platform === 'win32' ? 'python' : 'python3';
+        command = `${pyCmd} "${filePath}"`;
     } else if (language === 'javascript' || language === 'js') {
-        filePath = path.join('/tmp', `${fileName}.js`);
-        command = `node ${filePath}`;
+        filePath = path.join(tempFolder, `${fileName}.js`);
+        command = `node "${filePath}"`;
     } else if (language === 'typescript' || language === 'ts') {
-        filePath = path.join('/tmp', `${fileName}.ts`);
-        // Simple TS execution via ts-node if installed, or just node for JS-compatible TS
-        command = `node ${filePath}`; 
+        filePath = path.join(tempFolder, `${fileName}.ts`);
+        command = `node "${filePath}"`;
     } else {
-        return res.status(400).json({ 
-            message: `Language '${language}' not supported in Lite mode on Render.` 
+        return res.status(400).json({
+            message: `Language '${language}' not supported in Lite mode.`
         });
     }
 
@@ -47,7 +53,7 @@ app.post('/api/v2/execute', (req, res) => {
         exec(command, { timeout: 5000 }, (error, stdout, stderr) => {
             // Cleanup temp file
             if (fs.existsSync(filePath)) {
-                try { fs.unlinkSync(filePath); } catch (e) {}
+                try { fs.unlinkSync(filePath); } catch (e) { }
             }
 
             res.json({
