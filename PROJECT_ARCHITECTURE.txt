@@ -1,0 +1,127 @@
+================================================================================
+                        CODIE - PROJECT ARCHITECTURE
+================================================================================
+
+1. SYSTEM OVERVIEW
+--------------------------------------------------------------------------------
+CODIE is a real-time collaborative development environment designed for modern 
+pair programming, code sharing, instant code execution, and project management. 
+The system follows a microservice-ready modular architecture featuring a Next.js 15 
+frontend, a Node.js/Express backend with Socket.io, a dedicated Piston-based code 
+execution engine, Redis state buffering & message queue, and MongoDB primary storage.
+
+
+2. ARCHITECTURAL LAYERS & TECH STACK
+--------------------------------------------------------------------------------
+
+A. FRONTEND CLIENT (client/)
+   - Framework: Next.js 15 (App Router), React 19
+   - Language: TypeScript 5
+   - UI & Styling: Tailwind CSS 4, Radix UI primitives, Framer Motion
+   - State Management: Zustand (client state), React Query / TanStack (server state)
+   - Code Editor Integration: Monaco Editor (@monaco-editor/react)
+   - Real-time Client: Socket.io-client
+   - Communication APIs: Axios REST client
+
+B. BACKEND SERVER (server/)
+   - Runtime: Node.js (v20+), Express.js framework
+   - Language: TypeScript 5 with Dependency Injection container (Awilix)
+   - API Paradigm: RESTful Endpoints (Express Controllers & Services)
+   - Database / ORM: MongoDB via Mongoose ORM
+   - Relational / Analytics Storage: Neon (PostgreSQL integration option)
+   - Real-Time Layer: Socket.io (using @socket.io/redis-adapter for horizontal scaling)
+   - Async Job Queue: BullMQ with Redis
+   - Logging & Diagnostics: Pino & Pino-HTTP structured logger
+   - Scheduled Tasks: Node-cron scheduler
+
+C. CODE EXECUTION SERVICE (piston/)
+   - Dedicated sandboxed code execution runner (Piston API wrapper/engine)
+   - Receives code execution jobs, runs them safely, and streams stdout/stderr output
+
+D. DATA & MESSAGING LAYER
+   - Primary Database: MongoDB (Users, Projects, Snippets, Subscriptions, Comments)
+   - In-Memory Cache & Message Broker: Redis (Session caching, Socket.iopub/sub adapter, BullMQ queue backend)
+
+E. CONTAINERIZATION & DEPLOYMENT (k8s / Docker)
+   - Docker & Docker Compose configuration for container orchestration
+   - Kubernetes manifests (frontend-deployment, frontend-service, backend-deployment, backend-service)
+
+
+3. CORE SUBSYSTEMS & WORKFLOWS
+--------------------------------------------------------------------------------
+
+A. Real-Time Collaboration Subsystem
+   - Clients connect via Socket.io to the server socket manager.
+   - Project sessions rooming: Users join specific project rooms.
+   - Operational Transformations / Real-time sync: Editor delta changes, cursor tracking, presence management broadcasted across room participants.
+   - Redis Pub/Sub adapter guarantees real-time synchronization across multiple scaled backend instances.
+
+B. Code Execution Subsystem
+   - Users submit code snippets from the Monaco editor.
+   - Requests are handled by the execution controller and queued/processed via BullMQ or routed directly to the Piston engine container.
+   - Output logs (stdout/stderr/errors) are streamed back to the frontend client.
+
+C. User Authentication & Authorization
+   - Multi-provider authentication supporting Firebase Auth and JWT tokens.
+   - Role-Based Access Control (RBAC) enforced via server middleware layers.
+
+D. Billing & Subscription Subsystem
+   - Premium tier access integrated with Razorpay payment processing.
+   - Webhook processing for subscription updates and user quota management.
+
+
+4. DIRECTORY STRUCTURE SUMMARY
+--------------------------------------------------------------------------------
+
+CODIE/
+├── client/                     # Next.js 15 Frontend
+│   ├── public/                 # Static assets & public images
+│   └── src/
+│       ├── apis/               # REST API call definitions
+│       ├── app/                # Next.js App Router pages & layouts
+│       ├── components/         # Modular React UI components & editor
+│       ├── context/            # Global React context providers
+│       ├── hooks/              # Custom React hooks
+│       ├── lib/                # Shared utilities & client configs
+│       ├── stores/             # Zustand state management stores
+│       └── types/              # Frontend TypeScript definitions
+│
+├── server/                     # Express & Node.js Backend
+│   └── src/
+│       ├── bullmq/             # Job queue processors & worker setups
+│       ├── config/             # Environment, DB, & Redis configurations
+│       ├── controllers/        # Express HTTP request handlers
+│       ├── db/                 # Database connection initializers
+│       ├── middlewares/        # Auth, CORS, & error handling middlewares
+│       ├── models/             # Mongoose schemas & data models
+│       ├── repositories/       # Data Access Layer (DAL) abstractions
+│       ├── routes/             # API endpoint routing definitions
+│       ├── services/           # Core business logic services
+│       ├── sockets/            # Socket.io event handlers & room logic
+│       ├── types/              # Backend TypeScript definitions
+│       ├── utils/              # Helper functions & logger utilities
+│       ├── validation/         # Request data validation schemas
+│       ├── app.ts              # Express application setup
+│       ├── container.ts        # Awilix DI container registration
+│       ├── server.ts           # HTTP & Socket server bootstrap
+│       └── worker.ts           # BullMQ background process runner
+│
+├── piston/                     # Isolated code execution engine service
+│   ├── Dockerfile              # Container spec for Piston runner
+│   └── server.js               # Execution handler script
+│
+└── k8s/                        # Kubernetes deployment & service configs
+    ├── backend-deployment.yaml
+    ├── backend-service.yaml
+    ├── frontend-deployment.yaml
+    └── frontend-service.yaml
+
+
+5. KEY SCALABILITY & DESIGN PATTERNS
+--------------------------------------------------------------------------------
+- Dependency Injection: Awilix IoC container decouples server controllers, services, and repositories.
+- Repository Pattern: Abstraction of database operations enabling clean unit testing and data layer portability.
+- Event-Driven Architecture: Socket.io + Redis Pub/Sub for real-time collaboration.
+- Producer-Consumer Queue Pattern: BullMQ for handling heavy async background operations without blocking the main event loop.
+- Horizontal Scalability: Stateless backend instances backed by Redis state store, ready for Kubernetes autoscaling.
+================================================================================
