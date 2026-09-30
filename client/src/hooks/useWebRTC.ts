@@ -23,6 +23,11 @@ const ICE_SERVERS: RTCConfiguration = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+        { urls: "stun:stun.services.mozilla.com" },
+        { urls: "stun:global.stun.twilio.com:3478" },
     ],
 };
 
@@ -88,8 +93,9 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     }, [socket, projectId, userId]);
 
     const getOrCreatePeerConnection = useCallback((peerSocketId: string, peerUserId: string) => {
-        if (peerConnectionsRef.current.has(peerSocketId)) {
-            return peerConnectionsRef.current.get(peerSocketId)!;
+        const peerKey = peerUserId || peerSocketId;
+        if (peerConnectionsRef.current.has(peerKey)) {
+            return peerConnectionsRef.current.get(peerKey)!;
         }
 
         const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -106,6 +112,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
                     projectId,
                     senderUserId: userId,
                     targetSocketId: peerSocketId,
+                    targetUserId: peerUserId,
                     candidate: event.candidate,
                 });
             }
@@ -113,7 +120,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
 
         pc.oniceconnectionstatechange = () => {
             if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
-                console.warn(`ICE connection state for peer ${peerSocketId} is ${pc.iceConnectionState}. Restarting ICE.`);
+                console.warn(`ICE connection state for peer ${peerKey} is ${pc.iceConnectionState}. Restarting ICE.`);
                 pc.restartIce();
             }
         };
@@ -121,21 +128,22 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         pc.ontrack = (event) => {
             const [remoteStream] = event.streams;
             if (remoteStream) {
-                let audioElement = remoteAudioElementsRef.current.get(peerSocketId);
+                let audioElement = remoteAudioElementsRef.current.get(peerKey);
                 if (!audioElement) {
                     audioElement = new Audio();
                     audioElement.autoplay = true;
-                    remoteAudioElementsRef.current.set(peerSocketId, audioElement);
+                    remoteAudioElementsRef.current.set(peerKey, audioElement);
                 }
                 audioElement.srcObject = remoteStream;
             }
         };
 
-        peerConnectionsRef.current.set(peerSocketId, pc);
+        peerConnectionsRef.current.set(peerKey, pc);
         return pc;
     }, [socket, projectId, userId]);
 
     const createOfferToPeer = useCallback(async (peerSocketId: string, peerUserId: string) => {
+        if (!peerUserId || peerUserId === userId) return;
         const pc = getOrCreatePeerConnection(peerSocketId, peerUserId);
         try {
             const offer = await pc.createOffer();
@@ -145,11 +153,12 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
                     projectId,
                     senderUserId: userId,
                     targetSocketId: peerSocketId,
+                    targetUserId: peerUserId,
                     offer,
                 });
             }
         } catch (error) {
-            console.error("Error creating WebRTC offer to peer:", peerSocketId, error);
+            console.error("Error creating WebRTC offer to peer:", peerUserId, error);
         }
     }, [getOrCreatePeerConnection, socket, projectId, userId]);
 
@@ -194,7 +203,6 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             localStreamRef.current = stream;
 
-            // Viewers join in listen-only mode by default
             if (userRole === "viewer") {
                 stream.getAudioTracks().forEach((t) => (t.enabled = false));
                 setIsMuted(true);
@@ -235,7 +243,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         }
     }, [isMuted]);
 
-    // Force Mute self (called when Host mutes user or mutes all)
+    // Force Mute self
     const forceMuteSelf = useCallback(() => {
         if (localStreamRef.current) {
             localStreamRef.current.getAudioTracks().forEach((track) => {
@@ -276,13 +284,14 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         const handleHuddleParticipants = (participants: HuddleParticipant[]) => {
             setHuddleParticipants(participants);
             participants.forEach((p) => {
-                if (p.userId !== userId && p.socketId) {
+                if (p.userId && p.userId !== userId) {
                     createOfferToPeer(p.socketId, p.userId);
                 }
             });
         };
 
         const handleUserJoinedHuddle = (data: { userId: string; socketId: string; userName: string }) => {
+            if (data.userId === userId) return;
             setHuddleParticipants((prev) => {
                 if (prev.some((p) => p.userId === data.userId)) return prev;
                 return [...prev, data];
@@ -290,22 +299,27 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         };
 
         const handleUserLeftHuddle = (data: { userId: string; socketId: string }) => {
+            if (data.userId === userId) return;
             setHuddleParticipants((prev) => prev.filter((p) => p.userId !== data.userId));
             setRaisedHandUserIds((prev) => prev.filter((id) => id !== data.userId));
-            const pc = peerConnectionsRef.current.get(data.socketId);
+            const peerKey = data.userId || data.socketId;
+            const pc = peerConnectionsRef.current.get(peerKey);
             if (pc) {
                 pc.close();
-                peerConnectionsRef.current.delete(data.socketId);
+                peerConnectionsRef.current.delete(peerKey);
             }
-            const audio = remoteAudioElementsRef.current.get(data.socketId);
+            const audio = remoteAudioElementsRef.current.get(peerKey);
             if (audio) {
                 audio.pause();
                 audio.srcObject = null;
-                remoteAudioElementsRef.current.delete(data.socketId);
+                remoteAudioElementsRef.current.delete(peerKey);
             }
         };
 
-        const handleOffer = async (data: { offer: RTCSessionDescriptionInit; senderUserId: string; senderSocketId: string }) => {
+        const handleOffer = async (data: { offer: RTCSessionDescriptionInit; senderUserId: string; senderSocketId: string; targetUserId?: string }) => {
+            if (data.senderUserId === userId) return;
+            if (data.targetUserId && data.targetUserId !== userId) return;
+
             const pc = getOrCreatePeerConnection(data.senderSocketId, data.senderUserId);
             try {
                 await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -315,6 +329,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
                     projectId,
                     senderUserId: userId,
                     targetSocketId: data.senderSocketId,
+                    targetUserId: data.senderUserId,
                     answer,
                 });
             } catch (err) {
@@ -322,8 +337,12 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             }
         };
 
-        const handleAnswer = async (data: { answer: RTCSessionDescriptionInit; senderSocketId: string }) => {
-            const pc = peerConnectionsRef.current.get(data.senderSocketId);
+        const handleAnswer = async (data: { answer: RTCSessionDescriptionInit; senderUserId: string; senderSocketId: string; targetUserId?: string }) => {
+            if (data.senderUserId === userId) return;
+            if (data.targetUserId && data.targetUserId !== userId) return;
+
+            const peerKey = data.senderUserId || data.senderSocketId;
+            const pc = peerConnectionsRef.current.get(peerKey);
             if (pc) {
                 try {
                     await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -333,8 +352,12 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             }
         };
 
-        const handleIceCandidate = async (data: { candidate: RTCIceCandidateInit; senderSocketId: string }) => {
-            const pc = peerConnectionsRef.current.get(data.senderSocketId);
+        const handleIceCandidate = async (data: { candidate: RTCIceCandidateInit; senderUserId: string; senderSocketId: string; targetUserId?: string }) => {
+            if (data.senderUserId === userId) return;
+            if (data.targetUserId && data.targetUserId !== userId) return;
+
+            const peerKey = data.senderUserId || data.senderSocketId;
+            const pc = peerConnectionsRef.current.get(peerKey);
             if (pc) {
                 try {
                     await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -345,6 +368,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         };
 
         const handleSpeakingState = (data: { userId: string; isSpeaking: boolean }) => {
+            if (data.userId === userId) return;
             setHuddleParticipants((prev) =>
                 prev.map((p) => (p.userId === data.userId ? { ...p, isSpeaking: data.isSpeaking } : p))
             );

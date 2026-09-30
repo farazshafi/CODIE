@@ -37,28 +37,42 @@ export class WebRTCEvents implements IEventHandler {
         socket.on('webrtc:answer', (data: WebRTCSignalData) => this._handleAnswer(data, socket));
         socket.on('webrtc:ice-candidate', (data: WebRTCSignalData) => this._handleIceCandidate(data, socket));
         socket.on('webrtc:speaking-state', (data: { projectId: string; userId: string; isSpeaking: boolean }) => {
-            socket.to(data.projectId).emit('webrtc:speaking-state', data);
+            if (data.projectId) {
+                socket.join(data.projectId);
+                socket.to(data.projectId).emit('webrtc:speaking-state', data);
+            }
         });
 
         // Moderation & Hand Raise
         socket.on('webrtc:raise-hand', (data: { projectId: string; userId: string; userName?: string }) => {
-            socket.to(data.projectId).emit('webrtc:hand-raised', data);
+            if (data.projectId) {
+                socket.join(data.projectId);
+                socket.to(data.projectId).emit('webrtc:hand-raised', data);
+            }
         });
 
         socket.on('webrtc:lower-hand', (data: { projectId: string; userId: string }) => {
-            socket.to(data.projectId).emit('webrtc:hand-lowered', data);
+            if (data.projectId) {
+                socket.join(data.projectId);
+                socket.to(data.projectId).emit('webrtc:hand-lowered', data);
+            }
         });
 
         socket.on('webrtc:mute-peer', (data: { projectId: string; targetUserId: string; targetSocketId?: string }) => {
-            if (data.targetSocketId) {
-                this.io.to(data.targetSocketId).emit('webrtc:force-muted', data);
-            } else {
+            if (data.projectId) {
+                socket.join(data.projectId);
+                if (data.targetSocketId) {
+                    this.io.to(data.targetSocketId).emit('webrtc:force-muted', data);
+                }
                 socket.to(data.projectId).emit('webrtc:force-muted', data);
             }
         });
 
         socket.on('webrtc:mute-all', (data: { projectId: string }) => {
-            socket.to(data.projectId).emit('webrtc:force-muted-all', data);
+            if (data.projectId) {
+                socket.join(data.projectId);
+                socket.to(data.projectId).emit('webrtc:force-muted-all', data);
+            }
         });
     }
 
@@ -72,9 +86,12 @@ export class WebRTCEvents implements IEventHandler {
 
     private async _handleJoinHuddle(data: JoinHuddleData, socket: Socket): Promise<void> {
         const { projectId, userId, userName } = data;
+        if (!projectId || !userId) return;
+
         const huddleKey = `huddle:${projectId}`;
 
-        // Save socket data context
+        // Ensure socket joins socket.io project room
+        socket.join(projectId);
         socket.data.projectId = projectId;
         socket.data.userId = userId;
 
@@ -102,8 +119,9 @@ export class WebRTCEvents implements IEventHandler {
 
     private async _handleLeaveHuddle(data: LeaveHuddleData, socket: Socket): Promise<void> {
         const { projectId, userId } = data;
-        const huddleKey = `huddle:${projectId}`;
+        if (!projectId || !userId) return;
 
+        const huddleKey = `huddle:${projectId}`;
         await redis.hdel(huddleKey, userId);
 
         socket.to(projectId).emit('webrtc:user-left-huddle', {
@@ -113,53 +131,62 @@ export class WebRTCEvents implements IEventHandler {
     }
 
     private _handleOffer(data: WebRTCSignalData, socket: Socket): void {
-        const { targetSocketId, offer, senderUserId, projectId } = data;
+        const { targetSocketId, targetUserId, offer, senderUserId, projectId } = data;
+        if (!projectId) return;
+
+        socket.join(projectId);
+
+        const signalPayload = {
+            offer,
+            senderUserId,
+            senderSocketId: socket.id,
+            targetUserId,
+            targetSocketId
+        };
+
         if (targetSocketId) {
-            this.io.to(targetSocketId).emit('webrtc:offer', {
-                offer,
-                senderUserId,
-                senderSocketId: socket.id
-            });
-        } else {
-            socket.to(projectId).emit('webrtc:offer', {
-                offer,
-                senderUserId,
-                senderSocketId: socket.id
-            });
+            this.io.to(targetSocketId).emit('webrtc:offer', signalPayload);
         }
+        socket.to(projectId).emit('webrtc:offer', signalPayload);
     }
 
     private _handleAnswer(data: WebRTCSignalData, socket: Socket): void {
-        const { targetSocketId, answer, senderUserId, projectId } = data;
+        const { targetSocketId, targetUserId, answer, senderUserId, projectId } = data;
+        if (!projectId) return;
+
+        socket.join(projectId);
+
+        const signalPayload = {
+            answer,
+            senderUserId,
+            senderSocketId: socket.id,
+            targetUserId,
+            targetSocketId
+        };
+
         if (targetSocketId) {
-            this.io.to(targetSocketId).emit('webrtc:answer', {
-                answer,
-                senderUserId,
-                senderSocketId: socket.id
-            });
-        } else {
-            socket.to(projectId).emit('webrtc:answer', {
-                answer,
-                senderUserId,
-                senderSocketId: socket.id
-            });
+            this.io.to(targetSocketId).emit('webrtc:answer', signalPayload);
         }
+        socket.to(projectId).emit('webrtc:answer', signalPayload);
     }
 
     private _handleIceCandidate(data: WebRTCSignalData, socket: Socket): void {
-        const { targetSocketId, candidate, senderUserId, projectId } = data;
+        const { targetSocketId, targetUserId, candidate, senderUserId, projectId } = data;
+        if (!projectId) return;
+
+        socket.join(projectId);
+
+        const signalPayload = {
+            candidate,
+            senderUserId,
+            senderSocketId: socket.id,
+            targetUserId,
+            targetSocketId
+        };
+
         if (targetSocketId) {
-            this.io.to(targetSocketId).emit('webrtc:ice-candidate', {
-                candidate,
-                senderUserId,
-                senderSocketId: socket.id
-            });
-        } else {
-            socket.to(projectId).emit('webrtc:ice-candidate', {
-                candidate,
-                senderUserId,
-                senderSocketId: socket.id
-            });
+            this.io.to(targetSocketId).emit('webrtc:ice-candidate', signalPayload);
         }
+        socket.to(projectId).emit('webrtc:ice-candidate', signalPayload);
     }
 }
