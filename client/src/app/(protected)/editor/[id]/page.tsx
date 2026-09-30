@@ -12,6 +12,8 @@ import ConsolePanel from "../_component/ConsolePanel"
 import OutputPanel from "../_component/OutputPanel"
 import CollaborationSection from "../_component/CollaborationSection"
 
+import MobileEditorBlocker from "../_component/MobileEditorBlocker"
+
 const Page = () => {
     const [isMobile, setIsMobile] = useState(false)
     const [showChat, setShowChat] = useState(false)
@@ -72,6 +74,10 @@ const Page = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    if (isMobile) {
+        return <MobileEditorBlocker />
+    }
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Header
@@ -85,70 +91,40 @@ const Page = () => {
             />
 
             <div className="flex-1 overflow-hidden">
-                {isMobile ? (
-                    <div className="w-full h-screen">
-                        <Split
-                            direction="vertical"
-                            className="flex flex-col h-screen"
-                            minSize={200}
-                            gutterSize={16}
-                            sizes={[70, 30]} // initial sizes
-                            expandToMin={false}
-                        >
-                            {/* Top (fixed-ish) */}
-                            <div className="overflow-hidden">
-                                <div className="bg-[#1e1e2e] p-3 border-b border-white/5 flex items-center justify-between">
-                                    <CollaborationSection />
-                                </div>
-                                <ConsolePanel
-                                    id={id as string}
-                                    onReset={handleReset}
-                                    onRun={handleRun}
-                                />
-                            </div>
-
-                            {/* Bottom (output - resizable focus) */}
-                            <div className="overflow-auto">
-                                <OutputPanel />
-                            </div>
-                        </Split>
-                    </div>
-                ) : (
-                    <Split
-                        direction="horizontal"
-                        sizes={[showChat ? 60 : 70, showChat ? 40 : 30]}
-                        minSize={300}
-                        gutterSize={4}
-                        className="flex h-full w-full"
-                    >
-                        {/* LEFT SIDE (Console + maybe Output) */}
-                        <div className="h-full w-full overflow-hidden">
-                            {showChat ? (
-                                <Split
-                                    direction="vertical"
-                                    sizes={[50, 50]}
-                                    minSize={100}
-                                    gutterSize={4}
-                                    className="flex flex-col h-full w-full"
-                                >
-                                    <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
-                                    <OutputPanel />
-                                </Split>
-                            ) : (
+                <Split
+                    direction="horizontal"
+                    sizes={[showChat ? 60 : 70, showChat ? 40 : 30]}
+                    minSize={300}
+                    gutterSize={4}
+                    className="flex h-full w-full"
+                >
+                    {/* LEFT SIDE (Console + maybe Output) */}
+                    <div className="h-full w-full overflow-hidden">
+                        {showChat ? (
+                            <Split
+                                direction="vertical"
+                                sizes={[50, 50]}
+                                minSize={100}
+                                gutterSize={4}
+                                className="flex flex-col h-full w-full"
+                            >
                                 <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
-                            )}
-                        </div>
-
-                        {/* RIGHT SIDE (Either Chat or Output) */}
-                        <div className="h-full w-full overflow-hidden">
-                            {showChat && userRole ? (
-                                <ChatArea chatSupport={chatSupport} userRole={userRole} />
-                            ) : (
                                 <OutputPanel />
-                            )}
-                        </div>
-                    </Split>
-                )}
+                            </Split>
+                        ) : (
+                            <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
+                        )}
+                    </div>
+
+                    {/* RIGHT SIDE (Either Chat or Output) */}
+                    <div className="h-full w-full overflow-hidden">
+                        {showChat && userRole ? (
+                            <ChatArea chatSupport={chatSupport} userRole={userRole} />
+                        ) : (
+                            <OutputPanel />
+                        )}
+                    </div>
+                </Split>
             </div>
         </div >
     )
