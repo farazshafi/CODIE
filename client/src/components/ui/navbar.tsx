@@ -53,15 +53,15 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
     const logout = useUserStore((state) => state.logout);
     const router = useRouter();
     const isActive = (path: string) => pathname === path;
-    const { socket } = useSocket()
+    const { socket } = useSocket();
 
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
-    const [sendedData, setSendedData] = useState([]);
-    const [recivedData, setRecivedData] = useState([]);
-    const [recivedInvitation, setRecivedInvitation] = useState([]);
+    const [sendedData, setSendedData] = useState<RequestData[]>([]);
+    const [recivedData, setRecivedData] = useState<RequestData[]>([]);
+    const [recivedInvitation, setRecivedInvitation] = useState<InvitationData[]>([]);
     const [hasNewNotifications, setHasNewNotifications] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
 
@@ -110,32 +110,28 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         updateNotificationData();
     };
 
-    const handleNotificationOpen = () => {
-        setNotificationOpen(!notificationOpen);
-        if (!notificationOpen) {
+    const handleNotificationOpen = (open: boolean) => {
+        setNotificationOpen(open);
+        if (open) {
             setHasNewNotifications(false);
         }
     };
 
     const { mutate: getAllSndReq } = useMutationHook(getAllSendedRequestApi, {
         onSuccess(res) {
-            console.log("sended data:", res.data)
-            setSendedData(res.data);
-            updateNotificationCount();
+            setSendedData(res?.data || []);
         },
     });
 
     const { mutate: getAllRecReq } = useMutationHook(getAllRecivedRequestApi, {
         onSuccess(res) {
-            setRecivedData(res.data)
-            updateNotificationCount();
+            setRecivedData(res?.data || []);
         },
     });
 
     const { mutate: getRecInvitations } = useMutationHook(getRecivedInvitationsApi, {
         onSuccess(data) {
-            setRecivedInvitation(data.data);
-            updateNotificationCount();
+            setRecivedInvitation(data?.data || []);
         },
     });
     const updateNotificationCount = useCallback(() => {
@@ -177,6 +173,74 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         }
     }, [notificationCount]);
 
+    const notificationMenuContent = (
+        <DropdownMenuContent align="end" className="w-80 sm:w-[380px] p-3 text-black shadow-xl">
+            <Tabs defaultValue="received" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-3">
+                    <TabsTrigger value="received">
+                        Received {recivedData.length + recivedInvitation.length > 0 && `(${recivedData.length + recivedInvitation.length})`}
+                    </TabsTrigger>
+                    <TabsTrigger value="sent">
+                        Sent {sendedData.length > 0 && `(${sendedData.length})`}
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="received" className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    {recivedData.length > 0 || recivedInvitation.length > 0 ? (
+                        <>
+                            {recivedData.map((item: RequestData) => (
+                                <div key={item._id} className="flex flex-col items-start p-3 bg-gray-50 rounded-md border border-gray-200">
+                                    <p className="text-sm mb-2 text-gray-800 leading-snug">
+                                        <span className="font-semibold text-green-600">{item?.senderId?.name || "User"}</span> requested to join room: <span className="font-bold text-green-700">{item.roomId}</span>
+                                    </p>
+                                    <div className="flex gap-2 w-full justify-end">
+                                        <Button size="sm" onClick={() => handleApproveRequest(item._id, item.roomId)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-xs cursor-pointer">
+                                            <CircleCheckBig size={14} className="mr-1" /> Accept
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleRejectRequest(item._id)} variant="destructive" className="px-3 py-1 h-8 text-xs cursor-pointer">
+                                            <CircleX size={14} className="mr-1" /> Reject
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                            {recivedInvitation.map((item: InvitationData) => (
+                                <div key={item._id} className="flex flex-col items-start p-3 bg-gray-50 rounded-md border border-gray-200">
+                                    <p className="text-sm mb-2 text-gray-800 leading-snug">
+                                        <span className="font-semibold text-green-600">{item?.senderId?.name || "User"}</span> invited you to join room: <span className="font-bold text-green-700">{item.roomId}</span>
+                                    </p>
+                                    <div className="flex gap-2 w-full justify-end">
+                                        <Button size="sm" onClick={() => handleApproveInvitation(item._id, item.roomId)} className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-xs cursor-pointer">
+                                            <CircleCheckBig size={14} className="mr-1" /> Accept
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleRejectInvitation(item._id)} variant="destructive" className="px-3 py-1 h-8 text-xs cursor-pointer">
+                                            <CircleX size={14} className="mr-1" /> Reject
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    ) : (
+                        <p className="text-center text-sm text-gray-500 py-6">No received requests or invitations</p>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="sent" className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    {sendedData.length > 0 ? (
+                        sendedData.map((item: RequestData) => (
+                            <div key={item._id} className="flex flex-col items-start p-3 bg-gray-50 rounded-md border border-gray-200">
+                                <p className="text-sm text-gray-800 leading-snug">
+                                    You requested <span className="font-semibold text-green-600">{item?.reciverId?.name || "User"}</span> to join room: <span className="font-bold text-green-700">{item.roomId}</span>
+                                </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-sm text-gray-500 py-6">No sent requests</p>
+                    )}
+                </TabsContent>
+            </Tabs>
+        </DropdownMenuContent>
+    );
+
     if (isLoading) {
         return (
             <div className="w-full h-screen flex items-center justify-center bg-[#1f2125]">
@@ -207,24 +271,15 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                     <Link href="/plan" className={isActive("/plan") ? "text-green-400 font-bold" : ""}>Plan</Link>
                 </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className="md:hidden cursor-pointer"
-                    onClick={() => setIsOpen(!isOpen)}
-                >
-                    {isOpen ? <X size={30} /> : <Menu size={30} />}
-                </button>
-
-                {/* Desktop Right Side */}
-                <div className="hidden md:flex space-x-3 items-center text-black">
+                {/* Right Side Actions Container (Single Bell instance for both mobile & desktop) */}
+                <div className="flex space-x-3 items-center text-black">
                     {/* Notification Bell */}
-                    <DropdownMenu open={notificationOpen} onOpenChange={setNotificationOpen}>
+                    <DropdownMenu open={notificationOpen} onOpenChange={handleNotificationOpen}>
                         <DropdownMenuTrigger asChild>
-                            <div className="relative">
+                            <div className="relative flex items-center justify-center cursor-pointer p-1">
                                 <Bell
-                                    size={30}
-                                    className={`text-white cursor-pointer ${hasNewNotifications ? 'animate-pulse' : ''}`}
-                                    onClick={handleNotificationOpen}
+                                    size={28}
+                                    className={`text-white ${hasNewNotifications ? 'animate-pulse' : ''}`}
                                 />
                                 {notificationCount > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
@@ -233,57 +288,64 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                                 )}
                             </div>
                         </DropdownMenuTrigger>
-
-                        <DropdownMenuContent className="w-full">
-                            {/* keep your existing Tabs code here */}
-                        </DropdownMenuContent>
+                        {notificationMenuContent}
                     </DropdownMenu>
 
-                    {/* Profile */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            {user && user.token ? (
-                                <Button variant="outline">
-                                    {user.name}
-                                    <Avatar className="ml-2">
-                                        <AvatarImage src="https://github.com/shadcn.png" />
-                                        <AvatarFallback>US</AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            ) : (
-                                <Link href="/login">
+                    {/* Desktop Profile Button (Hidden on Mobile) */}
+                    <div className="hidden md:block">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                {user && user.token ? (
                                     <Button variant="outline">
-                                        <LogIn />
-                                        Log In
+                                        {user.name}
+                                        <Avatar className="ml-2">
+                                            <AvatarImage src="https://github.com/shadcn.png" />
+                                            <AvatarFallback>US</AvatarFallback>
+                                        </Avatar>
                                     </Button>
-                                </Link>
-                            )}
-                        </DropdownMenuTrigger>
+                                ) : (
+                                    <Link href="/login">
+                                        <Button variant="outline">
+                                            <LogIn />
+                                            Log In
+                                        </Button>
+                                    </Link>
+                                )}
+                            </DropdownMenuTrigger>
 
-                        {user && (
-                            <DropdownMenuContent className="w-56">
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem onClick={() => router.push("/profile")}>
-                                        <User />
-                                        <span>Profile</span>
+                            {user && (
+                                <DropdownMenuContent className="w-56">
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem onClick={() => router.push("/profile")}>
+                                            <User />
+                                            <span>Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push("/plan")}>
+                                            <Banknote />
+                                            <span>Plan</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleLogout}>
+                                        <LogOut />
+                                        <span>Log out</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => router.push("/plan")}>
-                                        <Banknote />
-                                        <span>Plan</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout}>
-                                    <LogOut />
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        )}
-                    </DropdownMenu>
+                                </DropdownMenuContent>
+                            )}
+                        </DropdownMenu>
+                    </div>
+
+                    {/* Mobile Hamburger Menu Button (Hidden on Desktop) */}
+                    <button
+                        className="md:hidden cursor-pointer text-white p-1"
+                        onClick={() => setIsOpen(!isOpen)}
+                    >
+                        {isOpen ? <X size={28} /> : <Menu size={28} />}
+                    </button>
                 </div>
             </div>
 
-            {/* ✅ Mobile Menu (FIXED VERSION) */}
+            {/* Mobile Menu */}
             <div
                 className={`md:hidden overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[500px] opacity-100 mt-4" : "max-h-0 opacity-0"
                     }`}

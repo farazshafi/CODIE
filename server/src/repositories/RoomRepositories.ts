@@ -38,7 +38,10 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
         ])
     }
 
-    async removeUserFromCollabrators(userId: string, projectId: mongoose.Types.ObjectId): Promise<IRoom> {
+    async removeUserFromCollabrators(userId: string, projectId: mongoose.Types.ObjectId | string): Promise<IRoom> {
+        if (!projectId || projectId === "undefined" || !Types.ObjectId.isValid(projectId)) {
+            return null;
+        }
         return await Room.findOneAndUpdate(
             { projectId },
             { $pull: { collaborators: { user: userId, role: "viewer" } } },
@@ -47,6 +50,10 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
+        if (!projectId || projectId === "undefined" || !Types.ObjectId.isValid(projectId)) {
+            return null;
+        }
+
         const room = await Room.findOne({ projectId });
 
         if (!room) {
@@ -59,7 +66,8 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async getOwnderByRoomId(roomId: string): Promise<string> {
-        return (await Room.findOne({ roomId })).owner.toString()
+        const room = await Room.findOne({ roomId });
+        return room?.owner?.toString() || "";
     }
 
     async findRoomAndUpdateRole(roomId: string, role: "viewer" | "editor", userId: string): Promise<IRoom> {
@@ -71,7 +79,12 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async findContributerRole(userId: string, projectId: string): Promise<"owner" | "editor" | "viewer"> {
+        if (!projectId || projectId === "undefined" || !Types.ObjectId.isValid(projectId)) {
+            return undefined;
+        }
+
         const room = await Room.findOne({ projectId })
+        if (!room) return undefined;
 
         const collaborator = room.collaborators.find(c => c.user.toString() === userId)
         if (collaborator) {
@@ -80,6 +93,10 @@ export class RoomRepositories extends BaseRepository<IRoom> implements IRoomRepo
     }
 
     async findRoomByProjIdAndDlt(projectId: string): Promise<boolean> {
+        if (!projectId || projectId === "undefined" || !Types.ObjectId.isValid(projectId)) {
+            return false;
+        }
+
         const result = await Room.deleteOne({ projectId });
         return result.deletedCount > 0;
     }

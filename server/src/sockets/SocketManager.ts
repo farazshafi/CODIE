@@ -9,6 +9,7 @@ import { InvitationEvents } from './events/InvitationEvents';
 import { MessageEvents } from './events/MessageEvents';
 import { RequestEvents } from './events/RequestEvents';
 import { UserEvents } from './events/UserEvents';
+import { WebRTCEvents } from './events/WebRTCEvents';
 import { editorService, roomSocketService, messageService, userSocketService, userSocketRepository, onlineUserRepository } from '../container';
 import { IEventHandler } from './events/EventHandler';
 import redis from '../config/redis';
@@ -44,7 +45,8 @@ export class SocketManager {
             new InvitationEvents(this.io, roomSocketService, this._userSocketRepository),
             new MessageEvents(this.io, messageService),
             new RequestEvents(this.io, roomSocketService, this._userSocketRepository),
-            new UserEvents(this.io, userSocketService, this._userSocketRepository)
+            new UserEvents(this.io, userSocketService, this._userSocketRepository),
+            new WebRTCEvents(this.io)
         ];
     }
 

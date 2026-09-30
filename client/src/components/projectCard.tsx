@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -86,6 +86,10 @@ const ProjectCard = ({ title, language, codePreview, projectCode, updatedAt, id,
                 : [];
 
     const previewLines = rawLines.slice(0, 5);
+
+    useEffect(()=>{
+        console.log("project id:",id)
+    },[])
 
     return (
         <div className="rounded-b-lg mt-5 text-white w-full transform transition-transform duration-300 hover:scale-105">

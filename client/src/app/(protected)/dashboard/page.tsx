@@ -230,7 +230,7 @@ export default function Home() {
                                     language={project.projectLanguage}
                                     codePreview={project.codePreview}
                                     projectCode={project.projectCode}
-                                    id={project.id}
+                                    id={project._id as string}
                                     isContributer={true}
                                     updatedAt={project.updatedAt ? new Date(isNaN(Number(project.updatedAt)) ? project.updatedAt : Number(project.updatedAt)).toLocaleTimeString() : ""}
                                 />

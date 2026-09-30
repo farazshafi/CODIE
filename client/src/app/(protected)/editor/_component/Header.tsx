@@ -32,6 +32,7 @@ import { useUserStore } from "@/stores/userStore";
 import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
 import CollaborationSection from "./CollaborationSection";
+import AudioHuddleControl from "./AudioHuddleControl";
 import { useEditorStore } from "@/stores/editorStore";
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
 import {
@@ -200,6 +201,7 @@ const Header = ({
 
                 {roomId && (
                     <>
+                        <AudioHuddleControl />
                         <div
                             className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all active:scale-95"
                             onClick={chatSupport.text ? () => onChatToggle(chatSupport) : handleSubscription}

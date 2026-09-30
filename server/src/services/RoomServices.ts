@@ -41,6 +41,10 @@ export class RoomServices implements IRoomService {
 
     async getRoomByProjectId(projectId: string): Promise<IRoom> {
         try {
+            if (!projectId || projectId === "undefined" || !mongoose.Types.ObjectId.isValid(projectId)) {
+                return null;
+            }
+
             const existRoom = await this._roomRepository.getRoomByProjectId(projectId)
             if (!existRoom) {
                 return null

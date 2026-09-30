@@ -12,6 +12,9 @@ export const enableCollabrationApi = async (projectId: string) => {
 }
 
 export const getRoomByProjectIdApi = async (projectId: string) => {
+    if (!projectId || projectId === "undefined") {
+        return { data: null };
+    }
     try {
         const response = await API.get(`${API_BASE_URL}/get_room/${projectId}`)
         return response.data
@@ -22,6 +25,9 @@ export const getRoomByProjectIdApi = async (projectId: string) => {
 }
 
 export const getContributersApi = async (projectId: string) => {
+    if (!projectId || projectId === "undefined") {
+        return { data: [] };
+    }
     try {
         const response = await API.get(`${API_BASE_URL}/get_contributers/${projectId}`)
         return response.data
