@@ -43,6 +43,13 @@ export class WebRTCEvents implements IEventHandler {
             }
         });
 
+        socket.on('webrtc:video-state', (data: { projectId: string; userId: string; isVideoOn: boolean }) => {
+            if (data.projectId) {
+                socket.join(data.projectId);
+                socket.to(data.projectId).emit('webrtc:video-state', data);
+            }
+        });
+
         // Moderation & Hand Raise
         socket.on('webrtc:raise-hand', (data: { projectId: string; userId: string; userName?: string }) => {
             if (data.projectId) {

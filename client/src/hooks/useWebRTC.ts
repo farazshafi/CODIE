@@ -10,6 +10,8 @@ export interface HuddleParticipant {
     isMuted?: boolean;
     isSpeaking?: boolean;
     hasHandRaised?: boolean;
+    isVideoOn?: boolean;
+    stream?: MediaStream;
 }
 
 interface UseWebRTCOptions {
@@ -36,10 +38,13 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
 
     const [isInHuddle, setIsInHuddle] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [isVideoOn, setIsVideoOn] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isHandRaised, setIsHandRaised] = useState(false);
     const [huddleParticipants, setHuddleParticipants] = useState<HuddleParticipant[]>([]);
     const [raisedHandUserIds, setRaisedHandUserIds] = useState<string[]>([]);
+    const [remoteStreams, setRemoteStreams] = useState<{ [peerKey: string]: MediaStream }>({});
+    const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null);
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -119,8 +124,8 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         };
 
         pc.oniceconnectionstatechange = () => {
-            if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
-                console.warn(`ICE connection state for peer ${peerKey} is ${pc.iceConnectionState}. Restarting ICE.`);
+            if (pc.iceConnectionState === "failed") {
+                console.warn(`ICE connection state for peer ${peerKey} failed. Restarting ICE.`);
                 pc.restartIce();
             }
         };
@@ -128,6 +133,11 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         pc.ontrack = (event) => {
             const [remoteStream] = event.streams;
             if (remoteStream) {
+                setRemoteStreams((prev) => ({
+                    ...prev,
+                    [peerKey]: remoteStream,
+                }));
+
                 let audioElement = remoteAudioElementsRef.current.get(peerKey);
                 if (!audioElement) {
                     audioElement = new Audio();
@@ -145,6 +155,8 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     const createOfferToPeer = useCallback(async (peerSocketId: string, peerUserId: string) => {
         if (!peerUserId || peerUserId === userId) return;
         const pc = getOrCreatePeerConnection(peerSocketId, peerUserId);
+        if (pc.signalingState !== "stable") return;
+
         try {
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
@@ -189,10 +201,13 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
 
         setIsInHuddle(false);
         setIsMuted(false);
+        setIsVideoOn(false);
         setIsSpeaking(false);
         setIsHandRaised(false);
         setHuddleParticipants([]);
         setRaisedHandUserIds([]);
+        setRemoteStreams({});
+        setLocalStreamState(null);
     }, []);
 
     // Join huddle
@@ -202,6 +217,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             localStreamRef.current = stream;
+            setLocalStreamState(new MediaStream(stream.getTracks()));
 
             if (userRole === "viewer") {
                 stream.getAudioTracks().forEach((t) => (t.enabled = false));
@@ -242,6 +258,78 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             setIsMuted(nextState);
         }
     }, [isMuted]);
+
+    // Toggle Video (Camera)
+    const toggleVideo = useCallback(async () => {
+        if (!isInHuddle || !localStreamRef.current) return;
+
+        try {
+            if (!isVideoOn) {
+                const videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 320, height: 240, frameRate: 15 },
+                });
+                const videoTrack = videoStream.getVideoTracks()[0];
+
+                if (videoTrack) {
+                    localStreamRef.current.addTrack(videoTrack);
+                    setLocalStreamState(new MediaStream(localStreamRef.current.getTracks()));
+
+                    peerConnectionsRef.current.forEach((pc, peerKey) => {
+                        const senders = pc.getSenders();
+                        const existingVideoSender = senders.find((s) => s.track?.kind === "video");
+                        if (existingVideoSender) {
+                            existingVideoSender.replaceTrack(videoTrack);
+                        } else {
+                            pc.addTrack(videoTrack, localStreamRef.current!);
+                        }
+
+                        if (pc.signalingState === "stable") {
+                            pc.createOffer().then((offer) => {
+                                return pc.setLocalDescription(offer).then(() => {
+                                    if (socket) {
+                                        socket.emit("webrtc:offer", {
+                                            projectId,
+                                            senderUserId: userId,
+                                            targetUserId: peerKey,
+                                            offer,
+                                        });
+                                    }
+                                });
+                            }).catch((e) => console.warn("Failed negotiation during video toggle:", e));
+                        }
+                    });
+                }
+                setIsVideoOn(true);
+                if (socket && projectId && userId) {
+                    socket.emit("webrtc:video-state", { projectId, userId, isVideoOn: true });
+                }
+            } else {
+                const videoTracks = localStreamRef.current.getVideoTracks();
+                videoTracks.forEach((track) => {
+                    track.stop();
+                    localStreamRef.current?.removeTrack(track);
+                });
+
+                peerConnectionsRef.current.forEach((pc) => {
+                    const senders = pc.getSenders();
+                    const videoSender = senders.find((s) => s.track?.kind === "video");
+                    if (videoSender) {
+                        try {
+                            pc.removeTrack(videoSender);
+                        } catch (e) { }
+                    }
+                });
+
+                setLocalStreamState(new MediaStream(localStreamRef.current.getTracks()));
+                setIsVideoOn(false);
+                if (socket && projectId && userId) {
+                    socket.emit("webrtc:video-state", { projectId, userId, isVideoOn: false });
+                }
+            }
+        } catch (err) {
+            console.error("Error toggling camera video track:", err);
+        }
+    }, [isInHuddle, isVideoOn, socket, projectId, userId]);
 
     // Force Mute self
     const forceMuteSelf = useCallback(() => {
@@ -314,6 +402,11 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
                 audio.srcObject = null;
                 remoteAudioElementsRef.current.delete(peerKey);
             }
+            setRemoteStreams((prev) => {
+                const updated = { ...prev };
+                delete updated[peerKey];
+                return updated;
+            });
         };
 
         const handleOffer = async (data: { offer: RTCSessionDescriptionInit; senderUserId: string; senderSocketId: string; targetUserId?: string }) => {
@@ -321,19 +414,30 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             if (data.targetUserId && data.targetUserId !== userId) return;
 
             const pc = getOrCreatePeerConnection(data.senderSocketId, data.senderUserId);
+
             try {
+                // Guard: setRemoteDescription requires stable or have-local-offer state
+                if (pc.signalingState !== "stable" && pc.signalingState !== "have-local-offer") {
+                    console.warn(`PeerConnection for ${data.senderUserId} in state ${pc.signalingState}, ignoring offer.`);
+                    return;
+                }
+
                 await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                socket.emit("webrtc:answer", {
-                    projectId,
-                    senderUserId: userId,
-                    targetSocketId: data.senderSocketId,
-                    targetUserId: data.senderUserId,
-                    answer,
-                });
+
+                if ((pc.signalingState as string) === "have-remote-offer") {
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+
+                    socket.emit("webrtc:answer", {
+                        projectId,
+                        senderUserId: userId,
+                        targetSocketId: data.senderSocketId,
+                        targetUserId: data.senderUserId,
+                        answer,
+                    });
+                }
             } catch (err) {
-                console.error("Error handling WebRTC offer:", err);
+                console.error("Error handling WebRTC offer safely:", err);
             }
         };
 
@@ -345,7 +449,11 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             const pc = peerConnectionsRef.current.get(peerKey);
             if (pc) {
                 try {
-                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    if (pc.signalingState === "have-local-offer") {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    } else {
+                        console.warn(`Received answer when signalingState is ${pc.signalingState}, ignoring.`);
+                    }
                 } catch (err) {
                     console.error("Error setting remote description from answer:", err);
                 }
@@ -358,7 +466,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
 
             const peerKey = data.senderUserId || data.senderSocketId;
             const pc = peerConnectionsRef.current.get(peerKey);
-            if (pc) {
+            if (pc && pc.remoteDescription) {
                 try {
                     await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
                 } catch (err) {
@@ -371,6 +479,13 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             if (data.userId === userId) return;
             setHuddleParticipants((prev) =>
                 prev.map((p) => (p.userId === data.userId ? { ...p, isSpeaking: data.isSpeaking } : p))
+            );
+        };
+
+        const handleVideoState = (data: { userId: string; isVideoOn: boolean }) => {
+            if (data.userId === userId) return;
+            setHuddleParticipants((prev) =>
+                prev.map((p) => (p.userId === data.userId ? { ...p, isVideoOn: data.isVideoOn } : p))
             );
         };
 
@@ -407,6 +522,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         socket.on("webrtc:answer", handleAnswer);
         socket.on("webrtc:ice-candidate", handleIceCandidate);
         socket.on("webrtc:speaking-state", handleSpeakingState);
+        socket.on("webrtc:video-state", handleVideoState);
         socket.on("webrtc:hand-raised", handleHandRaised);
         socket.on("webrtc:hand-lowered", handleHandLowered);
         socket.on("webrtc:force-muted", handleForceMuted);
@@ -420,6 +536,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
             socket.off("webrtc:answer", handleAnswer);
             socket.off("webrtc:ice-candidate", handleIceCandidate);
             socket.off("webrtc:speaking-state", handleSpeakingState);
+            socket.off("webrtc:video-state", handleVideoState);
             socket.off("webrtc:hand-raised", handleHandRaised);
             socket.off("webrtc:hand-lowered", handleHandLowered);
             socket.off("webrtc:force-muted", handleForceMuted);
@@ -436,13 +553,17 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     return {
         isInHuddle,
         isMuted,
+        isVideoOn,
         isSpeaking,
         isHandRaised,
         huddleParticipants,
         raisedHandUserIds,
+        remoteStreams,
+        localStream: localStreamState,
         joinHuddle,
         leaveHuddle,
         toggleMute,
+        toggleVideo,
         toggleRaiseHand,
         hostMutePeer,
         hostMuteAll,

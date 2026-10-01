@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { useWebRTC } from "@/hooks/useWebRTC";
+import { useWebRTCContext } from "@/context/WebRTCContext";
 import { useEditorStore } from "@/stores/editorStore";
 import { useUserStore } from "@/stores/userStore";
 import { Button } from "@/components/ui/button";
-import { Hand, Mic, MicOff, MoreVertical, PhoneOff, Radio, Users, VolumeX } from "lucide-react";
+import { Hand, Mic, MicOff, MoreVertical, PhoneOff, Radio, Users, Video, VideoOff, VolumeX } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -19,7 +19,11 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
-const AudioHuddleControl: React.FC = () => {
+interface AudioHuddleControlProps {
+    onVideoToggle?: () => void;
+}
+
+const AudioHuddleControl: React.FC<AudioHuddleControlProps> = ({ onVideoToggle }) => {
     const projectId = useEditorStore((state) => state.projectId);
     const userRole = useEditorStore((state) => state.userRole);
     const user = useUserStore((state) => state.user);
@@ -28,6 +32,7 @@ const AudioHuddleControl: React.FC = () => {
     const {
         isInHuddle,
         isMuted,
+        isVideoOn,
         isSpeaking,
         isHandRaised,
         huddleParticipants,
@@ -35,15 +40,18 @@ const AudioHuddleControl: React.FC = () => {
         joinHuddle,
         leaveHuddle,
         toggleMute,
+        toggleVideo,
         toggleRaiseHand,
         hostMutePeer,
         hostMuteAll,
-    } = useWebRTC({
-        projectId: projectId || undefined,
-        userId: user?.id,
-        userName: user?.name,
-        userRole: userRole || "editor",
-    });
+    } = useWebRTCContext();
+
+    const handleVideoClick = () => {
+        toggleVideo();
+        if (onVideoToggle) {
+            onVideoToggle();
+        }
+    };
 
     // Combine current user with huddle participants ensuring no duplicates
     const allParticipants = React.useMemo(() => {
@@ -55,6 +63,7 @@ const AudioHuddleControl: React.FC = () => {
             userName: user.name || "You",
             isMuted,
             isSpeaking,
+            isVideoOn,
             hasHandRaised: isHandRaised,
             isSelf: true,
         };
@@ -68,7 +77,7 @@ const AudioHuddleControl: React.FC = () => {
             }));
 
         return selfInParticipants ? [selfObj, ...otherList] : [selfObj, ...otherList];
-    }, [user, huddleParticipants, raisedHandUserIds, isMuted, isSpeaking, isHandRaised]);
+    }, [user, huddleParticipants, raisedHandUserIds, isMuted, isSpeaking, isVideoOn, isHandRaised]);
 
     const raisedHandList = allParticipants.filter((p) => p.hasHandRaised);
 
@@ -125,6 +134,26 @@ const AudioHuddleControl: React.FC = () => {
                             </TooltipTrigger>
                             <TooltipContent className="bg-[#1e1e2e] border-white/10 text-white text-xs">
                                 {isMuted ? "Unmute Microphone" : "Mute Microphone"}
+                            </TooltipContent>
+                        </Tooltip>
+
+                        {/* Video Toggle */}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={handleVideoClick}
+                                    size="icon"
+                                    variant="ghost"
+                                    className={`w-7 h-7 rounded-md transition-colors ${isVideoOn
+                                        ? "bg-emerald-500/30 text-emerald-200 border border-emerald-400 ring-2 ring-emerald-400/40"
+                                        : "bg-tertiary/60 text-gray-400 hover:text-white hover:bg-white/10"
+                                        }`}
+                                >
+                                    {isVideoOn ? <Video className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-[#1e1e2e] border-white/10 text-white text-xs">
+                                {isVideoOn ? "Turn Off Camera" : "Turn On Camera / Open Video Drawer"}
                             </TooltipContent>
                         </Tooltip>
 

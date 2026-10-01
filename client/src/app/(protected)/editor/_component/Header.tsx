@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Menu,
     X,
@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
-import RoomRequests from "./RoomRequests";
 import Contributers from "./Contributers";
 import CollaborationSection from "./CollaborationSection";
 import AudioHuddleControl from "./AudioHuddleControl";
@@ -47,9 +46,13 @@ import ChatArea from "./ChatArea";
 const Header = ({
     onChatToggle,
     onCollaboratorsToggle,
+    onVideoToggle,
+    hasUnreadChat = false,
 }: {
     onChatToggle: (chatSupport: { text: boolean, voice: boolean }) => void;
     onCollaboratorsToggle: () => void;
+    onVideoToggle?: () => void;
+    hasUnreadChat?: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [textSize, setTextSize] = useState(16);
@@ -68,7 +71,6 @@ const Header = ({
     const user = useUserStore((state) => state.user)
 
     const params = useParams()
-    const { id } = params
 
     const { setFontSize, theme, setTheme } = useCodeEditorStore()
 
@@ -157,7 +159,17 @@ const Header = ({
             {isOpen && (
                 <div className="absolute top-[65px] left-0 w-full bg-[#0a0a0c] border-b border-white/10 flex flex-col p-4 z-50 md:hidden space-y-2 shadow-2xl animate-in slide-in-from-top duration-200">
                     <MobileMenuItem
-                        icon={<MessageSquare />}
+                        icon={
+                            <div className="relative">
+                                <MessageSquare />
+                                {hasUnreadChat && (
+                                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                    </span>
+                                )}
+                            </div>
+                        }
                         label="Chat"
                         onClick={() => {
                             if (chatSupport.text) {
@@ -201,12 +213,18 @@ const Header = ({
 
                 {roomId && (
                     <>
-                        <AudioHuddleControl />
+                        <AudioHuddleControl onVideoToggle={onVideoToggle} />
                         <div
-                            className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all active:scale-95"
+                            className="relative bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all active:scale-95"
                             onClick={chatSupport.text ? () => onChatToggle(chatSupport) : handleSubscription}
                         >
                             {chatSupport.text ? <MessageSquare className="w-5 h-5" /> : <MessageSquareOff className="w-5 h-5 opacity-50" />}
+                            {hasUnreadChat && chatSupport.text && (
+                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#12131c]"></span>
+                                </span>
+                            )}
                         </div>
                         <Contributers ownerId={String(ownerId)} />
                     </>
