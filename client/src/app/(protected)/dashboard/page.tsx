@@ -6,7 +6,7 @@ import ProjectCard from "@/components/projectCard";
 import Link from "next/link";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import CreateProjectModal from "./_component/CreateProjectModal";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
@@ -15,55 +15,25 @@ import { toast } from "sonner";
 import ProjectCardSkeleton from "./_component/ProjectCardSkelton";
 import SectionTitle from "./_component/SectionTitle";
 import { useSocket } from "@/context/SocketContext";
-import { getProjectsByUserIdApi, getContributedProjectsApi } from "@/apis/projectApi";
+import { useUserProjects, useContributedProjects, PROJECT_KEYS } from "@/hooks/useProjectQueries";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type NavbarRef = {
     updateNotificationData: () => void;
 }
 
 export default function Home() {
-
+    const queryClient = useQueryClient();
     const user = useUserStore((state) => state.user);
     const router = useRouter();
     const [isRedirecting, setIsRedirecting] = useState(false);
-    const { socket } = useSocket()
+    const { socket } = useSocket();
     const userId = user?.id;
-    const userSubscription = useUserStore((state) => state.subscription)
+    const userSubscription = useUserStore((state) => state.subscription);
     const navbarRef = useRef<NavbarRef>(null);
 
-    const [projects, setProjects] = useState<ProjectCardType[]>([]);
-    const [loading, setLoading] = useState(false);
-
-    const [contributedProjectsList, setContributedProjectsList] = useState<ProjectCardType[]>([]);
-    const [contributedLoading, setContributedLoading] = useState(false);
-
-    const fetchProjects = useCallback(async () => {
-        if (!userId) return;
-        try {
-            setLoading(true);
-            const response = await getProjectsByUserIdApi();
-            setProjects(response?.data?.projects || response?.data || []);
-        } catch (err) {
-            console.error("Error fetching projects:", err);
-            toast.error("Failed to load projects. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    }, [userId]);
-
-    const fetchContributedProjects = useCallback(async () => {
-        if (!userId) return;
-        try {
-            setContributedLoading(true);
-            const response = await getContributedProjectsApi(userId);
-            setContributedProjectsList(response?.data || []);
-        } catch (err) {
-            console.error("Error fetching contributed projects:", err);
-            toast.error("Failed to load contributed projects. Please try again later.");
-        } finally {
-            setContributedLoading(false);
-        }
-    }, [userId]);
+    const { data: projects = [], isLoading: loading, refetch: fetchProjects } = useUserProjects(userId);
+    const { data: contributedProjectsList = [], isLoading: contributedLoading, refetch: fetchContributedProjects } = useContributedProjects(userId);
 
     useEffect(() => {
         if (!user?.token) {
@@ -73,14 +43,9 @@ export default function Home() {
     }, [user, router]);
 
     useEffect(() => {
-        fetchProjects();
-        fetchContributedProjects();
-    }, [fetchProjects, fetchContributedProjects]);
-
-    useEffect(() => {
         if (!socket) return;
         const handleInvitationAccepted = () => {
-            fetchContributedProjects();
+            queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.contributedProjects(userId) });
             if (navbarRef.current) {
                 navbarRef.current.updateNotificationData();
             }
@@ -98,7 +63,7 @@ export default function Home() {
             socket.off("invitation-accepted-success", handleInvitationAccepted);
             socket.off("error", handleSocketError);
         };
-    }, [socket, fetchContributedProjects]);
+    }, [socket, userId, queryClient]);
 
     if (isRedirecting) {
         return <Loading fullScreen text="Redirecting to Login page" />;
@@ -174,7 +139,7 @@ export default function Home() {
 
                     <SectionTitle title="My Projects" tagColor="bg-black" />
 
-                    {projects.length < 1 && (
+                    {!loading && projects.length < 1 && (
                         <div className="px-6 py-3">
                             <div className="w-full bg-tertiary rounded-md text-center py-10 outline-dashed">
                                 <p className="text-sm sm:text-lg md:text-xl text-white">
@@ -209,7 +174,7 @@ export default function Home() {
 
                     <SectionTitle title="Contributed proejcts" tagColor="bg-white" />
 
-                    {contributedProjectsList.length < 1 && (
+                    {!contributedLoading && contributedProjectsList.length < 1 && (
                         <div className="text-center mx-3 mt-5">
                             <p className="text-sm sm:text-lg md:text-xl text-white outline-dashed px-4 py-2">You Never did Contribution to any project!</p>
                         </div>
@@ -243,3 +208,4 @@ export default function Home() {
         </div>
     );
 }
+

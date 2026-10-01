@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import QueryProvider from "@/providers/QueryProvider";
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -35,9 +36,12 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster richColors />
+        <QueryProvider>
+          {children}
+          <Toaster richColors />
+        </QueryProvider>
       </body>
     </html>
   );
 }
+

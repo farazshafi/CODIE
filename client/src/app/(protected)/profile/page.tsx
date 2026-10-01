@@ -1,5 +1,5 @@
-"use client"
-import React, { useEffect, useState } from "react";
+"use client";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { GithubIcon, Code, Terminal, Globe, PenLine } from "lucide-react";
@@ -9,118 +9,71 @@ import Navbar from "@/components/ui/navbar";
 import PageTransitionWrapper from "@/components/TransitionWrapper";
 import { useUserStore } from "@/stores/userStore";
 import { useMutationHook } from "@/hooks/useMutationHook";
-import { getContributedProjectsApi, getProjectsByUserIdApi, getUsedLanguagesApi } from "@/apis/projectApi";
 import EditProfileModal from "./_components/EditProfileModal";
-import { getProfileVisibilityApi, getUserApi, updateProfileVisibilityApi, updateUserApi } from "@/apis/userApi";
+import { getUserApi, updateProfileVisibilityApi, updateUserApi } from "@/apis/userApi";
 import { toast } from "sonner";
 import Link from "next/link";
 import PaymentHistory from "./_components/PaymentHistory";
-import { getStarredSnippetsApi } from "@/apis/starredApi";
 import Loading from "@/components/Loading";
 import ContributorsCircle from "./_components/ContributorsCircle";
-import { getUserAiUsageApi } from "@/apis/userSubscriptionApi";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { ContributionGraph } from "../contributor/_components/ContributionGraph";
-
+import { useUserProjects, useContributedProjects } from "@/hooks/useProjectQueries";
+import { useUsedLanguages, useStarredSnippets, useAiUsage, useProfileVisibility, PROFILE_KEYS } from "@/hooks/useProfileQueries";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Page = () => {
+    const queryClient = useQueryClient();
     const userSubscription = useUserStore((state) => state.subscription);
     const user = useUserStore((state) => state.user);
     const setUser = useUserStore((state) => state.setUser);
 
-    const [totalProjects, setTotalProjects] = useState(0);
-    const [totalContributedProj, setTotalContributedProj] = useState(0);
-    const [usedLanguages, setUsedLanguages] = useState<{ name: string; count: number }[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [totalStarredSnippet, setTotalStarredSnippet] = useState(0)
-    const [aiusage, setAiUsage] = useState(0)
-    const [isProfileVisible, setIsProfileVisible] = useState(true)
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const userId = user?.id;
 
-    const { mutate: getProjects } = useMutationHook(getProjectsByUserIdApi, {
-        onSuccess(data) {
-            setTotalProjects(data.data.projects.length);
-        },
-    });
+    const { data: userProjects = [] } = useUserProjects(userId);
+    const { data: contributedProjectsList = [] } = useContributedProjects(userId);
+    const { data: usedLanguages = [] } = useUsedLanguages(userId);
+    const { data: starredSnippets = [], isLoading: snippetsLoading } = useStarredSnippets();
+    const { data: aiusage = 0 } = useAiUsage();
+    const { data: isProfileVisible = true } = useProfileVisibility(userId);
 
-    const { mutate: getAiUsage } = useMutationHook(getUserAiUsageApi, {
-        onSuccess(data) {
-            setAiUsage(data.data);
-        },
-    });
-
-    const { mutate: getContributedProjects } = useMutationHook(getContributedProjectsApi, {
-        onSuccess(data) {
-            console.log("contributed project data: ", data)
-            setTotalContributedProj(data.data.length);
-        },
-    });
-
-    const { mutate: getStarredSnippets, isLoading: snippetsLoading } = useMutationHook(getStarredSnippetsApi, {
-        onSuccess(data) {
-            setTotalStarredSnippet(data.data.length)
-        },
-    })
-
-    const { mutate: getUsedLanguage } = useMutationHook(getUsedLanguagesApi, {
-        onSuccess(data) {
-            console.log("used langes data", data.data)
-            setUsedLanguages(data.data);
-        },
-    });
+    const totalProjects = userProjects.length;
+    const totalContributedProj = contributedProjectsList.length;
+    const totalStarredSnippet = starredSnippets.length;
 
     const { mutate: getUserData } = useMutationHook(getUserApi, {
         onSuccess(data) {
-            console.log("user data: ", data)
-            setUser({ ...user, ...data.data })
+            setUser({ ...user, ...data.data });
         },
     });
 
     const { mutate: updateUser } = useMutationHook(updateUserApi, {
         onSuccess(data) {
-            console.log(data)
-            getUserData()
-            toast.success(data.message || "user updated successfully")
+            getUserData();
+            toast.success(data.message || "User updated successfully");
         },
     });
 
     const { mutate: updateVisibility } = useMutationHook(updateProfileVisibilityApi, {
         onSuccess(data) {
-            if (!user) return
-            toast.success(data.message || "Updated successfully")
-            getVisibility(user?.id)
-            setIsModalOpen(false)
-        },
-    });
-
-    const { mutate: getVisibility } = useMutationHook(getProfileVisibilityApi, {
-        onSuccess(data) {
-            setIsProfileVisible(data.data.isVisible)
+            if (!user) return;
+            toast.success(data.message || "Updated successfully");
+            queryClient.invalidateQueries({ queryKey: PROFILE_KEYS.profileVisibility(userId) });
+            setIsModalOpen(false);
         },
     });
 
     const handleVisibleToggle = () => {
-
-        updateVisibility(!isProfileVisible)
-    }
-
-    useEffect(() => {
-        if (!user) return;
-        getContributedProjects(user.id);
-        getProjects()
-        getUsedLanguage(user.id);
-        getStarredSnippets()
-        getAiUsage()
-        getVisibility(user.id)
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
+        updateVisibility(!isProfileVisible);
+    };
 
     if (!user) return null;
 
-    const handleSave = (updatedUser: { name: string, github: string, portfolio: string, avatar: string }) => {
-        updateUser(updatedUser)
+    const handleSave = (updatedUser: { name: string; github: string; portfolio: string; avatar: string }) => {
+        updateUser(updatedUser);
     };
 
     return (
@@ -255,3 +208,4 @@ const Page = () => {
 };
 
 export default Page;
+
