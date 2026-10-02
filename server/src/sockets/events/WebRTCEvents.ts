@@ -129,11 +129,20 @@ export class WebRTCEvents implements IEventHandler {
         if (!projectId || !userId) return;
 
         const huddleKey = `huddle:${projectId}`;
+        const userRaw = await redis.hget(huddleKey, userId);
+        let userName = "Collaborator";
+        if (userRaw) {
+            try {
+                const parsed = JSON.parse(userRaw);
+                userName = parsed.userName || userName;
+            } catch { }
+        }
         await redis.hdel(huddleKey, userId);
 
         socket.to(projectId).emit('webrtc:user-left-huddle', {
             userId,
-            socketId: socket.id
+            socketId: socket.id,
+            userName
         });
     }
 
