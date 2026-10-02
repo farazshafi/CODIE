@@ -47,7 +47,8 @@ export class RequestEvents implements IEventHandler {
                     type: "request",
                     action: "received"
                 });
-            } else if (result.ownerSocketId) {
+            }
+            if (result.ownerSocketId) {
                 this.io.to(result.ownerSocketId).emit("approve-request", {
                     roomId: data.roomId,
                     userId: data.userId,

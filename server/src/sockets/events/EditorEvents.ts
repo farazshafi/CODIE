@@ -142,7 +142,10 @@ export class EditorEvents implements IEventHandler {
         }
 
         const isOwner = room.owner.toString() === userId;
-        const collaborator = room.collaborators.find(c => c.user._id.equals(userId));
+        const collaborator = room.collaborators.find(c => {
+            const uId = (c.user as any)?._id ? (c.user as any)._id.toString() : c.user?.toString();
+            return uId === userId;
+        });
         const role = isOwner ? 'owner' : collaborator?.role;
 
         if (role === 'owner' || role === 'editor') {
@@ -152,19 +155,19 @@ export class EditorEvents implements IEventHandler {
 
     private async _handleUpdateRole(data: updateRoleData, socket: Socket): Promise<void> {
         const { userId, role, projectId } = data;
-        const isUserOnline = await this._editorService.isUserOnline(projectId, userId);
-        if (!isUserOnline) {
-            socket.emit('error', { message: 'user to update not in online' });
-            return;
-        }
+
+        // Notify user via user room (all connected sockets for this user)
+        this.io.to(`user:${userId}`).emit('updated-role', { message: `Your permission changed to ${role}` });
+        this.io.to(`user:${userId}`).emit('refetch-permission');
+
+        // Also notify the project room
+        this.io.to(projectId).emit('refetch-permission');
+
         const targetSocketId = await this._editorService.getSocketIdByUserId(userId, projectId);
-        if (!targetSocketId) {
-            socket.emit('error', { message: 'targetted socket not found' });
-            return;
+        if (targetSocketId) {
+            this.io.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
+            this.io.to(targetSocketId).emit('refetch-permission');
         }
-        socket.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
-        socket.to(targetSocketId).emit('refetch-permission');
-        console.log("refetch permission sedned".yellow)
     }
 
     private async _handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {

@@ -32,6 +32,11 @@ export function SocketProvider({ userId, children }: { userId?: string; children
 
         const socket = socketRef.current;
 
+        if (socket.connected) {
+            setIsConnected(true);
+            socket.emit("register-user", userId);
+        }
+
         socket.on("connect", () => {
             setIsConnected(true);
             socket.emit("register-user", userId);

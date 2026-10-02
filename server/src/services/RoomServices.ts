@@ -151,22 +151,30 @@ export class RoomServices implements IRoomService {
 
     async isEligibleToEdit(userId: string, roomId: string): Promise<boolean> {
         try {
-            const room = await this._roomRepository.findOne({ roomId })
+            const room = await this._roomRepository.findOne({ roomId });
             if (!room) {
-                throw new HttpError(404, "Room Not found!")
+                throw new HttpError(404, "Room Not found!");
             }
 
-            const collaborator = room.collaborators.find(c => c.user._id.toString() === userId)
+            if (room.owner && room.owner.toString() === userId) {
+                return true;
+            }
+
+            const collaborator = room.collaborators?.find(c => {
+                const uId = (c.user as any)?._id ? (c.user as any)._id.toString() : c.user?.toString();
+                return uId === userId;
+            });
+
             if (!collaborator) {
-                throw new HttpError(404, "User not found in collabrators")
+                throw new HttpError(404, "User not found in collabrators");
             }
 
-            return collaborator.role === "owner" || collaborator.role === "editor" ? true : false
+            return collaborator.role === "owner" || collaborator.role === "editor";
         } catch (error) {
             if (error instanceof HttpError) {
-                throw error
+                throw error;
             }
-            throw new HttpError(500, "Cannot check permission")
+            throw new HttpError(500, "Cannot check permission");
         }
     }
 

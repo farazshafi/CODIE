@@ -37,10 +37,18 @@ export class SocketManager {
             }
         });
 
-        const pubClient = redis.duplicate();
-        const subClient = redis.duplicate();
+        try {
+            const pubClient = redis.duplicate();
+            const subClient = redis.duplicate();
 
-        this.io.adapter(createAdapter(pubClient, subClient));
+            pubClient.on("error", (err) => logger.warn({ err: err.message }, "Redis PubClient error in SocketManager"));
+            subClient.on("error", (err) => logger.warn({ err: err.message }, "Redis SubClient error in SocketManager"));
+
+            this.io.adapter(createAdapter(pubClient, subClient));
+            logger.info("✅ Socket.IO Redis adapter attached");
+        } catch (err: any) {
+            logger.error({ err: err?.message || err }, "❌ Failed to attach Redis adapter to Socket.IO, using default adapter");
+        }
 
         this._userSocketRepository = userSocketRepository;
         this._onlineUserRepository = onlineUserRepository;

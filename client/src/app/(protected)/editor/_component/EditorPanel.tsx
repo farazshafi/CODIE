@@ -56,11 +56,11 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
   const { mutate: checkPermission } = useMutationHook(checkIsEligibleToEditApi, {
     onSuccess(data) {
       setIsEditable(data.data.isAllowed || false);
-      setContributionEnabled(true)
+      setContributionEnabled(true);
     },
     onError(error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      if (err.response?.data?.message === "Room Not found!" || err.response?.data?.message === "User not found in collabrators") {
+      if (err.response?.data?.message === "Room Not found!") {
         setIsEditable(true);
         setContributionEnabled(false);
       } else {
@@ -221,7 +221,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
 
     // Always save the code to DB
     debouncedSaveCode(value);
-    console.log("code changed , value: ",value)
+    console.log("code changed , value: ", value)
 
     // Emit code update only if there is a room
     if (roomId) {
@@ -413,9 +413,11 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     if (!socket) return;
 
     const handleRefetchPermission = () => {
-      if (roomId && user?.id) {
-        console.log("Calling checkPermission with:", { roomId, userId: user.id });
-        checkPermission({ roomId, userId: user.id });
+      const currentRoomId = useEditorStore.getState().roomId;
+      const currentUserId = useUserStore.getState().user?.id;
+      if (currentRoomId && currentUserId) {
+        console.log("Calling checkPermission with:", { roomId: currentRoomId, userId: currentUserId });
+        checkPermission({ roomId: currentRoomId, userId: currentUserId });
       } else {
         console.warn("RoomId or UserId missing when refetch-permission received");
       }
@@ -426,8 +428,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     return () => {
       socket.off("refetch-permission", handleRefetchPermission);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket]);
+  }, [socket, checkPermission]);
 
 
 
