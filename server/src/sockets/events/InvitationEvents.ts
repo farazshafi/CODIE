@@ -38,6 +38,15 @@ export class InvitationEvents implements IEventHandler {
 
             if (result.senderId) {
                 const userSocketId = await this._userSocketRepository.getSocketId(result.senderId);
+                this.io.to(`user:${result.senderId}`).emit("join-invitation-approved", {
+                    message: `${result.reciverName} has accepted Invitation`,
+                    roomId: result.roomId
+                });
+                this.io.to(`user:${result.senderId}`).emit("notification-received", {
+                    type: "invitation",
+                    action: "accepted"
+                });
+
                 if (userSocketId && result.reciverName) {
                     this.io.to(userSocketId).emit("join-invitation-approved", {
                         message: `${result.reciverName} has accepted Invitation`,
@@ -85,6 +94,15 @@ export class InvitationEvents implements IEventHandler {
 
             if (result.senderId) {
                 const userSocketId = await this._userSocketRepository.getSocketId(result.senderId);
+                this.io.to(`user:${result.senderId}`).emit("join-invitation-rejected", {
+                    message: `${result.reciverName} has rejected Invitation`,
+                    roomId: result.roomId
+                });
+                this.io.to(`user:${result.senderId}`).emit("notification-received", {
+                    type: "invitation",
+                    action: "rejected"
+                });
+
                 if (userSocketId && result.reciverName) {
                     this.io.to(userSocketId).emit("join-invitation-rejected", {
                         message: `${result.reciverName} has rejected Invitation`,
@@ -112,6 +130,16 @@ export class InvitationEvents implements IEventHandler {
         try {
             const userId = await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
+
+            this.io.to(`user:${data.reciverId}`).emit("recive-invitation", {
+                message: `You received an invitation from ${data.senderName} to join room: ${data.roomId}`,
+                roomId: data.roomId,
+                senderId: userId
+            });
+            this.io.to(`user:${data.reciverId}`).emit("notification-received", {
+                type: "invitation",
+                action: "received"
+            });
 
             const userSocketId = await this._userSocketRepository.getSocketId(data.reciverId);
             if (userSocketId) {
@@ -141,5 +169,5 @@ export class InvitationEvents implements IEventHandler {
             socket.emit("error", "Failed to send invitation");
         }
     }
-    
+
 }

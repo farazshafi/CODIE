@@ -2,7 +2,7 @@
 
 <div align="center">
   
-  **The Next-Generation Real-time Collaborative Development Environment**
+  **The Next-Generation Real-time Collaborative Development & Live Teaching Environment**
   
   [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
   [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
@@ -17,67 +17,83 @@
 
 ## 🚀 Overview
 
-**CODIE** is a high-performance, real-time collaborative code editor designed for modern development workflows. Built with a "Scalability First" mindset, it enables developers to write, edit, and deploy code collectively in a seamless, low-latency environment.
+**CODIE** is an all-in-one, high-performance real-time collaborative code editor and live interactive teaching platform designed for modern developers, educators, and students. Built with a "Scalability First" architecture, CODIE unites code editing, instant execution, live video/audio communication, and interactive line locking into a single seamless environment.
 
-Whether you're pair programming, conducting technical interviews, or building community-driven open-source projects, CODIE provides the enterprise-grade infrastructure needed for real-time synchronization and intelligent code assistance.
+### 🎯 Primary Purpose & Mission
 
-## ✨ Core Features
+- 🎓 **Interactive Live Teaching**: Teachers and mentors can conduct live coding classes, assign practical exercises, and watch students write code in real-time.
+- 🛠️ **Real-time Teacher Interventions**: Instructors can instantly jump into a student's code, lock lines for demonstration, and fix errors live on screen while other students and peers observe.
+- 🤝 **All-in-One Developer Hub**: Eliminate context switching! Meet via WebRTC video/audio huddles, discuss in chat, run code in the console, lock edits, and solve problems together—all within the editor.
 
-- 🤝 **Real-time Collaboration**: Live multi-user editing with cursor tracking and presence indicators powered by Socket.io and Redis.
-- 💻 **Intelligent Editor**: A rich editing experience using the Monaco Editor (VS Code core) with syntax highlighting and auto-completion.
-- 🤖 **AI-Powered Assistance**: Integrated AI explanations and code optimization to accelerate your development process.
-- 🌐 **Project Discovery**: Browse, fork, and contribute to developer-shared projects within the ecosystem.
-- ⚡ **Instant Deployment**: One-click deployment pipelines to bring your code from the editor to the cloud.
-- 💳 **Premium Access**: Integrated subscription management and payment processing via Razorpay.
-- 🛡️ **Enterprise Security**: Robust authentication and RBAC (Role-Based Access Control) using Firebase and JWT.
+---
+
+## ✨ Core Features & Recent Enhancements
+
+- 🎥 **WebRTC Video Huddle**: Integrated face-to-face video calls with dynamic layout grids, stream toggles, and seamless room integration right in the editor.
+- 🎙️ **Audio Huddle & Waveform**: Low-latency voice calls featuring real-time speaker audio waveform visualizers, participant lists, and hand-raise indicators.
+- ⚡ **Live Multi-Language Code Execution**: Compile and run code instantly across multiple programming languages directly in the integrated output console (powered by Piston API).
+- 🔒 **Selection & Line Locking**: Lock specific lines or code blocks to guide students step-by-step, conduct live code reviews, and prevent editing collisions.
+- 💬 **In-Editor Chat & Access Control**: Built-in room messaging combined with host-controlled join request approvals for secure classroom and team management.
+- 🤝 **Real-Time Multi-Cursor Sync**: Collaborative editing powered by Monaco Editor, Socket.io, and Redis with presence badges and live cursor tracking.
+- 🤖 **AI-Powered Code Assistance**: Integrated AI explanations and optimization suggestions to accelerate learning and debugging.
+- 🌐 **Project Discovery & Community Sharing**: Browse, fork, comment on, and showcase open-source projects created by the community.
+- 💳 **Subscription & Premium Access**: Tiered subscription management and secure payments powered by Razorpay.
+
+---
 
 ## 🛠️ Technical Stack
 
 ### **Frontend (Client)**
 - **Framework**: Next.js 15 (App Router), React 19
-- **State Management**: Zustand, React Query (TanStack)
-- **Styling**: Tailwind CSS 4, Framer Motion (Animations)
-- **UI Components**: Radix UI (Unstyled Primitives)
-- **Editor**: Monaco Editor
+- **State Management**: Zustand, React Query (TanStack Query v5)
+- **Styling**: Tailwind CSS 4, Framer Motion
+- **UI Components**: Radix UI Primitives, Lucide Icons
+- **Editor & Media**: Monaco Editor, WebRTC (PeerJS / Native WebSockets), Canvas Audio Waveforms
 - **Real-time**: Socket.io-client
 
 ### **Backend (Server)**
 - **Runtime**: Node.js, TypeScript
-- **APIs**: GraphQL (Apollo Server 4), REST (Express)
+- **APIs**: REST (Express), GraphQL (Apollo Server 4)
 - **Database**: 
-  - **Primary**: MongoDB (Mongoose)
-  - **Relational**: Neon (PostgreSQL)
+  - **Primary Document DB**: MongoDB (Mongoose)
+  - **Relational DB**: Neon (PostgreSQL)
+- **Code Execution**: Piston API Worker Integration
 - **Caching & Queues**: Redis, ioredis, BullMQ
-- **Real-time**: Socket.io (with Redis Adapter for multi-instance scaling)
-- **Logging**: Pino & Pino-HTTP (Production-grade structured logging)
+- **Real-time Engine**: Socket.io (with Redis Adapter for multi-instance scaling)
+- **Logging**: Pino & Pino-HTTP
 
 ### **DevOps & Infrastructure**
 - **Orchestration**: Kubernetes (K8s)
 - **Containerization**: Docker & Docker Compose
 - **Proxy**: Nginx
-- **Automation**: Node-cron for scheduled tasks
+- **Automation**: Node-cron scheduled tasks
+
+---
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph TD
-    User((Developer)) -->|Next.js App| Client[Frontend - React 19]
-    Client -->|GraphQL/REST| Server[Express Server - TS]
-    Client -->|WebSockets| SocketServer[Socket.io Manager]
-    SocketServer -->|Adapter| Redis[(Redis Buffer)]
+    User((Teacher / Student / Developer)) -->|Next.js App| Client[Frontend - React 19 & Next.js 15]
+    Client -->|REST & GraphQL| Server[Express Server - Node.js TS]
+    Client -->|WebSockets & WebRTC| SocketServer[Socket.io & Peer Engine]
+    Client -->|Code Execution| Piston[Piston API Engine]
+    SocketServer -->|Adapter| Redis[(Redis Caching & PubSub)]
     Server -->|Mongoose| MongoDB[(MongoDB)]
     Server -->|PostgreSQL| Neon[(Neon DB)]
     Server -->|Workers| BullMQ[BullMQ Processor]
     BullMQ --> Redis
 ```
 
+---
+
 ## 🚦 Getting Started
 
 ### Prerequisites
 - Node.js v20+
 - Docker & Docker Compose
-- Redis Server (or via Docker)
-- MongoDB instance
+- Redis Server
+- MongoDB Instance
 
 ### Local Installation
 
@@ -92,7 +108,7 @@ graph TD
    cd server
    cp .env.example .env
    npm install
-   # Seed the database for development
+   # Seed database for development
    npm run seed:users
    npm run seed:projects
    npm run dev
@@ -106,45 +122,31 @@ graph TD
    npm run dev
    ```
 
+---
+
 ## 📂 Project Structure
 
 ```text
 CODIE/
-├── client/           # Next.js 15 Frontend
-│   ├── public/       # Static assets & logo
-│   └── src/          # React components, hooks & state
-├── server/           # Express & GraphQL Server
-│   ├── src/          # Sockets, DB Models, and Seeders
-│   └── tsconfig.json # TypeScript configuration
+├── client/           # Next.js 15 App Router Frontend
+│   ├── public/       # Logos & static assets
+│   └── src/          # Components, stores, hooks, & pages
+│       ├── app/      # Routes: landing, dashboard, editor, discover
+│       ├── components/ # Editor components (Huddles, Console, Lock, Chat)
+│       ├── context/  # WebRTC & Socket contexts
+│       └── stores/   # Zustand stores (Editor, User, Code)
+├── server/           # Express & GraphQL Backend
+│   ├── src/          # Sockets, DB Models, Services & Controllers
+│   └── tsconfig.json
 ├── k8s/              # Kubernetes manifest files
-└── README.md         # Project documentation
+└── README.md         # Documentation
 ```
 
-## 📦 Deployment
-
-The project is production-ready with Docker and Kubernetes support.
-
-**Using Docker Compose:**
-```bash
-docker-compose up --build
-```
-
-**Kubernetes Deployment:**
-Configurations are located in the `/k8s` directory.
-```bash
-kubectl apply -f k8s/
-```
-
-## 👨‍💻 Contributing
-
-We welcome contributions from the community! Please follow our senior-dev-centric standards:
-1. **Type Safety**: All contributions must be fully typed.
-2. **Atomic Commits**: Keep your commits small and descriptive.
-3. **Performance**: Ensure no redundant re-renders or heavy blocking operations on the event loop.
+---
 
 ## 📄 License
 
-Distributed under the **ISC License**. See `LICENSE` for more information.
+Distributed under the **ISC License**. See `LICENSE` for details.
 
 ---
 

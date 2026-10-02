@@ -27,8 +27,7 @@ export default function useNotificationSocketListner(onNotificationReceived: () 
         socket.on("join-invitation-rejected", fetchData);
         socket.on("recive-invitation", fetchData);
 
-
-        // socket.on("notification-received", fetchData);
+        socket.on("notification-received", fetchData);
 
         return () => {
             // requests
@@ -43,7 +42,7 @@ export default function useNotificationSocketListner(onNotificationReceived: () 
             socket.off("join-invitation-rejected", fetchData);
             socket.off("recive-invitation", fetchData);
 
-            // socket.off("notification-received", fetchData);
+            socket.off("notification-received", fetchData);
         };
     }, [socket, onNotificationReceived, refetchProjects]);
 }

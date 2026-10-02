@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import axios from "axios";
 
-const PISTON_URL = process.env.PISTON_URL || "http://localhost:2000";
+const PISTON_URL = process.env.PISTON_URL || "https://piston-4hy6.onrender.com";
 
 const executeRouter = Router();
 
@@ -34,7 +34,7 @@ executeRouter.post("/", async (req: Request, res: Response) => {
     try {
         console.log(`[Execute] Proxying execution request to Piston at: ${PISTON_URL}/api/v2/execute`);
         console.log(`[Execute] Language: ${req.body.language}`);
-        
+
         const response = await axios.post(`${PISTON_URL}/api/v2/execute`, req.body, {
             headers: {
                 "Content-Type": "application/json",

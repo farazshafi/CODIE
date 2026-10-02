@@ -14,7 +14,7 @@ import { editorService, roomSocketService, messageService, userSocketService, us
 import { IEventHandler } from './events/EventHandler';
 import redis from '../config/redis';
 import { logger } from '../utils/logger';
-import { getAllowedOrigins } from '../config/origins';
+import { getAllowedOrigins, isOriginAllowed } from '../config/origins';
 
 export class SocketManager {
     private io: Server;
@@ -23,10 +23,15 @@ export class SocketManager {
     private _eventHandlers: IEventHandler[];
 
     constructor(server: http.Server) {
-        const allowedOrigins = getAllowedOrigins();
         this.io = new Server(server, {
             cors: {
-                origin: allowedOrigins,
+                origin: (origin, callback) => {
+                    if (!origin || isOriginAllowed(origin)) {
+                        callback(null, true);
+                    } else {
+                        callback(new Error("Not allowed by CORS"));
+                    }
+                },
                 methods: ["GET", "POST"],
                 credentials: true
             }
@@ -55,8 +60,10 @@ export class SocketManager {
             logger.info({ socketId: socket.id }, "New client connected");
 
             socket.on('register-user', async (userId: string) => {
+                socket.data.userId = userId;
+                socket.join(`user:${userId}`);
                 await this._userSocketRepository.add(userId, socket.id);
-                logger.info({ userId, socketId: socket.id }, "User registered");
+                logger.info({ userId, socketId: socket.id }, "User registered and joined user room");
             });
 
             this._eventHandlers.forEach(handler => handler.register(socket));

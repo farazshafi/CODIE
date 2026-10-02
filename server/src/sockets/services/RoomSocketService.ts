@@ -26,7 +26,7 @@ export class RoomSocketService implements IRoomSocketService {
         private readonly _subscriptionRepository: ISubscriptionRepository,
     ) { }
 
-    async handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string } | { error: string }> {
+    async handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string, ownerUserId?: string } | { error: string }> {
         const { roomId, userId } = data;
 
         const room = await this._roomRepository.findRoomById(roomId);
@@ -46,7 +46,7 @@ export class RoomSocketService implements IRoomSocketService {
         const maxContributers = (await this._subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
         if (currentContributers >= maxContributers) {
             console.log("room is full".bgRed)
-            return { error: "Room is full" } 
+            return { error: "Room is full" }
         }
 
         const request = await this._requestService.createRequest({
@@ -65,7 +65,8 @@ export class RoomSocketService implements IRoomSocketService {
         const ownerSocketId = await this._userSocketRepository.getSocketId(room.owner.toString());
         return {
             requestId: request._id as string,
-            ownerSocketId
+            ownerSocketId,
+            ownerUserId: room.owner.toString()
         };
     }
 

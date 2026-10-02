@@ -123,6 +123,9 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
 export const warmupPistonEngine = async () => {
     try {
         console.log("[Piston Warmup] Sending background ping to warm up Piston execution server...");
+        // Direct request to Piston container on Render to wake it up immediately if asleep
+        fetch("https://piston-4hy6.onrender.com/api/v2/runtimes", { mode: "no-cors" }).catch(() => { });
+        // Also ping via backend proxy
         await API.get("/execute/runtimes");
         console.log("[Piston Warmup] Warmup request sent successfully.");
     } catch (err) {

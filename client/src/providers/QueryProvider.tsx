@@ -1,7 +1,8 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { warmupPistonEngine } from "@/stores/useCodeEditorStore";
 
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(
@@ -16,6 +17,11 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
                 },
             })
     );
+
+    useEffect(() => {
+        // Automatically warm up Piston execution container on Render when user enters the website
+        warmupPistonEngine();
+    }, []);
 
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

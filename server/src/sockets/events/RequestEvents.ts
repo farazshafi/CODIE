@@ -35,7 +35,19 @@ export class RequestEvents implements IEventHandler {
                 return;
             }
 
-            if (result.ownerSocketId) {
+            if (result.ownerUserId) {
+                this.io.to(`user:${result.ownerUserId}`).emit("approve-request", {
+                    roomId: data.roomId,
+                    userId: data.userId,
+                    userName: data.userName,
+                    reqId: result.requestId,
+                    message: `New join request received from ${data.userName} to join Room: ${data.roomId}`
+                });
+                this.io.to(`user:${result.ownerUserId}`).emit("notification-received", {
+                    type: "request",
+                    action: "received"
+                });
+            } else if (result.ownerSocketId) {
                 this.io.to(result.ownerSocketId).emit("approve-request", {
                     roomId: data.roomId,
                     userId: data.userId,
@@ -79,20 +91,28 @@ export class RequestEvents implements IEventHandler {
                 const userSocketId = await this._userSocketRepository.getSocketId(result.approvedUserId);
                 const roomId = result.roomId;
 
-                // Notify approved user
+                // Notify approved user via user room & socket ID
+                this.io.to(`user:${result.approvedUserId}`).emit("join-approved", {
+                    message: "Request accepted",
+                    roomId: roomId
+                });
+                this.io.to(`user:${result.approvedUserId}`).emit("notification-received", {
+                    type: "request",
+                    action: "approved"
+                });
+
                 if (userSocketId) {
                     this.io.to(userSocketId).emit("join-approved", {
                         message: "Request accepted",
                         roomId: roomId
                     });
-
                     this.io.to(userSocketId).emit("notification-received", {
                         type: "request",
                         action: "approved"
                     });
-
-                    socket.emit("update-request", "true");
                 }
+
+                socket.emit("update-request", "true");
 
                 // Notify the approver (owner)
                 socket.emit("notification-received", {
@@ -131,6 +151,16 @@ export class RequestEvents implements IEventHandler {
 
             if (result.rejectedUserId) {
                 const userSocketId = await this._userSocketRepository.getSocketId(result.rejectedUserId);
+
+                this.io.to(`user:${result.rejectedUserId}`).emit("join-rejected", {
+                    message: "Request Rejected",
+                    roomId: result.roomId
+                });
+                this.io.to(`user:${result.rejectedUserId}`).emit("notification-received", {
+                    type: "request",
+                    action: "rejected"
+                });
+
                 if (userSocketId) {
                     this.io.to(userSocketId).emit("join-rejected", {
                         message: "Request Rejected",
@@ -140,8 +170,9 @@ export class RequestEvents implements IEventHandler {
                         type: "request",
                         action: "rejected"
                     });
-                    socket.emit("update-request", "true");
                 }
+
+                socket.emit("update-request", "true");
 
                 socket.emit("notification-received", {
                     type: "request",

@@ -4,7 +4,7 @@ import { ApproveInvitationResult, ApproveRequestData, ApproveUserResult, RejectU
 
 
 export interface IRoomSocketService {
-    handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string } | { error: string }>;
+    handleJoinRequest(data: RequestData): Promise<{ requestId: string, ownerSocketId: string, ownerUserId?: string } | { error: string }>;
     handleApproveUser(data: ApproveRequestData): Promise<ApproveUserResult>;
     handleRejectUser(data: { requestId: string }): Promise<RejectUserResult>;
     handleApproveInvitation(data: { invitationId: string, roomId: string }): Promise<ApproveInvitationResult>

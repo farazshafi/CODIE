@@ -14,18 +14,21 @@ export class UserSocketRepository implements IUserSocketRepository {
     async remove(socketId: string): Promise<void> {
         const userId = await this.getUserId(socketId);
         if (userId) {
-            await redis.hdel(this._userSocketKey, userId);
+            const currentSocketId = await redis.hget(this._userSocketKey, userId);
+            if (currentSocketId === socketId) {
+                await redis.hdel(this._userSocketKey, userId);
+            }
             await redis.hdel(this._socketUserKey, socketId);
         }
     }
 
     async getSocketId(userId: string): Promise<string | undefined> {
         const socketId = await redis.hget(this._userSocketKey, userId);
-        
+
         return socketId ?? undefined;
     }
 
-    async getUserId(socketId:string): Promise<string | undefined> {
+    async getUserId(socketId: string): Promise<string | undefined> {
         const userId = await redis.hget(this._socketUserKey, socketId);
         return userId ?? undefined;
     }

@@ -113,8 +113,8 @@ export class WebRTCEvents implements IEventHandler {
         const allUsersRaw = await redis.hgetall(huddleKey);
         const huddleParticipants = Object.values(allUsersRaw).map(u => JSON.parse(u));
 
-        // Notify existing members that a new user joined
-        socket.to(projectId).emit('webrtc:user-joined-huddle', {
+        // Notify all members in the project room that a user joined the huddle
+        this.io.to(projectId).emit('webrtc:user-joined-huddle', {
             userId,
             socketId: socket.id,
             userName: userName || 'Developer'
@@ -139,7 +139,7 @@ export class WebRTCEvents implements IEventHandler {
         }
         await redis.hdel(huddleKey, userId);
 
-        socket.to(projectId).emit('webrtc:user-left-huddle', {
+        this.io.to(projectId).emit('webrtc:user-left-huddle', {
             userId,
             socketId: socket.id,
             userName

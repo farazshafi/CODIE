@@ -148,12 +148,16 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id]);
 
+    const handleRealtimeNotification = useCallback(() => {
+        setHasNewNotifications(true);
+        updateNotificationData();
+    }, [updateNotificationData]);
 
     useImperativeHandle(ref, () => ({
         updateNotificationData,
     }))
 
-    useNotificationSocketListner(updateNotificationData, refetchProjects ?? (() => { }));
+    useNotificationSocketListner(handleRealtimeNotification, refetchProjects ?? (() => { }));
 
 
     // useEffects
