@@ -120,4 +120,14 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
     },
 }));
 
+export const warmupPistonEngine = async () => {
+    try {
+        console.log("[Piston Warmup] Sending background ping to warm up Piston execution server...");
+        await API.get("/execute/runtimes");
+        console.log("[Piston Warmup] Warmup request sent successfully.");
+    } catch (err) {
+        console.warn("[Piston Warmup] Warmup ping completed with response or waking up container:", err);
+    }
+};
+
 export const getExecutionResult = () => useCodeEditorStore.getState().executionResult;

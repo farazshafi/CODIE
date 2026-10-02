@@ -175,6 +175,13 @@ html {
     background-color: #4ade80; /* green-400 */
     border-radius: 100vh;
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
   .admin-sidebar {
     background-color: #1a1f2c;

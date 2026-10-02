@@ -116,20 +116,20 @@ const Header = ({
     }, []);
 
     return (
-        <nav className="text-white bg-primary px-4 md:px-10 py-3 flex justify-between items-center relative border-b border-white/5">
-            <div className="flex flex-row items-center space-x-6">
-                <Link href="/dashboard" className="flex flex-row items-center cursor-pointer group">
+        <nav className="text-white bg-primary px-4 md:px-8 py-3 flex justify-between items-center relative border-b border-white/5 overflow-x-auto no-scrollbar w-full">
+            <div className="flex flex-row items-center space-x-4 md:space-x-6 shrink-0">
+                <Link href="/dashboard" className="flex flex-row items-center cursor-pointer group shrink-0">
                     <Image src={Logo} alt="logo" className="w-[35px] md:w-[40px] group-hover:scale-110 transition-transform" />
                     <p className="text-lg md:text-xl font-bold ml-2">
                         COD<span className="text-green-400">IE</span>
                     </p>
                 </Link>
 
-                <div className="hidden md:flex items-center gap-x-4">
+                <div className="hidden md:flex items-center gap-x-3 shrink-0">
                     <CollaborationSection />
 
                     <Link
-                        className="hover:opacity-80 transition-opacity"
+                        className="hover:opacity-80 transition-opacity shrink-0"
                         href={"/dashboard"}
                     >
                         <Button variant="ghost" className="bg-tertiary/50 hover:bg-red-500/20 text-white">

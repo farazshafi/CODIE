@@ -106,33 +106,37 @@ export default function CreateProjectModal({
       toast.error("User or room ID is missing");
       return;
     }
-    setIsJoinLoading(true)
+    setIsJoinLoading(true);
     socket.emit("join-request", {
       roomId,
       userId: user.id,
       userName: user.name,
     });
-    setIsJoinLoading(false)
-
   };
 
   useEffect(() => {
-    if (!socket) return
+    if (!socket) return;
 
-    const handleSocketJoin = () => {
-      console.log("join request comes ")
+    const handleSocketJoin = (data?: { message?: string }) => {
+      toast.success(data?.message || "Join request sent successfully!");
+      setIsJoinLoading(false);
+      setOpen(false);
+      setRoomId("");
+    };
 
-      setIsJoinLoading(false)
-      setOpen(false)
-    }
+    const handleSocketError = (errMessage: string) => {
+      toast.error(errMessage || "Failed to send join request.");
+      setIsJoinLoading(false);
+    };
 
-    socket.on("request-sent", handleSocketJoin)
+    socket.on("request-sent", handleSocketJoin);
+    socket.on("error", handleSocketError);
 
     return () => {
-      socket.off("request-sent", handleSocketJoin)
-    }
-
-  }, [socket])
+      socket.off("request-sent", handleSocketJoin);
+      socket.off("error", handleSocketError);
+    };
+  }, [socket]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

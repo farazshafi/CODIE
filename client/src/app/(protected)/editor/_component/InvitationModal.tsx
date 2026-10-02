@@ -30,17 +30,22 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
     const [userResult, setUserResult] = useState<SearchResultUser[]>([])
     const [searchEmail, setSearchEmail] = useState("")
     const [invitedUserId, setInvitedUserId] = useState<string | null>(null)
+    const [targetReceiverId, setTargetReceiverId] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState<number>(1)
-
-    let reciverId: string | null = null
 
     const { mutate: createInvitation, isLoading: invitationLoading } = useMutationHook(createInvitationApi, {
         onSuccess(data) {
-            toast.success(data.message || "Invitation sent")
+            toast.success(data.message || "Invitation sent successfully!")
             setInvitedUserId(null)
-            if (socket && reciverId) {
-                socket.emit("send-invitation", { reciverId })
+            if (socket && targetReceiverId) {
+                socket.emit("send-invitation", {
+                    reciverId: targetReceiverId,
+                    roomId,
+                    senderName: user?.name || "Collaborator"
+                })
             }
+            setTargetReceiverId(null)
+            hanldeModalClose()
         },
         onError(error) {
             if (error instanceof Error) {
@@ -49,6 +54,7 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
                 toast.error(String(error));
             }
             setInvitedUserId(null)
+            setTargetReceiverId(null)
         },
     })
 
@@ -69,7 +75,7 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
     const handleSendingInvitation = (id: string) => {
         if (!user?.id) return
         setInvitedUserId(id)
-        reciverId = id
+        setTargetReceiverId(id)
         createInvitation({ roomId, senderId: user?.id, reciverId: id })
     }
 

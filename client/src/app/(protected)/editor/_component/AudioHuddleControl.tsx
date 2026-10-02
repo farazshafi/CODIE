@@ -19,6 +19,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useOnlineUsers } from "@/hooks/useOnlineUsers";
+
 interface AudioHuddleControlProps {
     onVideoToggle?: () => void;
 }
@@ -28,6 +30,7 @@ const AudioHuddleControl: React.FC<AudioHuddleControlProps> = ({ onVideoToggle }
     const userRole = useEditorStore((state) => state.userRole);
     const user = useUserStore((state) => state.user);
     const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+    const { onlineUsers } = useOnlineUsers(projectId || undefined);
 
     const {
         isInHuddle,
@@ -82,6 +85,11 @@ const AudioHuddleControl: React.FC<AudioHuddleControlProps> = ({ onVideoToggle }
     const raisedHandList = allParticipants.filter((p) => p.hasHandRaised);
 
     if (!projectId || !user) return null;
+
+    // If only 1 user is online in the room and not currently in a huddle, hide Join Huddle button
+    if (onlineUsers.length <= 1 && !isInHuddle) {
+        return null;
+    }
 
     const isHost = userRole === "owner";
 

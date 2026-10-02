@@ -122,39 +122,39 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId, isModal = false })
                     <DropdownMenuSeparator />
                 </>
             )}
-            <div className={`space-y-1 ${isModal ? 'max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar' : ''}`}>
+            <div className={`space-y-2 ${isModal ? 'max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar' : ''}`}>
                 {collaborators.length === 0 && (
-                    <div className="text-center py-10 text-gray-500">
+                    <div className="text-center py-10 text-gray-400 text-sm">
                         No collaborators found.
                     </div>
                 )}
                 {collaborators.map((item, index) => (
-                    <div key={index} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${isModal ? 'bg-white/5 hover:bg-white/10' : 'hover:bg-slate-100'}`}>
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border border-white/10">
+                    <div key={index} className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${isModal ? 'bg-white/5 hover:bg-white/10' : 'bg-white/5 hover:bg-white/10 border border-white/5'}`}>
+                        <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                            <Avatar className="h-10 w-10 border border-white/10 shrink-0">
                                 <AvatarImage src={item.user._id === user?.id ? user?.avatar : ""} alt={item.user.name} />
-                                <AvatarFallback className={`text-black font-bold text-sm ${isUserOnline(item.user._id, onlineUsers) ? 'bg-green-400' : 'bg-red-400'
+                                <AvatarFallback className={`text-black font-bold text-sm ${isUserOnline(item.user._id, onlineUsers) ? 'bg-emerald-400' : 'bg-gray-400'
                                     }`}>
-                                    {item.user.name.split(" ").map((n) => n[0]).join("")}
+                                    {item.user.name ? item.user.name.split(" ").map((n) => n[0]).join("") : "U"}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col truncate">
                                 <div className="flex items-center gap-2">
-                                    <p className="font-semibold text-sm">{item.user.name}</p>
+                                    <p className="font-semibold text-sm text-gray-100 truncate">{item.user.name}</p>
                                     {isUserOnline(item.user._id, onlineUsers) ? (
-                                        <span className="w-2 h-2 rounded-full bg-green-500" title="online" />
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="online" />
                                     ) : (
-                                        <span className="w-2 h-2 rounded-full bg-red-500" title="offline" />
+                                        <span className="w-2 h-2 rounded-full bg-gray-500 shrink-0" title="offline" />
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-400">{item.user.email}</p>
+                                <p className="text-xs text-gray-400 truncate">{item.user.email}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${item.role === "owner" ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30" :
-                                item.role === "editor" ? "bg-green-500/20 text-green-500 border border-green-500/30" :
-                                    "bg-blue-500/20 text-blue-500 border border-blue-500/30"
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${item.role === "owner" ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" :
+                                item.role === "editor" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" :
+                                    "bg-blue-500/20 text-blue-300 border border-blue-500/30"
                                 }`}>
                                 {item.role}
                             </span>
@@ -162,7 +162,7 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId, isModal = false })
                             {ownerId === user?.id && item.role !== "owner" && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <button className="h-7 px-2 text-[10px] font-medium rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
+                                        <button className="h-7 px-2.5 text-[11px] font-medium rounded-md border border-white/15 bg-white/10 hover:bg-white/20 transition-colors">
                                             Role
                                         </button>
                                     </DropdownMenuTrigger>
@@ -188,7 +188,7 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId, isModal = false })
                     </div>
                 ))}
             </div>
-            {!isModal && <DropdownMenuSeparator />}
+            {!isModal && <DropdownMenuSeparator className="bg-white/10 my-2" />}
         </div>
     );
 
@@ -196,12 +196,12 @@ const Contributers: React.FC<ContributersProps> = ({ ownerId, isModal = false })
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger>
-                <div className="bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer">
-                    <Users />
+            <DropdownMenuTrigger asChild>
+                <div className="bg-tertiary p-2 hover:bg-tertiary/80 rounded-md cursor-pointer text-white transition-all active:scale-95">
+                    <Users className="w-5 h-5" />
                 </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[300px] bg-[#1e1e2e] border-white/10 text-white">
+            <DropdownMenuContent className="w-[360px] sm:w-[380px] p-2 bg-[#1a1b26] border-white/10 text-white shadow-2xl rounded-xl">
                 {ListContent}
             </DropdownMenuContent>
         </DropdownMenu>

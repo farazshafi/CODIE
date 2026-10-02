@@ -17,6 +17,7 @@ import SectionTitle from "./_component/SectionTitle";
 import { useSocket } from "@/context/SocketContext";
 import { useUserProjects, useContributedProjects, PROJECT_KEYS } from "@/hooks/useProjectQueries";
 import { useQueryClient } from "@tanstack/react-query";
+import { warmupPistonEngine } from "@/stores/useCodeEditorStore";
 
 export type NavbarRef = {
     updateNotificationData: () => void;
@@ -34,6 +35,12 @@ export default function Home() {
 
     const { data: projects = [], isLoading: loading, refetch: fetchProjects } = useUserProjects(userId);
     const { data: contributedProjectsList = [], isLoading: contributedLoading, refetch: fetchContributedProjects } = useContributedProjects(userId);
+
+    useEffect(() => {
+        document.title = "Dashboard | CODIE";
+        // Warm up Piston server on Render asynchronously when user opens Dashboard
+        warmupPistonEngine();
+    }, []);
 
     useEffect(() => {
         if (!user?.token) {

@@ -36,98 +36,110 @@ const RoomRequests = ({ roomID }: { roomID: string }) => {
         if (!socket) return;
 
         socket.emit("approve-user", { requestId, roomId });
-        mutate(roomId)
+        mutate(roomId);
     };
 
     const handleRejectRequest = (requestId: string) => {
         if (!socket) return;
 
         socket.emit("reject-user", { requestId });
+        mutate(roomID);
     };
 
     useEffect(() => {
-        mutate(roomID)
+        if (roomID) {
+            mutate(roomID);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [roomID]);
 
     useEffect(() => {
         if (!socket) return;
 
-        const handleUpdateRequest = () => {
+        const handleUpdateRequest = (data?: { message?: string }) => {
             setHasUnread(true);
             mutate(roomID);
+            if (data?.message) {
+                toast.info(data.message);
+            }
         };
 
         socket.on("notification-received", handleUpdateRequest);
+        socket.on("approve-request", handleUpdateRequest);
+        socket.on("update-request", handleUpdateRequest);
 
         return () => {
             socket.off("notification-received", handleUpdateRequest);
+            socket.off("approve-request", handleUpdateRequest);
+            socket.off("update-request", handleUpdateRequest);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, roomID]);
 
-
-
-
     return (
         <div className=''>
             <DropdownMenu onOpenChange={(isOpen) => {
-                if (isOpen) setHasUnread(false)
+                if (isOpen) setHasUnread(false);
             }}>
-                <DropdownMenuTrigger>
-                    <div className="relative bg-tertiary p-2 hover:scale-125 rounded-md cursor-pointer text-white">
-                        <Inbox />
+                <DropdownMenuTrigger asChild>
+                    <div className="relative bg-tertiary p-2 hover:bg-tertiary/80 rounded-md cursor-pointer text-white transition-all active:scale-95">
+                        <Inbox className="w-5 h-5" />
                         {hasUnread && (
-                            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-[#12131c]"></span>
+                            </span>
                         )}
                     </div>
-
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[400px]">
+                <DropdownMenuContent className="w-[400px] bg-[#1e1e2e] border-white/10 text-white">
                     <DropdownMenuLabel>
-                        <div className="text-center py-2 font-bold">
-                            <p>Requests</p>
+                        <div className="text-center py-2 font-bold text-sm">
+                            <p>Collaborator Requests</p>
                         </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-white/10" />
                     {requests.length < 1 ? (
-                        <DropdownMenuItem className="p-2 text-center text-sm text-gray-500">
-                            No requests found
+                        <DropdownMenuItem className="p-4 text-center text-sm text-gray-400 justify-center">
+                            No pending requests
                         </DropdownMenuItem>
                     ) : (
                         requests.map((item, index) => (
-                            <DropdownMenuItem key={index} className="flex flex-col w-full p-2 hover:bg-slate-200 focus:bg-slate-200">
+                            <DropdownMenuItem key={index} className="flex flex-col w-full p-3 hover:bg-white/5 focus:bg-white/5 cursor-default">
                                 <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-8 w-8">
                                             <AvatarImage alt={item.name} />
                                             <AvatarFallback className="bg-green-400 text-black font-bold text-sm">
-                                                {item.name.split(" ").map((n) => n[0]).join("")}
+                                                {item.name ? item.name.split(" ").map((n) => n[0]).join("") : "U"}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <div className="flex flex-row items-center space-x-3">
-                                                <p className="font-medium">{item.name}</p>
-                                            </div>
-                                            <p className="text-xs text-gray-500">{item.email}</p>
+                                            <p className="font-medium text-sm text-white">{item.name}</p>
+                                            <p className="text-xs text-gray-400">{item.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span onClick={() => handleApproveRequest(item.id, roomID)} className="px-2 py-1 rounded-md text-xs bg-green">
+                                        <button
+                                            onClick={() => handleApproveRequest(item.id, roomID)}
+                                            className="px-2.5 py-1 rounded-md text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-colors cursor-pointer"
+                                        >
                                             Accept
-                                        </span>
-                                        <span onClick={() => handleRejectRequest(item.id)} className="px-2 py-1 rounded-md text-xs bg-red-400">
+                                        </button>
+                                        <button
+                                            onClick={() => handleRejectRequest(item.id)}
+                                            className="px-2.5 py-1 rounded-md text-xs bg-red-600 hover:bg-red-500 text-white font-medium transition-colors cursor-pointer"
+                                        >
                                             Reject
-                                        </span>
+                                        </button>
                                     </div>
                                 </div>
                             </DropdownMenuItem>
                         ))
                     )}
-
                 </DropdownMenuContent>
             </DropdownMenu>
-        </div >
+        </div>
     )
 }
 

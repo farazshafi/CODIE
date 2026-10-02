@@ -37,7 +37,10 @@ const CollaborationSection = () => {
     const { mutate: enableCollab } = useMutationHook(enableCollabrationApi, {
         onSuccess(res) {
             setIsWantToCollab(true);
-            setRoomId(res.data.data.roomId);
+            const createdRoomId = res?.data?.roomId || res?.data?.data?.roomId;
+            if (createdRoomId) {
+                setRoomId(createdRoomId);
+            }
             toast.success("Enabled collaboration!");
         },
         onError(error) {

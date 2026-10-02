@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Split from "react-split"
-import { useCodeEditorStore, getExecutionResult } from "@/stores/useCodeEditorStore"
+import { useCodeEditorStore, getExecutionResult, warmupPistonEngine } from "@/stores/useCodeEditorStore"
 import Header from "../_component/Header"
 import { useEditorStore } from "@/stores/editorStore"
 import { useParams } from "next/navigation"
@@ -47,6 +47,9 @@ const EditorContent = () => {
 
     useEffect(() => {
         setProjectId(id as string)
+        document.title = "Editor | CODIE"
+        // Trigger background warmup for Piston execution container on Render
+        warmupPistonEngine()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 

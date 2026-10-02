@@ -1,7 +1,6 @@
-"use client";
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSocket } from "@/context/SocketContext";
+import { toast } from "sonner";
 
 export interface HuddleParticipant {
     userId: string;
@@ -380,14 +379,16 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
 
         const handleUserJoinedHuddle = (data: { userId: string; socketId: string; userName: string }) => {
             if (data.userId === userId) return;
+            toast.info(`${data.userName || "Collaborator"} joined the huddle 🎙️`);
             setHuddleParticipants((prev) => {
                 if (prev.some((p) => p.userId === data.userId)) return prev;
                 return [...prev, data];
             });
         };
 
-        const handleUserLeftHuddle = (data: { userId: string; socketId: string }) => {
+        const handleUserLeftHuddle = (data: { userId: string; socketId: string; userName?: string }) => {
             if (data.userId === userId) return;
+            toast.info(`${data.userName || "Collaborator"} left the huddle`);
             setHuddleParticipants((prev) => prev.filter((p) => p.userId !== data.userId));
             setRaisedHandUserIds((prev) => prev.filter((id) => id !== data.userId));
             const peerKey = data.userId || data.socketId;
@@ -545,10 +546,23 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     }, [socket, isInHuddle, projectId, userId, userRole, getOrCreatePeerConnection, createOfferToPeer, forceMuteSelf]);
 
     useEffect(() => {
-        return () => {
+        const handleWindowUnload = () => {
+            leaveHuddle();
             cleanupHuddle();
         };
-    }, [cleanupHuddle]);
+
+        window.addEventListener("beforeunload", handleWindowUnload);
+        window.addEventListener("unload", handleWindowUnload);
+        window.addEventListener("pagehide", handleWindowUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleWindowUnload);
+            window.removeEventListener("unload", handleWindowUnload);
+            window.removeEventListener("pagehide", handleWindowUnload);
+            leaveHuddle();
+            cleanupHuddle();
+        };
+    }, [leaveHuddle, cleanupHuddle]);
 
     return {
         isInHuddle,
