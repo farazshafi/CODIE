@@ -35,31 +35,34 @@ export class RequestEvents implements IEventHandler {
                 return;
             }
 
+            const requestPayload = {
+                roomId: data.roomId,
+                userId: data.userId,
+                userName: data.userName,
+                reqId: result.requestId,
+                message: `New join request received from ${data.userName} to join Room: ${data.roomId}`
+            };
+            const notificationPayload = {
+                type: "request",
+                action: "received"
+            };
+
             if (result.ownerUserId) {
-                this.io.to(`user:${result.ownerUserId}`).emit("approve-request", {
-                    roomId: data.roomId,
-                    userId: data.userId,
-                    userName: data.userName,
-                    reqId: result.requestId,
-                    message: `New join request received from ${data.userName} to join Room: ${data.roomId}`
-                });
-                this.io.to(`user:${result.ownerUserId}`).emit("notification-received", {
-                    type: "request",
-                    action: "received"
-                });
+                this.io.to(`user:${result.ownerUserId}`).emit("approve-request", requestPayload);
+                this.io.to(`user:${result.ownerUserId}`).emit("notification-received", notificationPayload);
+                this.io.to(`user:${result.ownerUserId}`).emit("update-request", requestPayload);
             }
             if (result.ownerSocketId) {
-                this.io.to(result.ownerSocketId).emit("approve-request", {
-                    roomId: data.roomId,
-                    userId: data.userId,
-                    userName: data.userName,
-                    reqId: result.requestId,
-                    message: `New join request received from ${data.userName} to join Room: ${data.roomId}`
-                });
-                this.io.to(result.ownerSocketId).emit("notification-received", {
-                    type: "request",
-                    action: "received"
-                });
+                this.io.to(result.ownerSocketId).emit("approve-request", requestPayload);
+                this.io.to(result.ownerSocketId).emit("notification-received", notificationPayload);
+                this.io.to(result.ownerSocketId).emit("update-request", requestPayload);
+            }
+
+            // Also emit to the room ID channel so editor page open by owner/collaborator receives realtime update
+            if (data.roomId) {
+                this.io.to(data.roomId).emit("approve-request", requestPayload);
+                this.io.to(data.roomId).emit("notification-received", notificationPayload);
+                this.io.to(data.roomId).emit("update-request", requestPayload);
             }
 
             socket.emit("request-sent", { message: "Your join request has been sent!" });
@@ -69,7 +72,7 @@ export class RequestEvents implements IEventHandler {
             });
         } catch (err) {
             console.log(err);
-            socket.emit("error", "Failed to send join request.");
+            socket.emit("error", typeof err === "string" ? err : "Failed to send join request.");
         }
     }
 

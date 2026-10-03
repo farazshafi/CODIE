@@ -61,13 +61,28 @@ export class SocketManager {
             new UserEvents(this.io, userSocketService, this._userSocketRepository),
             new WebRTCEvents(this.io)
         ];
+        this.io.use((socket, next) => {
+            const userId = (socket.handshake.auth?.token as string) || (socket.handshake.query?.userId as string);
+            if (userId && typeof userId === "string" && userId !== "undefined") {
+                socket.data.userId = userId;
+            }
+            next();
+        });
     }
 
     public initialize() {
-        this.io.on('connection', (socket: Socket) => {
+        this.io.on('connection', async (socket: Socket) => {
             logger.info({ socketId: socket.id }, "New client connected");
 
+            const initialUserId = socket.data.userId;
+            if (initialUserId) {
+                socket.join(`user:${initialUserId}`);
+                await this._userSocketRepository.add(initialUserId, socket.id);
+                logger.info({ userId: initialUserId, socketId: socket.id }, "User auto-registered and joined user room via auth handshake");
+            }
+
             socket.on('register-user', async (userId: string) => {
+                if (!userId || userId === "undefined") return;
                 socket.data.userId = userId;
                 socket.join(`user:${userId}`);
                 await this._userSocketRepository.add(userId, socket.id);
@@ -77,7 +92,7 @@ export class SocketManager {
             this._eventHandlers.forEach(handler => handler.register(socket));
 
             socket.on('disconnect', async () => {
-                const userId = await this._userSocketRepository.getUserId(socket.id);
+                const userId = socket.data.userId || await this._userSocketRepository.getUserId(socket.id);
                 if (userId) {
                     // Notify other services about the disconnection
                     this._eventHandlers.forEach(handler => {

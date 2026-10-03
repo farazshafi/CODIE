@@ -54,12 +54,21 @@ export class RoomSocketService implements IRoomSocketService {
             senderId: userId
         });
 
-        const ownderId = room.owner.toString()
-        const getOwnderDetails = await this._userRepository.findById(ownderId)
+        const ownderId = room.owner.toString();
 
-        const sender = (await this._userRepository.findById(userId)).email
-        const projectName = (await this._projectRepository.findById((room.projectId).toString())).projectName
-        await this._mailService.sendJoinRequest(getOwnderDetails.email, sender, projectName)
+        // Send email asynchronously so SMTP delays/failures don't block the real-time socket response
+        Promise.resolve().then(async () => {
+            try {
+                const getOwnderDetails = await this._userRepository.findById(ownderId);
+                const sender = (await this._userRepository.findById(userId)).email;
+                const projectName = (await this._projectRepository.findById((room.projectId).toString())).projectName;
+                if (getOwnderDetails?.email && sender && projectName) {
+                    await this._mailService.sendJoinRequest(getOwnderDetails.email, sender, projectName);
+                }
+            } catch (mailErr) {
+                console.error("Failed to send join request email:", mailErr);
+            }
+        });
 
 
         const ownerSocketId = await this._userSocketRepository.getSocketId(room.owner.toString());

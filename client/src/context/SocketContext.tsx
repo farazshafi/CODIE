@@ -24,10 +24,11 @@ export function SocketProvider({ userId, children }: { userId?: string; children
         if (!userId) return;
 
         socketRef.current = io(SOCKET_URL, {
-            transports: ["polling", "websocket"],
+            transports: ["websocket", "polling"],
             reconnectionAttempts: 10,
             autoConnect: true,
             auth: { token: userId },
+            query: { userId: userId },
         });
 
         const socket = socketRef.current;

@@ -71,7 +71,7 @@ export default function CreateProjectModal({
       toast.error(error?.response?.data?.message || "Failed while creating Project");
       if (error?.response?.data?.message === "Your subscription has expired.") {
         const subscriptionData = error.response.data.subscription
-        if(subscriptionData) setSubscription(subscriptionData)
+        if (subscriptionData) setSubscription(subscriptionData)
       }
     },
     onSuccess(data) {
@@ -124,8 +124,13 @@ export default function CreateProjectModal({
       setRoomId("");
     };
 
-    const handleSocketError = (errMessage: string) => {
-      toast.error(errMessage || "Failed to send join request.");
+    const handleSocketError = (errPayload: unknown) => {
+      const msg = typeof errPayload === "string"
+        ? errPayload
+        : (errPayload && typeof errPayload === "object" && "message" in errPayload && typeof errPayload.message === "string")
+          ? errPayload.message
+          : "Failed to send join request.";
+      toast.error(msg);
       setIsJoinLoading(false);
     };
 
