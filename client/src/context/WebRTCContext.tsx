@@ -15,6 +15,7 @@ interface WebRTCContextType {
     raisedHandUserIds: string[];
     remoteStreams: { [peerKey: string]: MediaStream };
     localStream: MediaStream | null;
+    hasRecentHuddleJoin: boolean;
     joinHuddle: () => Promise<void>;
     leaveHuddle: () => void;
     toggleMute: () => void;

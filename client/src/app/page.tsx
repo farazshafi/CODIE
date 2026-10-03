@@ -35,7 +35,7 @@ const page = async () => {
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="container mx-auto px-6 md:px-10 pt-16 pb-28 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="max-w-2xl">
             {/* Feature Badges */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            {/* <div className="flex flex-wrap gap-2 mb-6">
               <span className="bg-green-500/10 text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-500/20 flex items-center gap-1.5">
                 <GraduationCap className="w-3.5 h-3.5" /> Live Teaching & Classrooms
               </span>
@@ -45,7 +45,7 @@ const page = async () => {
               <span className="bg-purple-500/10 text-purple-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-purple-500/20 flex items-center gap-1.5">
                 <Play className="w-3.5 h-3.5" /> Instant Code Runner
               </span>
-            </div>
+            </div> */}
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
               Collaborative Code Editor & Live Teaching Platform
@@ -59,13 +59,6 @@ const page = async () => {
                 asChild
               >
                 <Link href="/register">Start Coding Free <ArrowRight className="ml-2 w-5 h-5" /></Link>
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gray-700 hover:bg-gray-800 text-white px-8 py-6 rounded-xl text-lg font-semibold"
-                asChild
-              >
-                <Link href="/discover">Explore Projects</Link>
               </Button>
             </div>
           </div>

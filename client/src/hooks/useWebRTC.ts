@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSocket } from "@/context/SocketContext";
 import { toast } from "sonner";
+import { playBellSound } from "@/utils/audioUtils";
 
 export interface HuddleParticipant {
     userId: string;
@@ -44,6 +45,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     const [raisedHandUserIds, setRaisedHandUserIds] = useState<string[]>([]);
     const [remoteStreams, setRemoteStreams] = useState<{ [peerKey: string]: MediaStream }>({});
     const [localStreamState, setLocalStreamState] = useState<MediaStream | null>(null);
+    const [hasRecentHuddleJoin, setHasRecentHuddleJoin] = useState(false);
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -368,9 +370,17 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
     useEffect(() => {
         if (!socket) return;
 
+        let pulseTimeout: NodeJS.Timeout;
+
         const handleUserJoinedHuddleToast = (data: { userId: string; socketId: string; userName: string }) => {
             if (data.userId === userId) return;
+            playBellSound();
             toast.info(`${data.userName || "Collaborator"} joined the huddle 🎙️`);
+            setHasRecentHuddleJoin(true);
+            if (pulseTimeout) clearTimeout(pulseTimeout);
+            pulseTimeout = setTimeout(() => {
+                setHasRecentHuddleJoin(false);
+            }, 6000);
         };
 
         const handleUserLeftHuddleToast = (data: { userId: string; socketId: string; userName?: string }) => {
@@ -382,6 +392,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         socket.on("webrtc:user-left-huddle", handleUserLeftHuddleToast);
 
         return () => {
+            if (pulseTimeout) clearTimeout(pulseTimeout);
             socket.off("webrtc:user-joined-huddle", handleUserJoinedHuddleToast);
             socket.off("webrtc:user-left-huddle", handleUserLeftHuddleToast);
         };
@@ -595,6 +606,7 @@ export function useWebRTC({ projectId, userId, userName, userRole }: UseWebRTCOp
         raisedHandUserIds,
         remoteStreams,
         localStream: localStreamState,
+        hasRecentHuddleJoin,
         joinHuddle,
         leaveHuddle,
         toggleMute,

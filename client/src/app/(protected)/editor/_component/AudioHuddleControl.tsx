@@ -5,7 +5,7 @@ import { useWebRTCContext } from "@/context/WebRTCContext";
 import { useEditorStore } from "@/stores/editorStore";
 import { useUserStore } from "@/stores/userStore";
 import { Button } from "@/components/ui/button";
-import { Hand, Mic, MicOff, MoreVertical, PhoneOff, Radio, Users, Video, VideoOff, VolumeX } from "lucide-react";
+import { Bell, Hand, Mic, MicOff, MoreVertical, PhoneOff, Radio, Users, Video, VideoOff, VolumeX } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -40,6 +40,7 @@ const AudioHuddleControl: React.FC<AudioHuddleControlProps> = ({ onVideoToggle }
         isHandRaised,
         huddleParticipants,
         raisedHandUserIds,
+        hasRecentHuddleJoin,
         joinHuddle,
         leaveHuddle,
         toggleMute,
@@ -97,21 +98,38 @@ const AudioHuddleControl: React.FC<AudioHuddleControlProps> = ({ onVideoToggle }
         <TooltipProvider>
             <div className="flex items-center gap-2">
                 {!isInHuddle ? (
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                onClick={joinHuddle}
-                                size="sm"
-                                className="bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium gap-2 px-3 py-1.5 h-8 text-xs border border-emerald-500/30 shadow-md shadow-emerald-950/20 transition-all active:scale-95"
-                            >
-                                <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-200" />
-                                <span>Join Huddle</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-[#1e1e2e] border-white/10 text-white text-xs">
-                            Connect to live call with room collaborators
-                        </TooltipContent>
-                    </Tooltip>
+                    <div className="relative inline-flex items-center">
+                        {/* Glowing pulse aura near button when someone joined or active participants exist */}
+                        {(hasRecentHuddleJoin || huddleParticipants.length > 0) && (
+                            <span className="absolute -inset-1 rounded-lg bg-emerald-500/40 animate-ping pointer-events-none"></span>
+                        )}
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={joinHuddle}
+                                    size="sm"
+                                    className={`relative bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium gap-2 px-3 py-1.5 h-8 text-xs border border-emerald-500/40 shadow-md shadow-emerald-950/20 transition-all active:scale-95 ${hasRecentHuddleJoin
+                                            ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-[#0a0a0c] animate-pulse bg-emerald-600"
+                                            : ""
+                                        }`}
+                                >
+                                    <Bell className={`w-3.5 h-3.5 ${hasRecentHuddleJoin ? "animate-bounce text-amber-300" : "text-emerald-200"}`} />
+                                    <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-200" />
+                                    <span>Join Huddle</span>
+                                    {hasRecentHuddleJoin && (
+                                        <span className="relative flex h-2 w-2 ml-0.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                                        </span>
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-[#1e1e2e] border-white/10 text-white text-xs">
+                                {hasRecentHuddleJoin ? "Someone just joined! Click to join audio call" : "Connect to live call with room collaborators"}
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
                 ) : (
                     <div className="flex items-center gap-2 bg-[#12131c] border border-emerald-500/30 px-2.5 py-1 rounded-lg shadow-lg animate-in fade-in duration-200">
                         {/* Huddle Live Status */}
