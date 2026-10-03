@@ -41,12 +41,19 @@ export class InvitationService implements IInvitationService {
                 throw new HttpError(400, "Maximum number of collaborators reached for this room. Please upgrade your plan");
             }
 
-            const reciverMail = (await this._userRepository.findById(reciverId)).email
-            const senderName = (await this._userRepository.findById(senderId)).name
+            Promise.resolve().then(async () => {
+                try {
+                    const reciverMail = (await this._userRepository.findById(reciverId))?.email;
+                    const senderName = (await this._userRepository.findById(senderId))?.name;
+                    if (reciverMail && senderName) {
+                        await this._mailService.sendInvitation(reciverMail, senderName);
+                    }
+                } catch (mailErr) {
+                    console.error("Failed to send invitation email:", mailErr);
+                }
+            });
 
-            await this._mailService.sendInvitation(reciverMail, senderName)
-
-            return await this._invitationRepository.create(invitation)
+            return await this._invitationRepository.create(invitation);
         } catch (error) {
             if (error instanceof HttpError) {
                 throw error

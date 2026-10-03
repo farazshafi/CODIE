@@ -13,6 +13,7 @@ import OutputPanel from "../_component/OutputPanel"
 import MobileEditorBlocker from "../_component/MobileEditorBlocker"
 import VideoHuddlePanel from "../_component/VideoHuddlePanel"
 import { WebRTCProvider, useWebRTCContext } from "@/context/WebRTCContext"
+import { OnlineUsersProvider } from "@/context/OnlineUsersContext"
 import { MessageSquare, Terminal, Video } from "lucide-react"
 
 const EditorContent = () => {
@@ -227,7 +228,9 @@ const Page = () => {
 
     return (
         <WebRTCProvider>
-            <EditorContent />
+            <OnlineUsersProvider>
+                <EditorContent />
+            </OnlineUsersProvider>
         </WebRTCProvider>
     )
 }

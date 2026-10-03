@@ -27,7 +27,7 @@ export class InvitationEvents implements IEventHandler {
 
     private async _handleApproveInvitation(data: { invitationId: string, roomId: string, projectId: string }, socket: Socket): Promise<void> {
         try {
-            const userId = await this._userSocketRepository.getUserId(socket.id);
+            const userId = socket.data.userId || await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
             const result = await this._roomSocketService.handleApproveInvitation(data);
@@ -82,7 +82,7 @@ export class InvitationEvents implements IEventHandler {
 
     private async _handleRejectInvitation(data: { invitationId: string, roomId: string }, socket: Socket): Promise<void> {
         try {
-            const userId = await this._userSocketRepository.getUserId(socket.id);
+            const userId = socket.data.userId || await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
             const result = await this._roomSocketService.handleRejectInvitation(data);
@@ -128,7 +128,7 @@ export class InvitationEvents implements IEventHandler {
 
     private async _sendInvitation(data: { reciverId: string, roomId: string, senderName: string }, socket: Socket): Promise<void> {
         try {
-            const userId = await this._userSocketRepository.getUserId(socket.id);
+            const userId = socket.data.userId || await this._userSocketRepository.getUserId(socket.id);
             if (!userId) throw new Error("Unauthorized");
 
             this.io.to(`user:${data.reciverId}`).emit("recive-invitation", {

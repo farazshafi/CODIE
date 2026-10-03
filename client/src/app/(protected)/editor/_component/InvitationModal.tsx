@@ -34,12 +34,13 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
     const [currentPage, setCurrentPage] = useState<number>(1)
 
     const { mutate: createInvitation, isLoading: invitationLoading } = useMutationHook(createInvitationApi, {
-        onSuccess(data) {
-            toast.success(data.message || "Invitation sent successfully!")
+        onSuccess(data, variables) {
+            toast.success(data?.message || "Invitation sent successfully!")
             setInvitedUserId(null)
-            if (socket && targetReceiverId) {
+            const targetId = variables?.reciverId || targetReceiverId
+            if (socket && targetId) {
                 socket.emit("send-invitation", {
-                    reciverId: targetReceiverId,
+                    reciverId: targetId,
                     roomId,
                     senderName: user?.name || "Collaborator"
                 })
