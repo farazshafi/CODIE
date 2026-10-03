@@ -92,71 +92,76 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                 transactionId: razorpay_payment_id,
             });
 
-            const currUserSUb = await this._userSubscriptionRepo.findOne({ userId })
-            const user = await this._userRepository.findById(userId)
-            const newPlan = await this._subscriptionRepo.findById(planId)
-            if (!newPlan) throw new HttpError(404, "Plan is not found!")
+            const currUserSub = await this._userSubscriptionRepo.findOne({ userId });
+            const user = await this._userRepository.findById(userId);
+            const newPlan = await this._subscriptionRepo.findById(planId);
+            if (!newPlan) throw new HttpError(404, "Plan is not found!");
 
-            const now = new Date()
-            let startDate = now
-            let endDate = new Date(now)
+            const now = new Date();
+            let startDate = now;
+            let endDate = new Date(now);
 
-            const currentPlan = await this._subscriptionRepo.findById(String(currUserSUb.planId))
-            if (!currentPlan) throw new HttpError(404, "current plan not found!")
+            let updatedPlanId = new mongoose.Types.ObjectId(planId);
+            let updatedNextPlan: mongoose.Types.ObjectId | null = null;
 
             let subject = '';
             let message = '';
 
-            if (newPlan.pricePerMonth > currentPlan.pricePerMonth) {
-                subject = `You've Upgraded to ${newPlan.name}!`;
-                message = `Congratulations! You have successfully upgraded to the ${newPlan.name} plan. Premium features will be available after your current plan ends.`;
-            } else if (newPlan.pricePerMonth < currentPlan.pricePerMonth) {
-                subject = `You've Downgraded to ${newPlan.name}`;
-                message = `Your subscription has been changed to the ${newPlan.name} plan. New limits will apply after your current plan expires.`;
+            const currentPlan = (currUserSub && currUserSub.planId)
+                ? await this._subscriptionRepo.findById(String(currUserSub.planId))
+                : null;
+
+            if (!currUserSub || !currUserSub.planId || !currentPlan) {
+                // Initial subscription or missing existing plan
+                endDate.setMonth(endDate.getMonth() + 1);
+                updatedPlanId = new mongoose.Types.ObjectId(planId);
+                subject = `Welcome to ${newPlan.name} Plan!`;
+                message = `Congratulations! You have successfully subscribed to the ${newPlan.name} plan.`;
             } else {
-                subject = `Your Plan Has Been Updated`;
-                message = `Your subscription remains on the ${newPlan.name} plan.`;
+                if (newPlan.pricePerMonth > currentPlan.pricePerMonth) {
+                    // Immediate Upgrade
+                    startDate = now;
+                    endDate.setMonth(now.getMonth() + 1);
+                    updatedPlanId = new mongoose.Types.ObjectId(planId);
+                    updatedNextPlan = null;
+                    subject = `You've Upgraded to ${newPlan.name}!`;
+                    message = `Congratulations! You have successfully upgraded to the ${newPlan.name} plan.`;
+                } else if (String(newPlan._id) === String(currentPlan._id) || newPlan.pricePerMonth === currentPlan.pricePerMonth) {
+                    // Renewal / Same tier
+                    if (currUserSub.endDate && currUserSub.endDate > now) {
+                        startDate = currUserSub.startDate;
+                        endDate = new Date(currUserSub.endDate);
+                        endDate.setMonth(endDate.getMonth() + 1);
+                    } else {
+                        endDate.setMonth(endDate.getMonth() + 1);
+                    }
+                    updatedPlanId = new mongoose.Types.ObjectId(planId);
+                    updatedNextPlan = null;
+                    subject = `Your Plan Has Been Renewed`;
+                    message = `Your ${newPlan.name} subscription has been successfully renewed.`;
+                } else {
+                    // Scheduled Downgrade
+                    updatedPlanId = currUserSub.planId;
+                    updatedNextPlan = new mongoose.Types.ObjectId(planId);
+                    startDate = currUserSub.startDate;
+                    endDate = currUserSub.endDate;
+                    subject = `You've Downgraded to ${newPlan.name}`;
+                    message = `Your subscription will change to the ${newPlan.name} plan after your current billing cycle ends.`;
+                }
             }
 
-
-            // Decide Upgrade / Renewal / Downgrade
-            if (!currUserSUb || !currUserSUb.planId) {
-                endDate.setMonth(endDate.getMonth() + 1)
-                currUserSUb.planId = new mongoose.Types.ObjectId(planId)
-            } else {
-
-
-                if (newPlan.pricePerMonth > currentPlan.pricePerMonth) {
-                    // upgrade immediatly
-                    startDate = now
-                    endDate.setMonth(now.getMonth() + 1)
-                    currUserSUb.planId = newPlan.id
-                    await this._mailService.sendCommonEmail(user.email, subject, message)
-                } else if (newPlan.id === currentPlan.id) {
-                    // renewing check if expired 
-                    if (currUserSUb.endDate && currUserSUb.endDate > now) {
-                        startDate = currUserSUb.startDate
-                        endDate = new Date(currUserSUb.endDate)
-                        endDate.setMonth(endDate.getMonth() + 1)
-                    } else {
-                        endDate.setMonth(endDate.getMonth() + 1)
-                    }
-                    currUserSUb.planId = new mongoose.Types.ObjectId(planId)
-
-                } else if (newPlan.pricePerMonth < currentPlan.pricePerMonth) {
-                    // downgrade do it for later
-                    currUserSUb.nextPlan = new mongoose.Types.ObjectId(planId)
-                    startDate = currUserSUb.startDate;
-                    endDate = currUserSUb.endDate
-                    await this._mailService.sendCommonEmail(user.email, subject, message)
-                }
+            // Send confirmation email asynchronously (fire-and-forget) so SMTP network latency or timeouts NEVER block payment response or return 502
+            if (user && user.email) {
+                this._mailService.sendCommonEmail(user.email, subject, message).catch((err) => {
+                    console.error("Failed to send subscription confirmation email:", err);
+                });
             }
 
             const userSubscription = await this._userSubscriptionRepo.findOneAndUpdate(
                 { userId },
                 {
-                    planId: currUserSUb.planId,
-                    nextPlan: currUserSUb.nextPlan ?? null,
+                    planId: updatedPlanId,
+                    nextPlan: updatedNextPlan,
                     startDate,
                     endDate,
                     isActive: true,
@@ -165,16 +170,17 @@ export class UserSubscriptionService implements IUserSubscriptionService {
                         paymentMethod: "Razorpay"
                     }
                 },
-                { new: true }
+                { new: true, upsert: true }
             );
 
             return userSubscription;
         } catch (error) {
+            console.error("Error in verifyPaymentAndUpdateUserSubscription:", error);
             if (error instanceof HttpError) {
-                throw error
+                throw error;
             }
 
-            throw new HttpError(500, "Error while Verifing user subscription")
+            throw new HttpError(500, "Error while Verifing user subscription");
         }
     }
 
