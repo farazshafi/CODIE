@@ -1,21 +1,28 @@
-FROM node:18-slim
+FROM node:18-bullseye-slim
 
-# Install Python and clean up
-RUN apt-get update && \
-    apt-get install -y python3 && \
-    rm -rf /var/lib/apt/lists/*
+# Install runtimes & compilers for Python, C++, Java, Go, Rust, Ruby, C# (Mono)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    g++ \
+    default-jdk-headless \
+    golang \
+    rustc \
+    ruby \
+    mono-mcs \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy dependency files first for better caching
-COPY package.json ./
-RUN npm install
+# Copy dependency files first for caching
+COPY package*.json ./
+RUN npm install --production
 
 # Copy the server code
 COPY server.js .
 
-# Expose the Piston port
+# Expose port (Render sets process.env.PORT automatically)
 EXPOSE 2000
 
-# Run the lite server
+# Run the server
 CMD ["node", "server.js"]
+
