@@ -3,22 +3,8 @@ import { IEventHandler } from './EventHandler';
 import { IEditorService } from '../services/interface/IEditorService';
 import { IUserSocketRepository } from '../repositories/interface/IUserSocketRepository';
 import { IOnlineUserRepository } from '../repositories/interface/IOnlineUserRepository';
-import { JoinProjectData, leaveProjectData, updateCodeData, updateRoleData } from '../../types/socketType';
+import { JoinProjectData, leaveProjectData, updateCodeData, updateRoleData, CodeDeltaData, CursorUpdateData } from '../../types/socketType';
 import redis from '../../config/redis';
-
-/** Helper functions for lock ranges */
-function parseRange(range: string): [number, number] {
-    if (range.includes('-')) {
-        const [start, end] = range.split('-').map(Number);
-        return [start, end];
-    }
-    const num = Number(range);
-    return [num, num];
-}
-
-function isOverlap(rangeA: [number, number], rangeB: [number, number]): boolean {
-    return rangeA[0] <= rangeB[1] && rangeB[0] <= rangeA[1];
-}
 
 const COLOR_PALETTE = [
     '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#FF8C33',
@@ -47,13 +33,14 @@ export class EditorEvents implements IEventHandler {
         socket.on('join-project', (data: JoinProjectData) => this._handleJoinRoom(data, socket));
         socket.on('leave-project', (data: leaveProjectData) => this._handleLeaveRoom(data, socket));
         socket.on('code-update', (data: updateCodeData) => this._handleCodeUpdate(data, socket));
+        socket.on('code-delta', (data: CodeDeltaData) => this._handleCodeDelta(data, socket));
         socket.on('notify-role-change', (data: updateRoleData) => this._handleUpdateRole(data, socket));
-
-        // lock system
-        socket.on('lock:request', (data: { projectId: string, userId: string, ranges: string[], type: 'manual' }) => this._handleLockRequest(data, socket));
-        socket.on('lock:release', (data: { projectId: string, userId: string, ranges: string[] }) => this._handleLockRelease(data, socket));
-        socket.on('get-locked-lines', (data: { projectId: string }) => this._handleGetLockedLines(data, socket));
-        socket.on('cursor-update', (data: { projectId: string, userId: string, line: number }) => this._handleCursorUpdate(data, socket));
+        socket.on('cursor-update', (data: CursorUpdateData) => this._handleCursorUpdate(data, socket));
+        socket.on('cursor-remove', (data: { projectId: string, userId: string }) => {
+            if (data.projectId && data.userId) {
+                socket.to(data.projectId).emit('cursor-remove', { userId: data.userId });
+            }
+        });
 
     }
 
@@ -98,16 +85,6 @@ export class EditorEvents implements IEventHandler {
         // Remove user meta from Redis
         await redis.del(`userMeta:${userId}`);
 
-        // Remove locks owned by this user
-        const lockKey = `lineLocks:${projectId}`;
-        const allLocks = await redis.hgetall(lockKey);
-        for (const [range, owner] of Object.entries(allLocks)) {
-            if (owner.startsWith(userId)) {
-                await redis.hdel(lockKey, range);
-                client.to(projectId).emit('lock:released', { range, userId });
-            }
-        }
-
         const onlineUsers = await this._editorService.leaveRoom(projectId, userId, client.id);
         client.leave(projectId);
         client.to(projectId).emit('online-users', onlineUsers);
@@ -119,22 +96,6 @@ export class EditorEvents implements IEventHandler {
 
     private async _handleCodeUpdate(data: updateCodeData, client: Socket): Promise<void> {
         const { userId, projectId, content, ranges } = data;
-        const lockKey = `lineLocks:${projectId}`;
-
-        const allLocks = await redis.hgetall(lockKey);
-
-        // Check for conflicts
-        for (const r of ranges) {
-            const editRange: [number, number] = r.includes('-') ? parseRange(r) : [Number(r), Number(r)];
-            for (const [lockedRangeStr, val] of Object.entries(allLocks)) {
-                const [ownerId] = val.split('|');
-                const lockedRange = parseRange(lockedRangeStr);
-                if (isOverlap(editRange, lockedRange) && ownerId !== userId) {
-                    client.emit('error', { message: `Lines ${r} are locked by another user` });
-                    return;
-                }
-            }
-        }
 
         const room = await this._editorService.getRoomByProjectId(projectId);
         if (!room) {
@@ -156,6 +117,10 @@ export class EditorEvents implements IEventHandler {
     private async _handleUpdateRole(data: updateRoleData, socket: Socket): Promise<void> {
         const { userId, role, projectId } = data;
 
+        if (role === 'viewer') {
+            this.io.to(projectId).emit('cursor-remove', { userId });
+        }
+
         // Notify user via user room (all connected sockets for this user)
         this.io.to(`user:${userId}`).emit('updated-role', { message: `Your permission changed to ${role}` });
         this.io.to(`user:${userId}`).emit('refetch-permission');
@@ -168,90 +133,6 @@ export class EditorEvents implements IEventHandler {
             this.io.to(targetSocketId).emit('updated-role', { message: `Your permission changed to ${role}` });
             this.io.to(targetSocketId).emit('refetch-permission');
         }
-    }
-
-    private async _handleLockRequest(data: { projectId: string, userId: string, ranges: string[], type: 'manual' }, socket: Socket) {
-        const { projectId, userId, type } = data;
-        const ranges = Array.isArray(data.ranges) ? data.ranges : [data.ranges];
-
-        const lockKey = `lineLocks:${projectId}`;
-        const existingLocksRaw = await redis.hgetall(lockKey);
-        const existingLocks: { range: [number, number]; owner: string; type: string }[] = [];
-
-        for (const [rangeStr, val] of Object.entries(existingLocksRaw)) {
-            const [owner, lockType] = val.split('|');
-            existingLocks.push({ range: parseRange(rangeStr), owner, type: lockType });
-        }
-
-        const grantedRanges: string[] = [];
-
-        for (const r of ranges) {
-            let range = parseRange(r);
-            let conflict = false;
-            for (const lock of existingLocks) {
-                if (isOverlap(range, lock.range) && lock.owner !== userId) {
-                    conflict = true;
-                    break;
-                }
-            }
-            if (conflict) {
-                socket.emit('lock:denied', { range: r, lockedBy: 'another user' });
-                continue;
-            }
-
-            const userLocks = existingLocks.filter(l => l.owner === userId);
-            for (const ul of userLocks) {
-                if (isOverlap(range, ul.range) || range[0] === ul.range[1] + 1 || range[1] + 1 === ul.range[0]) {
-                    range = [Math.min(range[0], ul.range[0]), Math.max(range[1], ul.range[1])];
-                    await redis.hdel(lockKey, `${ul.range[0]}-${ul.range[1]}`);
-                }
-            }
-
-            await redis.hset(lockKey, `${range[0]}-${range[1]}`, `${userId}|${type}`);
-            grantedRanges.push(`${range[0]}-${range[1]}`);
-        }
-
-        for (const r of grantedRanges) {
-            const userMeta = await redis.hgetall(`userMeta:${userId}`);
-            const name = userMeta.name || 'Unknown';
-            const color = userMeta.color || '#000000';
-            socket.emit('lock:granted', { range: r, userId, userName: name, color, type });
-            socket.to(projectId).emit('lock:granted', { range: r, userId, userName: name, color, type });
-        }
-    }
-    private async _handleLockRelease(data: { projectId: string, userId: string, ranges: string[] }, socket: Socket) {
-        const { projectId, userId, ranges } = data;
-        const lockKey = `lineLocks:${projectId}`;
-
-        for (const range of ranges) {
-            const existing = await redis.hget(lockKey, range);
-            if (existing?.startsWith(userId)) {
-                await redis.hdel(lockKey, range);
-                socket.emit('lock:released', { range, userId });
-                socket.to(projectId).emit('lock:released', { range, userId });
-            }
-        }
-    }
-
-    private async _handleGetLockedLines(data: { projectId: string }, socket: Socket) {
-        const { projectId } = data;
-        const lockKey = `lineLocks:${projectId}`;
-        const existingLocksRaw = await redis.hgetall(lockKey);
-        const locks: { range: string; userId: string; type: string; userName: string; color: string }[] = [];
-
-        for (const [range, val] of Object.entries(existingLocksRaw)) {
-            const [owner, lockType] = val.split('|');
-            const userMeta = await redis.hgetall(`userMeta:${owner}`);
-            locks.push({
-                range,
-                userId: owner,
-                userName: userMeta.name || 'Unknown',
-                color: userMeta.color || '#000000',
-                type: lockType
-            });
-        }
-
-        socket.emit('locked-lines', { projectId, locks });
     }
 
     private async _getAvailableColor(): Promise<string> {
@@ -270,17 +151,48 @@ export class EditorEvents implements IEventHandler {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
 
-    private async _handleCursorUpdate(data: { projectId: string, userId: string, line: number }, socket: Socket) {
-        const { projectId, userId, line } = data;
+    private async _handleCodeDelta(data: CodeDeltaData, client: Socket): Promise<void> {
+        const { userId, projectId, range, text } = data;
+        if (!projectId || !userId || !range) return;
+
+        // Broadcast code delta to all other collaborators in project room
+        client.to(projectId).emit('code-delta', { userId, range, text });
+    }
+
+    private async _handleCursorUpdate(data: CursorUpdateData, socket: Socket) {
+        const { projectId, userId, position, line } = data;
+        if (!projectId || !userId) return;
+
+        const room = await this._editorService.getRoomByProjectId(projectId);
+        if (room) {
+            const isOwner = room.owner.toString() === userId;
+            const collaborator = room.collaborators.find(c => {
+                const uId = (c.user as any)?._id ? (c.user as any)._id.toString() : c.user?.toString();
+                return uId === userId;
+            });
+            const role = isOwner ? 'owner' : collaborator?.role;
+
+            if (role === 'viewer') {
+                socket.to(projectId).emit('cursor-remove', { userId });
+                return;
+            }
+        }
+
+        const lineNumber = position?.lineNumber ?? line ?? 1;
+        const column = position?.column ?? 1;
 
         const userMeta = await redis.hgetall(`userMeta:${userId}`);
         const name = userMeta.name || 'Unknown';
         const color = userMeta.color || '#000000';
 
         // Broadcast to everyone else in the room
-        socket.to(projectId).emit('cursor-update', { userId, userName: name, color, line });
-
-        console.log(`cursor Broadcasted: ${name} with line ${line}, labeled as: ${color} color`)
+        socket.to(projectId).emit('cursor-update', {
+            userId,
+            userName: name,
+            color,
+            line: lineNumber,
+            position: { lineNumber, column }
+        });
     }
 
 }

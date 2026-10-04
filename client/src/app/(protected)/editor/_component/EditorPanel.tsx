@@ -9,8 +9,6 @@ import { useSocket } from "@/context/SocketContext";
 import { useMutationHook } from "@/hooks/useMutationHook";
 import { getCodeApi, saveCodeApi } from "@/apis/projectApi";
 import { checkIsEligibleToEditApi } from "@/apis/roomApi";
-import LockSelectionButton from "./LockSelectionButton";
-import UnlockButton from "./UnlockButton";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { defineMonacoThemes } from "../_constants";
@@ -29,23 +27,27 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
 
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
-  const [code, setCode] = useState<string>("");
+  const addedWidgetIdsRef = useRef<Set<string>>(new Set());
+  const initialCodeRef = useRef<string | null>(null);
   const [lastValidCode, setLastValidCode] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(false);
-  const [locks, setLocks] = useState<{ [key: string]: string[] }>({});
 
-  const [remoteCursors, setRemoteCursors] = useState<{ [userId: string]: { line: number, name: string, color: string } }>({});
+  const [remoteCursors, setRemoteCursors] = useState<{ [userId: string]: { line: number, column: number, name: string, color: string } }>({});
   const isEditableRef = useRef(isEditable);
-
-
+  const isApplyingRemoteEdit = useRef(false);
 
   /** ✅ API mutations */
   const { mutate: getCode } = useMutationHook(getCodeApi, {
     onSuccess(data) {
       const projectData = data.data.data;
       console.log("project Data: ", projectData)
-      setCode(projectData.projectCode || "");
-      setLastValidCode(projectData.projectCode || "");
+      const initialCode = projectData.projectCode || "";
+      initialCodeRef.current = initialCode;
+      setLastValidCode(initialCode);
+
+      if (editorRef.current) {
+        editorRef.current.setValue(initialCode);
+      }
 
       if (projectData.projectLanguage) {
         setLanguage(projectData.projectLanguage);
@@ -92,7 +94,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
   }, [projectId, roomId, user?.id]);
 
 
-  /** ✅ Save full code (debounced) */
+  /** ✅ Save full code (debounced for DB persistence) */
   const debouncedSaveCode = useMemo(
     () =>
       debounce((updatedCode: string) => {
@@ -109,46 +111,20 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
       }, 3000),
     [projectId, saveCode, isContributionEnabled, ownerId, user?.id])
 
-
-  /** ✅ Emit whole code with line info */
-  const emitCodeUpdate = useMemo(
-    () =>
-      debounce((fullCode: string) => {
-        if (!socket || !editorRef.current) return;
-        const selections = editorRef.current.getSelections();
-        if (!selections || selections.length === 0) return;
-
-        const ranges: string[] = selections.map(sel => {
-          const start = sel.startLineNumber;
-          const end = sel.endLineNumber;
-          return start === end ? `${start}` : `${start}-${end}`;
-        });
-
-        socket.emit("code-update", {
-          userId: user?.id,
-          projectId,
-          ranges,
-          content: fullCode
-        });
-      }, 500),
-    [socket, user?.id, projectId]
-  )
-
-  /** ✅ Handle error from backend (rollback + re-request locks) */
+  /** ✅ Handle error from backend */
   useEffect(() => {
     if (!socket) return;
-    socket.on("error", ({ message }) => {
-      toast.error(message);
+    socket.on("error", (err: any) => {
+      const msg = typeof err === "string" ? err : err?.message || "An error occurred";
+      toast.error(msg, { id: "socket-error" });
       if (editorRef.current) {
         editorRef.current.setValue(lastValidCode); // revert to previous valid code
       }
-      // Re-fetch locked lines to restore highlights
-      socket.emit("get-locked-lines", { projectId });
     });
     return () => {
       socket.off("error");
     };
-  }, [socket, lastValidCode, projectId]);
+  }, [socket, lastValidCode]);
 
   useEffect(() => {
     isEditableRef.current = isEditable;
@@ -159,130 +135,84 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     editorRef.current = editor;
     setEditor(editor);
 
-    /** ✅ Prevent editing locked lines in real-time */
+    if (initialCodeRef.current !== null) {
+      editor.setValue(initialCodeRef.current);
+    }
+
+    /** ✅ Handle real-time content changes via code-delta */
     editor.onDidChangeModelContent((e) => {
+      // Ignore programmatic remote changes to prevent loops
+      if (isApplyingRemoteEdit.current) return;
+
       const changes = e.changes;
       for (const change of changes) {
-        const { range } = change;
-        const startLine = range.startLineNumber;
-        const endLine = range.endLineNumber;
+        const { range, text } = change;
 
-        if (isLineLocked(startLine, endLine)) {
-          toast.error(`You cannot edit locked lines`);
-          // Undo user edit immediately
-          editor.executeEdits(null, [
-            { range, text: "", forceMoveMarkers: true }
-          ]);
+        // Emit real-time delta change if in a project
+        if (socket && projectId && isEditableRef.current) {
+          socket.emit("code-delta", {
+            userId: user?.id,
+            projectId,
+            range: {
+              startLineNumber: range.startLineNumber,
+              startColumn: range.startColumn,
+              endLineNumber: range.endLineNumber,
+              endColumn: range.endColumn,
+            },
+            text,
+          });
         }
       }
+
+      // Save code to DB (debounced)
+      debouncedSaveCode(editor.getValue());
     });
 
     const cursorListener = editor.onDidChangeCursorPosition((e) => {
       if (!socket || !user?.id) return;
-      if (!isEditableRef.current) {
-        console.log("User is a viewer, skipping cursor update");
-        return;
-      }
+      if (!isEditableRef.current) return;
 
       socket.emit("cursor-update", {
         projectId,
         userId: user.id,
-        line: e.position.lineNumber,
+        position: {
+          lineNumber: e.position.lineNumber,
+          column: e.position.column,
+        },
       });
-      console.log("cursor-update sent");
     });
 
-    // ✅ Cleanup when component unmounts
     return () => {
       cursorListener.dispose();
     };
-
-
-
   };
 
-  /** ✅ Check if line is locked by someone else */
-  const isLineLocked = (start: number, end: number): boolean => {
-    for (const [uid, ranges] of Object.entries(locks)) {
-      if (uid === user?.id) continue; // allow self-lock editing
-      for (const range of ranges) {
-        const [rStart, rEnd] = range.split("-").map(Number);
-        if (!(end < rStart || start > rEnd)) {
-          return true; // overlap
-        }
-      }
-    }
-    return false;
-  };
-
-  /** ✅ On code change */
-  const handleChange = (value?: string) => {
-    if (!value) return;
-    setCode(value);
-
-    // Always save the code to DB
-    debouncedSaveCode(value);
-    console.log("code changed , value: ", value)
-
-    // Emit code update only if there is a room
-    if (roomId) {
-      emitCodeUpdate(value);
-    }
-  };
-
-
-  /** ✅ Lock click */
-  const handleLockClick = () => {
-    if (!editorRef.current || !socket) return;
-    const selections = editorRef.current.getSelections();
-    if (!selections || selections.length === 0) return;
-
-    const ranges: string[] = selections.map(sel => {
-      const start = sel.startLineNumber;
-      const end = sel.endLineNumber;
-      return `${start}-${end}`;
-    });
-
-    socket.emit("lock:request", {
-      projectId,
-      userId: user?.id,
-      ranges,
-      type: "manual"
-    });
-  };
-
-  /** ✅ Unlock click */
-  const handleUnlockClick = () => {
-    if (!editorRef.current || !socket) return;
-    const selections = editorRef.current.getSelections();
-    if (!selections || selections.length === 0) return;
-
-    const ranges: string[] = selections.map(sel => {
-      const start = sel.startLineNumber;
-      const end = sel.endLineNumber;
-      return `${start}-${end}`;
-    });
-
-    socket.emit("lock:release", {
-      projectId,
-      userId: user?.id,
-      ranges
-    });
-  };
-
+  /** ✅ Remote cursor updates */
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("cursor-update", ({ userId, userName, color, line }) => {
+    socket.on("cursor-update", ({ userId, userName, color, position, line }) => {
       if (userId === user?.id) return;
+      const lineNumber = position?.lineNumber ?? line ?? 1;
+      const column = position?.column ?? 1;
+
       setRemoteCursors(prev => ({
         ...prev,
-        [userId]: { line, name: userName, color }
+        [userId]: { line: lineNumber, column, name: userName, color }
       }));
+    });
+
+    socket.on("cursor-remove", ({ userId }: { userId: string }) => {
+      setRemoteCursors(prev => {
+        const updated = { ...prev };
+        delete updated[userId];
+        return updated;
+      });
     });
 
     return () => {
       socket.off("cursor-update");
+      socket.off("cursor-remove");
     };
   }, [socket, user?.id]);
 
@@ -290,8 +220,8 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     if (!editorRef.current || !monaco) return;
     const editor = editorRef.current;
 
-    const decorations = Object.entries(remoteCursors).map(([, { line }]) => ({
-      range: new monaco.Range(line, 1, line, 1),
+    const decorations = Object.entries(remoteCursors).map(([, { line, column }]) => ({
+      range: new monaco.Range(line, column, line, column + 1),
       options: {
         className: "remote-cursor",
         beforeContentClassName: "remote-cursor-label"
@@ -305,16 +235,20 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     if (!editorRef.current || !monaco) return;
     const editor = editorRef.current;
 
-    // Remove old widgets if needed
-    Object.keys(remoteCursors).forEach(uid => {
-      const widgetId = `cursor-label-${uid}`;
+    // Remove all previously rendered content widgets
+    addedWidgetIdsRef.current.forEach(widgetId => {
       try {
-        editor.removeContentWidget({ getId: () => widgetId, getDomNode: () => document.createElement('div'), getPosition: () => null });
+        editor.removeContentWidget({
+          getId: () => widgetId,
+          getDomNode: () => document.createElement('div'),
+          getPosition: () => null
+        });
       } catch { }
     });
+    addedWidgetIdsRef.current.clear();
 
-    // Add widgets for each remote cursor
-    Object.entries(remoteCursors).forEach(([uid, { line, name, color }]) => {
+    // Add widgets for each current remote cursor
+    Object.entries(remoteCursors).forEach(([uid, { line, column, name, color }]) => {
       const widgetId = `cursor-label-${uid}`;
       editor.addContentWidget({
         getId: () => widgetId,
@@ -326,78 +260,72 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
           node.style.borderRadius = '4px';
           node.style.fontSize = '12px';
           node.style.position = 'absolute';
+          node.style.zIndex = '10';
+          node.style.pointerEvents = 'none';
           node.innerText = name;
           return node;
         },
         getPosition: () => ({
-          position: { lineNumber: line, column: 1 },
+          position: { lineNumber: line, column },
           preference: [monaco.editor.ContentWidgetPositionPreference.ABOVE]
         })
       });
+      addedWidgetIdsRef.current.add(widgetId);
     });
   }, [remoteCursors]);
 
-
-
-  /** ✅ Request initial locked lines */
-  useEffect(() => {
-    if (!socket || !projectId) return;
-    socket.emit("get-locked-lines", { projectId });
-  }, [socket, projectId]);
-
-  /** ✅ Handle lock events */
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("locked-lines", ({ locks }) => {
-      const updated: { [key: string]: string[] } = {};
-      locks.forEach(({ range, userId }: { range: string; userId: string }) => {
-        if (!updated[userId]) updated[userId] = [];
-        updated[userId].push(range);
-      });
-      setLocks(updated);
-    });
-
-    socket.on("lock:granted", ({ range, userId }) => {
-      setLocks(prev => {
-        const updated = { ...prev };
-        if (!updated[userId]) updated[userId] = [];
-        if (!updated[userId].includes(range)) {
-          updated[userId].push(range);
-        }
-        return updated;
-      });
-    });
-
-    socket.on("lock:released", ({ range, userId }) => {
-      setLocks(prev => {
-        const updated = { ...prev };
-        if (updated[userId]) {
-          updated[userId] = updated[userId].filter(r => r !== range);
-          if (updated[userId].length === 0) delete updated[userId];
-        }
-        return updated;
-      });
-    });
-
-    socket.on("lock:denied", ({ range, lockedBy }) => {
-      toast.error(`Range ${range} locked by another user (${lockedBy})`);
-    });
-
-    return () => {
-      socket.off("locked-lines");
-      socket.off("lock:granted");
-      socket.off("lock:released");
-      socket.off("lock:denied");
-    };
-  }, [socket]);
-
-  /** ✅ Handle remote code updates */
+  /** ✅ Handle remote code delta updates (Surgical Edits) */
   useEffect(() => {
     if (!socket || !user) return;
+
+    socket.on("code-delta", (data: { userId: string; range: monaco.IRange; text: string }) => {
+      if (data.userId !== user?.id && editorRef.current && monaco) {
+        isApplyingRemoteEdit.current = true;
+        const editor = editorRef.current;
+        const model = editor.getModel();
+
+        if (model) {
+          // Temporarily bypass readOnly option if viewer mode is active so Monaco permits executeEdits
+          const wasReadOnly = editor.getOption(monaco.editor.EditorOption.readOnly);
+          if (wasReadOnly) {
+            editor.updateOptions({ readOnly: false });
+          }
+
+          editor.executeEdits("remote-user", [
+            {
+              range: new monaco.Range(
+                data.range.startLineNumber,
+                data.range.startColumn,
+                data.range.endLineNumber,
+                data.range.endColumn
+              ),
+              text: data.text,
+              forceMoveMarkers: true // Keeps active cursor in place!
+            }
+          ]);
+
+          if (wasReadOnly) {
+            editor.updateOptions({ readOnly: true });
+          }
+
+          const updatedContent = editor.getValue();
+          setLastValidCode(updatedContent);
+
+          if (user?.id === ownerId) {
+            debouncedSaveCode(updatedContent);
+          }
+        }
+
+        isApplyingRemoteEdit.current = false;
+      }
+    });
+
+    // Fallback for full code-update (e.g. initial load or legacy sync)
     socket.on("code-update", (data: { content: string; userId: string }) => {
-      if (data.userId !== user?.id) {
-        setCode(data.content);
+      if (data.userId !== user?.id && editorRef.current) {
+        isApplyingRemoteEdit.current = true;
+        editorRef.current.setValue(data.content);
+        isApplyingRemoteEdit.current = false;
         setLastValidCode(data.content);
 
         if (user?.id === ownerId) {
@@ -405,7 +333,9 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
         }
       }
     });
+
     return () => {
+      socket.off("code-delta");
       socket.off("code-update");
     };
   }, [socket, debouncedSaveCode, ownerId, user]);
@@ -431,30 +361,6 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     };
   }, [socket, checkPermission]);
 
-
-
-  /** ✅ Highlight locked ranges */
-  useEffect(() => {
-    if (!editorRef.current || !monaco) return;
-    const editor = editorRef.current;
-
-    const decorations = Object.entries(locks).flatMap(([uid, ranges]) =>
-      ranges.map(rangeStr => {
-        const [start, end] = rangeStr.split("-").map(Number);
-        return {
-          range: new monaco.Range(start, 1, end, 1),
-          options: {
-            isWholeLine: true,
-            className: uid === user?.id ? "locked-range-current" : "locked-range-other"
-          }
-        };
-      })
-    );
-
-    decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, decorations);
-  }, [locks, user?.id]);
-
-
   /** ✅ Initial fetch */
   useEffect(() => {
     fetchInitialData();
@@ -470,27 +376,24 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.updateOptions({ readOnly: !isEditable });
+      if (!isEditable && socket && user?.id && projectId) {
+        socket.emit("cursor-remove", { projectId, userId: user.id });
+      }
     }
-  }, [isEditable]);
-
+  }, [isEditable, socket, user?.id, projectId]);
 
   return (
     <div className="w-full h-full">
-      {isEditable && <div className="flex gap-x-4 my-3 mx-3">
-        <LockSelectionButton onLock={handleLockClick} />
-        <UnlockButton onUnlock={handleUnlockClick} />
-      </div>}
       <Editor
         height="100vh"
         theme={theme}
         language={language}
-        value={code}
         beforeMount={(monaco) => defineMonacoThemes(monaco)}
         onMount={handleEditorMount}
-        onChange={handleChange}
         options={{
           readOnly: !isEditable,
           fontSize,
+          glyphMargin: true,
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
         }}
@@ -498,3 +401,4 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
     </div>
   );
 }
+

@@ -258,15 +258,6 @@ html {
   animation: fade-in 0.2s ease-out;
 }
 
-/* Locked lines */
-.monaco-editor .locked-range-current {
-  background-color: rgba(0, 255, 0, 0.2);
-}
-
-.monaco-editor .locked-range-other {
-  background-color: rgba(255, 0, 0, 0.2);
-}
-
 .remote-cursor {
   border-left: 2px solid red; /* will update dynamically with color if needed */
 }
