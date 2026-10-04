@@ -3,7 +3,7 @@ FROM node:18-bullseye-slim
 # Prevent interactive prompts during package installation (e.g., tzdata)
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtimes & compilers for Python, C++, Java, Go, Rust, Ruby, C# (Mono)
+# Install runtimes & compilers for Python, C++, Java, Go, Rust, Ruby, C#
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     python3 \
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     golang-go \
     rustc \
     ruby \
-    mono-mcs \
+    mono-devel \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
