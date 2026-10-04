@@ -1,11 +1,15 @@
 FROM node:18-bullseye-slim
 
+# Prevent interactive prompts during package installation (e.g., tzdata)
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install runtimes & compilers for Python, C++, Java, Go, Rust, Ruby, C# (Mono)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
     python3 \
     g++ \
     default-jdk-headless \
-    golang \
+    golang-go \
     rustc \
     ruby \
     mono-mcs \
@@ -25,4 +29,5 @@ EXPOSE 2000
 
 # Run the server
 CMD ["node", "server.js"]
+
 
