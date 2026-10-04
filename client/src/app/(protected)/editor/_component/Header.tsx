@@ -9,7 +9,6 @@ import {
     LogOut,
     MessageSquare,
     Users,
-    MoonStar,
     Palette,
     TypeOutline,
     CircleSmall,
@@ -55,8 +54,6 @@ const Header = ({
     hasUnreadChat?: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [textSize, setTextSize] = useState(16);
-    const [textIsOpened, setTextIsOpened] = useState(false)
     const [chatSupport, setChatSupport] = useState({ text: true, voice: true })
 
     // Modal States
@@ -72,7 +69,7 @@ const Header = ({
 
     const params = useParams()
 
-    const { setFontSize, theme, setTheme } = useCodeEditorStore()
+    const { fontSize, setFontSize, theme, setTheme } = useCodeEditorStore()
 
     const { mutate: getUserSubscription } = useMutationHook(getUserSubscriptionApi, {
         onSuccess(data) {
@@ -111,9 +108,9 @@ const Header = ({
             ? localStorage.getItem("editor-font-size")
             : null;
         if (storedSize) {
-            setTextSize(Number(storedSize));
+            setFontSize(Number(storedSize));
         }
-    }, []);
+    }, [setFontSize]);
 
     return (
         <nav className="text-white bg-primary px-4 md:px-8 py-3 flex justify-between items-center relative border-b border-white/5 overflow-x-auto no-scrollbar w-full">
@@ -204,7 +201,6 @@ const Header = ({
                             setIsOpen(false);
                         }}
                     />
-                    <MobileMenuItem icon={<MoonStar />} label="Dark Mode" onClick={() => setIsOpen(false)} />
                 </div>
             )}
 
@@ -251,30 +247,24 @@ const Header = ({
                     </DropdownMenu>
                 </div>
 
-                <div className="relative">
-                    <div
-                        onClick={() => setTextIsOpened(prev => !prev)}
-                        className={`bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all ${textIsOpened ? "bg-white/10" : ""}`}
-                    >
-                        <TypeOutline className="w-5 h-5" />
-                    </div>
-                    {textIsOpened && (
-                        <div className="absolute top-full right-0 mt-3 p-4 bg-[#1e1e2e] border border-white/10 rounded-lg shadow-xl z-50 w-[200px]">
-                            <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider font-bold">Font Size: {textSize}px</p>
+                <div className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="outline-none focus:outline-none flex items-center">
+                            <TypeOutline className="w-5 h-5" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="mt-2 bg-[#1e1e2e] border-white/10 text-white min-w-[200px] p-4">
+                            <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider font-bold">Font Size: {fontSize}px</p>
                             <Slider
-                                defaultValue={[textSize]}
+                                defaultValue={[fontSize]}
+                                value={[fontSize]}
                                 min={12}
                                 max={24}
                                 step={1}
                                 className="[&_.radix-slider-track]:bg-gray-700 [&_.radix-slider-range]:bg-green-500 [&_[role=slider]]:bg-green-500"
                                 onValueChange={setFontChange}
                             />
-                        </div>
-                    )}
-                </div>
-
-                <div className="bg-tertiary p-2 hover:bg-tertiary/80 cursor-pointer rounded-md transition-all">
-                    <MoonStar className="w-5 h-5" />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
@@ -312,21 +302,19 @@ const Header = ({
                     <div className="py-8 px-2">
                         <div className="flex justify-between items-center mb-6">
                             <span className="text-sm text-gray-400 uppercase tracking-wider font-bold">Font Size</span>
-                            <span className="text-2xl font-bold text-green-400">{textSize}px</span>
+                            <span className="text-2xl font-bold text-green-400">{fontSize}px</span>
                         </div>
                         <Slider
-                            defaultValue={[textSize]}
+                            defaultValue={[fontSize]}
+                            value={[fontSize]}
                             min={12}
                             max={24}
                             step={1}
                             className="[&_.radix-slider-track]:bg-gray-700 [&_.radix-slider-range]:bg-green-500 [&_[role=slider]]:bg-green-500"
-                            onValueChange={(val) => {
-                                setTextSize(val[0]);
-                                setFontChange(val);
-                            }}
+                            onValueChange={setFontChange}
                         />
                         <div className="mt-8 p-4 bg-primary rounded-lg border border-white/5">
-                            <p style={{ fontSize: `${textSize}px` }} className="transition-all">
+                            <p style={{ fontSize: `${fontSize}px` }} className="transition-all">
                                 Preview Text: The quick brown fox jumps over the lazy dog.
                             </p>
                         </div>

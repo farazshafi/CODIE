@@ -13,6 +13,7 @@ import LockSelectionButton from "./LockSelectionButton";
 import UnlockButton from "./UnlockButton";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { defineMonacoThemes } from "../_constants";
 
 export default function EditorPanel({ id: projectId }: { id: string }) {
   const { language, theme, fontSize, setLanguage, reset } = useCodeEditorStore();
@@ -484,6 +485,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
         theme={theme}
         language={language}
         value={code}
+        beforeMount={(monaco) => defineMonacoThemes(monaco)}
         onMount={handleEditorMount}
         onChange={handleChange}
         options={{
