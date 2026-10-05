@@ -33,6 +33,7 @@ app.post('/api/v2/execute', (req, res) => {
     let filePath = '';
 
     const isWin = process.platform === 'win32';
+    const EXEC_TIMEOUT = parseInt(process.env.EXEC_TIMEOUT || '15000', 10);
 
     // Map language to execution command
     if (normalizedLang === 'python' || normalizedLang === 'py') {
@@ -46,16 +47,24 @@ app.post('/api/v2/execute', (req, res) => {
 
     } else if (normalizedLang === 'typescript' || normalizedLang === 'ts') {
         filePath = path.join(requestDir, 'script.ts');
-        command = `node "${filePath}"`;
+        command = `npx tsx "${filePath}"`;
 
     } else if (normalizedLang === 'java') {
-        filePath = path.join(requestDir, 'Main.java');
-        command = `java "${filePath}"`;
+        let javaClassName = 'Main';
+        const publicClassMatch = code.match(/public\s+class\s+([A-Za-z0-9_]+)/);
+        const classMatch = code.match(/class\s+([A-Za-z0-9_]+)/);
+        if (publicClassMatch) {
+            javaClassName = publicClassMatch[1];
+        } else if (classMatch) {
+            javaClassName = classMatch[1];
+        }
+        filePath = path.join(requestDir, `${javaClassName}.java`);
+        command = `javac "${filePath}" && java -cp "${requestDir}" ${javaClassName}`;
 
     } else if (normalizedLang === 'cpp' || normalizedLang === 'c++') {
         filePath = path.join(requestDir, 'main.cpp');
         const exePath = path.join(requestDir, isWin ? 'main.exe' : 'main.out');
-        command = `g++ "${filePath}" -o "${exePath}" && "${exePath}"`;
+        command = `g++ -O0 "${filePath}" -o "${exePath}" && "${exePath}"`;
 
     } else if (normalizedLang === 'go') {
         filePath = path.join(requestDir, 'main.go');
@@ -64,13 +73,13 @@ app.post('/api/v2/execute', (req, res) => {
     } else if (normalizedLang === 'rust') {
         filePath = path.join(requestDir, 'main.rs');
         const exePath = path.join(requestDir, isWin ? 'main.exe' : 'main.out');
-        command = `rustc "${filePath}" -o "${exePath}" && "${exePath}"`;
+        command = `rustc -C opt-level=0 "${filePath}" -o "${exePath}" && "${exePath}"`;
 
     } else if (normalizedLang === 'csharp' || normalizedLang === 'cs') {
         filePath = path.join(requestDir, 'Program.cs');
         const exePath = path.join(requestDir, 'Program.exe');
-        command = isWin 
-            ? `csc "${filePath}" /out:"${exePath}" && "${exePath}"` 
+        command = isWin
+            ? `csc "${filePath}" /out:"${exePath}" && "${exePath}"`
             : `mcs "${filePath}" -out:"${exePath}" && mono "${exePath}"`;
 
     } else if (normalizedLang === 'ruby' || normalizedLang === 'rb') {
@@ -88,8 +97,8 @@ app.post('/api/v2/execute', (req, res) => {
     try {
         fs.writeFileSync(filePath, code);
 
-        // Execute with a 7-second timeout to prevent infinite loops
-        exec(command, { timeout: 7000 }, (error, stdout, stderr) => {
+        // Execute with timeout to prevent infinite loops (default 15 seconds)
+        exec(command, { timeout: EXEC_TIMEOUT }, (error, stdout, stderr) => {
             // Clean up temporary request directory
             try {
                 fs.rmSync(requestDir, { recursive: true, force: true });
@@ -102,7 +111,7 @@ app.post('/api/v2/execute', (req, res) => {
                 version: "latest",
                 run: {
                     stdout: stdout,
-                    stderr: stderr || (error && error.signal === 'SIGTERM' ? "Execution timed out (7s limit)" : (error ? error.message : "")),
+                    stderr: stderr || (error && error.signal === 'SIGTERM' ? `Execution timed out (${EXEC_TIMEOUT / 1000}s limit)` : (error ? error.message : "")),
                     code: error ? (error.code || 1) : 0,
                     signal: error ? error.signal : null,
                     output: outputText
