@@ -5,7 +5,7 @@ import PageTransitionWrapper from '@/components/TransitionWrapper';
 import Navbar from '@/components/ui/navbar';
 
 export const getSubscriptions = async () => {
-    const backendUrl = process.env.API_BASE_URL;
+    const backendUrl = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://app:5000/api";
 
     if (!backendUrl) {
         console.error("Missing API_BASE_URL");
@@ -13,7 +13,11 @@ export const getSubscriptions = async () => {
     }
 
     try {
-        const res = await fetch(`${backendUrl}/subscription/active`, { cache: "no-cache" });
+        const fetchUrl = backendUrl.startsWith("http")
+            ? `${backendUrl}/subscription/active`
+            : `${backendUrl.replace(/\/$/, "")}/subscription/active`;
+
+        const res = await fetch(fetchUrl, { cache: "no-cache" });
 
         if (!res.ok) {
             console.error("Backend responded with:", res.statusText);
@@ -36,7 +40,7 @@ const Page = async () => {
 
     return (
         <>
-            <Navbar/>
+            <Navbar />
             <PageTransitionWrapper>
                 {hasPlans ? (
                     <Subscription plan={subscriptions} />

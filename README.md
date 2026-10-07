@@ -90,37 +90,41 @@ graph TD
 ## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js v20+
-- Docker & Docker Compose
-- Redis Server
-- MongoDB Instance
+- **Node.js**: v20+
+- **Database**: MongoDB Instance & Redis Server
+- **Docker & Docker Compose** (Optional for Docker Dev stage)
 
-### Local Installation
+---
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/codie.git
-   cd codie
-   ```
+### 1. Local Development Guide
 
-2. **Backend Setup**
-   ```bash
-   cd server
-   cp .env.example .env
-   npm install
-   # Seed database for development
-   npm run seed:users
-   npm run seed:projects
-   npm run dev
-   ```
+To run CODIE locally in development mode, start the **Piston Execution Engine**, **Backend Server**, and **Frontend Client** across three terminals.
 
-3. **Frontend Setup**
-   ```bash
-   cd ../client
-   cp .env.example .env.local
-   npm install
-   npm run dev
-   ```
+#### Step 1: Piston Execution Engine (Port 2000)
+```bash
+cd piston
+npm install
+npm run dev
+```
+> *Note: Runs lightweight Piston-Lite engine on `http://localhost:2000`. JavaScript, Python, and TypeScript work out-of-the-box. For languages requiring local compilers (Java `javac`, Go `go`, C++ `g++`), ensure they are installed on your system PATH or use Docker Piston.*
+
+#### Step 2: Backend Server (Port 5000)
+```bash
+cd server
+npm install
+cp .env.example .env  # Ensure PISTON_URL=http://localhost:2000
+npm run dev
+```
+
+#### Step 3: Frontend Client (Port 3000)
+```bash
+cd client
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser to start using CODIE locally!
 
 ---
 

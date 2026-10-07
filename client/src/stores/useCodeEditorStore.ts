@@ -123,9 +123,12 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => ({
 export const warmupPistonEngine = async () => {
     try {
         console.log("[Piston Warmup] Sending background ping to warm up Piston execution server...");
-        // Direct request to Piston container on Render to wake it up immediately if asleep
-        fetch("https://piston-4hy6.onrender.com/api/v2/runtimes", { mode: "no-cors" }).catch(() => { });
-        // Also ping via backend proxy
+        // If an explicit Piston URL is set in env, ping it; otherwise rely on backend proxy
+        const customPistonUrl = process.env.NEXT_PUBLIC_PISTON_URL;
+        if (customPistonUrl) {
+            fetch(`${customPistonUrl}/api/v2/runtimes`, { mode: "no-cors" }).catch(() => { });
+        }
+        // Ping via backend proxy which forwards to process.env.PISTON_URL (defaults to http://localhost:2000)
         await API.get("/execute/runtimes");
         console.log("[Piston Warmup] Warmup request sent successfully.");
     } catch (err) {

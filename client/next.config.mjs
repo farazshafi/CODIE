@@ -10,6 +10,10 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    if (process.env.NODE_ENV === "production") {
+      return [];
+    }
+
     const backend = process.env.API_BASE_URL;
     if (!backend) return [];
 

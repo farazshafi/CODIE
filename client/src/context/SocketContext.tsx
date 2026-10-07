@@ -1,10 +1,15 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL =
+const rawSocketUrl =
     process.env.NEXT_PUBLIC_SOCKET_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/?$/, "") ||
-    "http://localhost:5000";
+    (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/api\/?$/, "") ||
+    "";
+
+const SOCKET_URL =
+    typeof window !== "undefined" && window.location.hostname !== "localhost" && rawSocketUrl.includes("localhost")
+        ? ""
+        : rawSocketUrl;
 
 type SocketContextType = {
     socket: Socket | null;

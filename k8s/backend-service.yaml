@@ -4,6 +4,7 @@ metadata:
   name: app
   namespace: collab
 spec:
+  type: LoadBalancer
   selector:
     app: backend
   ports:

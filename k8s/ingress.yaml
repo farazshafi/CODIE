@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: codie-ingress
+  namespace: collab
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "app"
+spec:
+  rules:
+    - host: "your-custom-domain.com"
+      http:
+        paths:
+          # Next.js Frontend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+
+          # Express REST API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 5000
+
+          # Socket.IO WebSockets
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 5000

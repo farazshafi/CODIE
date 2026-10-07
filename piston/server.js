@@ -35,19 +35,23 @@ app.post('/api/v2/execute', (req, res) => {
     const isWin = process.platform === 'win32';
     const EXEC_TIMEOUT = parseInt(process.env.EXEC_TIMEOUT || '15000', 10);
 
+    let requiredBinary = '';
     // Map language to execution command
     if (normalizedLang === 'python' || normalizedLang === 'py') {
         filePath = path.join(requestDir, 'script.py');
         const pyCmd = isWin ? 'python' : 'python3';
+        requiredBinary = pyCmd;
         command = `${pyCmd} "${filePath}"`;
 
     } else if (normalizedLang === 'javascript' || normalizedLang === 'js') {
         filePath = path.join(requestDir, 'script.js');
+        requiredBinary = 'node';
         command = `node "${filePath}"`;
 
     } else if (normalizedLang === 'typescript' || normalizedLang === 'ts') {
         filePath = path.join(requestDir, 'script.ts');
-        command = `npx tsx "${filePath}"`;
+        requiredBinary = 'npx';
+        command = `npx --yes tsx "${filePath}"`;
 
     } else if (normalizedLang === 'java') {
         let javaClassName = 'Main';
@@ -59,31 +63,37 @@ app.post('/api/v2/execute', (req, res) => {
             javaClassName = classMatch[1];
         }
         filePath = path.join(requestDir, `${javaClassName}.java`);
+        requiredBinary = 'javac';
         command = `javac "${filePath}" && java -cp "${requestDir}" ${javaClassName}`;
 
     } else if (normalizedLang === 'cpp' || normalizedLang === 'c++') {
         filePath = path.join(requestDir, 'main.cpp');
         const exePath = path.join(requestDir, isWin ? 'main.exe' : 'main.out');
+        requiredBinary = 'g++';
         command = `g++ -O0 "${filePath}" -o "${exePath}" && "${exePath}"`;
 
     } else if (normalizedLang === 'go') {
         filePath = path.join(requestDir, 'main.go');
+        requiredBinary = 'go';
         command = `go run "${filePath}"`;
 
     } else if (normalizedLang === 'rust') {
         filePath = path.join(requestDir, 'main.rs');
         const exePath = path.join(requestDir, isWin ? 'main.exe' : 'main.out');
+        requiredBinary = 'rustc';
         command = `rustc -C opt-level=0 "${filePath}" -o "${exePath}" && "${exePath}"`;
 
     } else if (normalizedLang === 'csharp' || normalizedLang === 'cs') {
         filePath = path.join(requestDir, 'Program.cs');
         const exePath = path.join(requestDir, 'Program.exe');
+        requiredBinary = isWin ? 'csc' : 'mcs';
         command = isWin
             ? `csc "${filePath}" /out:"${exePath}" && "${exePath}"`
             : `mcs "${filePath}" -out:"${exePath}" && mono "${exePath}"`;
 
     } else if (normalizedLang === 'ruby' || normalizedLang === 'rb') {
         filePath = path.join(requestDir, 'script.rb');
+        requiredBinary = 'ruby';
         command = `ruby "${filePath}"`;
 
     } else {
@@ -104,14 +114,22 @@ app.post('/api/v2/execute', (req, res) => {
                 fs.rmSync(requestDir, { recursive: true, force: true });
             } catch (e) { }
 
-            const outputText = stdout + (stderr || (error && error.message ? error.message : ""));
+            let errMessage = stderr || (error && error.message ? error.message : "");
+
+            if (errMessage.includes("is not recognized as an internal or external command") || errMessage.includes("command not found") || errMessage.includes("ENOENT")) {
+                errMessage = `[Local Dev Error] Runtime/Compiler '${requiredBinary}' is not installed or not found in system PATH on your machine. Install ${normalizedLang} compiler or use Docker Piston.`;
+            } else if (error && error.signal === 'SIGTERM') {
+                errMessage = `Execution timed out (${EXEC_TIMEOUT / 1000}s limit)`;
+            }
+
+            const outputText = stdout + (errMessage ? (stdout ? "\n" + errMessage : errMessage) : "");
 
             res.json({
                 language: normalizedLang,
                 version: "latest",
                 run: {
                     stdout: stdout,
-                    stderr: stderr || (error && error.signal === 'SIGTERM' ? `Execution timed out (${EXEC_TIMEOUT / 1000}s limit)` : (error ? error.message : "")),
+                    stderr: errMessage,
                     code: error ? (error.code || 1) : 0,
                     signal: error ? error.signal : null,
                     output: outputText

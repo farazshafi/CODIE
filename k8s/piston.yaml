@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: piston
+  namespace: collab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: piston
+  template:
+    metadata:
+      labels:
+        app: piston
+    spec:
+      containers:
+        - name: piston
+          image: 686061661335.dkr.ecr.ap-southeast-2.amazonaws.com/codie-piston:latest
+          ports:
+            - containerPort: 2000
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: piston-data
+              mountPath: /piston
+
+      volumes:
+        - name: piston-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: piston
+  namespace: collab
+spec:
+  selector:
+    app: piston
+  ports:
+    - port: 2000
+      targetPort: 2000
