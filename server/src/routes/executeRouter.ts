@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import axios from "axios";
 
-const PISTON_URL = process.env.PISTON_URL || "http://localhost:2000";
+const PISTON_URL = process.env.PISTON_URL || "https://piston-4hy6.onrender.com";
 
 const executeRouter = Router();
 
