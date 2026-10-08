@@ -32,52 +32,41 @@ const page = async () => {
       <div className="min-h-screen bg-primary text-white overflow-x-hidden">
 
         {/* Hero Section */}
-        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="container mx-auto px-6 md:px-10 pt-16 pb-28 flex flex-col lg:flex-row items-center justify-between gap-12">
-          <div className="max-w-2xl">
-            {/* Feature Badges */}
-            {/* <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-green-500/10 text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-500/20 flex items-center gap-1.5">
-                <GraduationCap className="w-3.5 h-3.5" /> Live Teaching & Classrooms
-              </span>
-              <span className="bg-blue-500/10 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-500/20 flex items-center gap-1.5">
-                <Video className="w-3.5 h-3.5" /> WebRTC Video Huddle
-              </span>
-              <span className="bg-purple-500/10 text-purple-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-purple-500/20 flex items-center gap-1.5">
-                <Play className="w-3.5 h-3.5" /> Instant Code Runner
-              </span>
-            </div> */}
-
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
-              Collaborative Code Editor & Live Teaching Platform
-            </h1>
-            <p className="text-lg md:text-xl mb-8 text-gray-300 leading-relaxed">
-              Teach coding live, assign hands-on practical work, fix errors in real-time while students & peers observe, and collaborate face-to-face via video/audio huddles—all in one place.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                className="bg-green hover:bg-green-800 hover:text-white text-black px-8 py-6 rounded-xl text-lg font-semibold transition-all"
-                asChild
-              >
-                <Link href="/register">Start Coding Free <ArrowRight className="ml-2 w-5 h-5" /></Link>
-              </Button>
+        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="w-full pt-12 lg:pt-16 pb-20 lg:pb-28">
+          <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
+            <div className="w-full lg:w-1/2 max-w-xl lg:max-w-none">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-bold mb-6 tracking-tight leading-tight">
+                Collaborative Code Editor & Live Teaching Platform
+              </h1>
+              <p className="text-base md:text-lg lg:text-base xl:text-lg mb-8 text-gray-300 leading-relaxed">
+                Teach coding live, assign hands-on practical work, fix errors in real-time while students & peers observe, and collaborate face-to-face via video/audio huddles—all in one place.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  className="bg-green hover:bg-green-800 hover:text-white text-black px-8 py-6 rounded-xl text-base font-semibold transition-all"
+                  asChild
+                >
+                  <Link href="/register">Start Coding Free <ArrowRight className="ml-2 w-5 h-5" /></Link>
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="w-full lg:w-1/2 mt-8 lg:mt-0">
-            <CodeAnimation />
+            <div className="w-full lg:w-1/2 max-w-xl lg:max-w-none mt-6 lg:mt-0">
+              <CodeAnimation />
+            </div>
           </div>
         </section>
 
         {/* Live Teaching & Use-Case Showcase */}
         <section className="py-16 bg-black/60 border-y border-white/5">
-          <div className="container mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-xs uppercase tracking-widest text-green-400 font-semibold mb-3">
                 All-In-One Classroom & Developer Hub
               </h2>
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
                 Designed for Teachers, Students & Developers
               </h3>
-              <p className="text-gray-400 text-lg">
+              <p className="text-gray-400 text-base md:text-lg">
                 No more jumping between zoom, code editors, and terminals. CODIE brings video huddles, live execution, and interactive mentorship together into a single room.
               </p>
             </div>
@@ -127,11 +116,11 @@ const page = async () => {
 
         {/* Core Features section */}
         <section style={{ background: 'linear-gradient(to bottom, #000000, #1f2125)' }} className="py-24 bg-black/80 backdrop-blur-sm">
-          <div className="container mx-auto px-6">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 bg-clip-text mygreen">
+          <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold text-center mb-4 bg-clip-text mygreen">
               Powerful Features Built for Collaboration
             </h2>
-            <p className="text-gray-400 text-center text-lg max-w-2xl mx-auto mb-16">
+            <p className="text-gray-400 text-center text-base md:text-lg max-w-2xl mx-auto mb-16">
               Everything you need to teach, learn, program, and build applications together in real-time.
             </p>
 
@@ -197,11 +186,11 @@ const page = async () => {
 
         {/* CTA Section */}
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="py-24 border-t border-white/5">
-          <div className="container mx-auto px-6 text-center">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+          <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12 text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold mb-6">
               Ready to transform your coding and teaching experience?
             </h2>
-            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto text-gray-300">
+            <p className="text-lg md:text-xl max-w-3xl mx-auto text-gray-300 mb-12">
               Join students, teachers, and developers building, learning, and collaborating together on CODIE.
             </p>
             <Button
