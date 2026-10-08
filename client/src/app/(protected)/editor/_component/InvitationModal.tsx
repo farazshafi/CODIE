@@ -1,5 +1,6 @@
 import { createInvitationApi } from '@/apis/invitationApi'
 import { searchUsersApi } from '@/apis/userApi'
+import { getContributersApi } from '@/apis/roomApi'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,7 +8,8 @@ import Pagination from '@/components/ui/Pagination'
 import { useSocket } from '@/context/SocketContext'
 import { useMutationHook } from '@/hooks/useMutationHook'
 import { useUserStore } from '@/stores/userStore'
-import React, { useEffect, useState, useCallback } from 'react'
+import { useEditorStore } from '@/stores/editorStore'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 
 type InvitationProps = {
@@ -21,17 +23,45 @@ type SearchResultUser = {
     id: string;
 };
 
+type Collaborator = {
+    user: string | { _id: string; name: string; email: string };
+    userId?: string;
+    role: string;
+};
+
 const PAGE_SIZE = 8
 
 const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }) => {
     const { socket } = useSocket()
     const user = useUserStore((state) => state.user)
+    const { projectId, ownerId } = useEditorStore()
 
     const [userResult, setUserResult] = useState<SearchResultUser[]>([])
+    const [existingCollaboratorIds, setExistingCollaboratorIds] = useState<string[]>([])
     const [searchEmail, setSearchEmail] = useState("")
     const [invitedUserId, setInvitedUserId] = useState<string | null>(null)
     const [targetReceiverId, setTargetReceiverId] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState<number>(1)
+
+    const { mutate: fetchContributors } = useMutationHook(getContributersApi, {
+        onSuccess(data) {
+            const rawCollabs: Collaborator[] = Array.isArray(data.data) ? data.data : []
+            const ids: string[] = rawCollabs.map((c) => {
+                if (typeof c.user === 'object' && c.user !== null && '_id' in c.user) {
+                    return String(c.user._id)
+                }
+                return String(c.user || c.userId || '')
+            }).filter(Boolean)
+
+            setExistingCollaboratorIds(ids)
+        },
+    })
+
+    useEffect(() => {
+        if (projectId) {
+            fetchContributors(projectId)
+        }
+    }, [projectId, fetchContributors])
 
     const { mutate: createInvitation, isLoading: invitationLoading } = useMutationHook(createInvitationApi, {
         onSuccess(data, variables) {
@@ -95,16 +125,25 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
         return () => clearTimeout(delayInputTimeout)
     }, [handleSearchUsers])
 
+    // Filter out existing room collaborators, room owner, and self from invitation search results
+    const filteredUsers = useMemo(() => {
+        const blockedSet = new Set<string>([
+            ...(user?.id ? [user.id] : []),
+            ...(ownerId ? [ownerId] : []),
+            ...existingCollaboratorIds,
+        ])
+        return userResult.filter((u) => !blockedSet.has(u.id))
+    }, [userResult, user?.id, ownerId, existingCollaboratorIds])
+
     // pagination calculations
-    const totalPages = Math.max(1, Math.ceil(userResult.length / PAGE_SIZE))
-    // clamp currentPage if userResult changed and current page > totalPages
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE))
+    // clamp currentPage if filteredUsers changed and current page > totalPages
     useEffect(() => {
         if (currentPage > totalPages) setCurrentPage(1)
-        // if results changed and we are on page > 1 but new results exist, keep currentPage if valid
-    }, [userResult, totalPages, currentPage])
+    }, [filteredUsers, totalPages, currentPage])
 
     const startIdx = (currentPage - 1) * PAGE_SIZE
-    const paginatedUsers = userResult.slice(startIdx, startIdx + PAGE_SIZE)
+    const paginatedUsers = filteredUsers.slice(startIdx, startIdx + PAGE_SIZE)
 
     return (
         <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">
@@ -123,7 +162,7 @@ const InvitationModal: React.FC<InvitationProps> = ({ roomId, hanldeModalClose }
 
                 {!searchUserLoading ? (
                     <div className="mt-4 space-y-2">
-                        {userResult.length > 0 ? (
+                        {filteredUsers.length > 0 ? (
                             <>
                                 {paginatedUsers.map((u: SearchResultUser) => (
                                     <div

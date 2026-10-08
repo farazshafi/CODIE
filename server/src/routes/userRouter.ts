@@ -5,12 +5,13 @@ import { emailSchema, googleAuthSchema, loginSchema, setNewPasswordSchema, updat
 import { userController } from "../container"
 import { authenticate } from "../middlewares/authenticate"
 import { protect } from "../middlewares/protectMiddleware"
+import { isUser } from "../middlewares/isUserMiddleware"
 
 const router = Router()
 
 router.post("/register", validate(userSchema), userController.createUser)
 router.post("/login", validate(loginSchema), userController.loginUser)
-router.get("/logout", authenticate, protect, userController.logoutUser)
+router.get("/logout", authenticate, protect, isUser, userController.logoutUser)
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", validate(emailSchema), userController.resendOtp);
 router.post("/reset-link", validate(emailSchema), userController.resetLink);
@@ -19,11 +20,11 @@ router.post("/google-auth-register", validate(googleAuthSchema), userController.
 router.post("/google-auth-login", userController.googleLoginAuth);
 router.post("/auth/refresh-token", userController.refreshAccessToken)
 router.post("/search-users", userController.searchUsers)
-router.put("/update_user", authenticate, protect, validate(updateUser), userController.updateUser);
-router.get("/get_user", authenticate, protect, userController.getUserData);
-router.get("/get_contributer/:id", authenticate, protect, userController.getContributerDetails);
-router.put("/update_profile_visibility/", authenticate, protect, userController.updateProfileVisiblility);
-router.get("/get_profile_visibility/:id", authenticate, protect, userController.getProfileVisibility);
+router.put("/update_user", authenticate, protect, isUser, validate(updateUser), userController.updateUser);
+router.get("/get_user", authenticate, protect, isUser, userController.getUserData);
+router.get("/get_contributer/:id", authenticate, protect, isUser, userController.getContributerDetails);
+router.put("/update_profile_visibility/", authenticate, protect, isUser, userController.updateProfileVisiblility);
+router.get("/get_profile_visibility/:id", authenticate, protect, isUser, userController.getProfileVisibility);
 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)

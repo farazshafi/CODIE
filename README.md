@@ -96,9 +96,55 @@ graph TD
 
 ---
 
-### 1. Local Development Guide
+### 1. Quick Local Development (From Root Folder)
 
-To run CODIE locally in development mode, start the **Piston Execution Engine**, **Backend Server**, and **Frontend Client** across three terminals.
+You can run all three services (**Client**, **Server**, and **Piston Engine**) concurrently from the project root folder with a single command!
+
+#### 📦 Step 1: Install Dependencies
+```bash
+npm install         # Installs root orchestrator (concurrently, cross-env)
+npm run install:all # Installs dependencies for client, server, and piston
+```
+
+#### 🚀 Step 2: Start All Services Concurrently (Dev Mode)
+```bash
+npm run dev
+```
+> *This will launch **Client (Port 3000)**, **Server (Port 5000)**, and **Local Piston Engine (Port 2000)** in parallel within the same terminal, complete with color-coded process logs!*
+
+---
+
+### 2. Local Production Mode (Using Hosted Render Piston)
+
+To test the production build locally without running a local Piston instance (automatically using the Render-hosted Piston URL 
+```bash
+# Build both client and server, then run production servers concurrently:
+npm run prod:build
+
+# Or if already built, run directly:
+npm run prod
+```
+
+---
+
+### 3. Available Root Commands
+
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Starts **Client**, **Server**, and **Local Piston** concurrently in development mode |
+| `npm run prod` | Starts production **Client** and **Server** concurrently using hosted Render Piston |
+| `npm run prod:build` | Builds production assets and starts production **Client** and **Server** |
+| `npm run build` | Compiles `server` (`tsc`) and builds production bundle for `client` (`next build`) |
+| `npm run install:all` | Installs dependencies across `client`, `server`, and `piston` folders |
+| `npm run dev:client` | Starts only the Next.js Frontend Client in dev mode (`http://localhost:3000`) |
+| `npm run dev:server` | Starts only the Express/Socket Backend Server in dev mode (`http://localhost:5000`) |
+| `npm run dev:piston` | Starts only the local Piston Execution Engine (`http://localhost:2000`) |
+
+---
+
+### 3. Running Services Separately (Manual Option)
+
+If you prefer running services in separate terminal tabs:
 
 #### Step 1: Piston Execution Engine (Port 2000)
 ```bash
@@ -142,7 +188,9 @@ CODIE/
 ├── server/           # Express & GraphQL Backend
 │   ├── src/          # Sockets, DB Models, Services & Controllers
 │   └── tsconfig.json
+├── piston/           # Lightweight Piston Code Execution Engine
 ├── k8s/              # Kubernetes manifest files
+├── package.json      # Root package orchestrator for concurrent local development
 └── README.md         # Documentation
 ```
 

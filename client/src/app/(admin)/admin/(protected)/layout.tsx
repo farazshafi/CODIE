@@ -1,27 +1,38 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useUserStore } from '@/stores/userStore';
 import { SocketProvider } from '@/context/SocketContext';
 import AdminSidebar from '../_components/AdminSidebar';
+import Loading from '@/components/Loading';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = useUserStore((state) => state.user);
   const logout = useUserStore((state) => state.logout);
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
     if (!user) {
       router.push('/admin/login');
     } else if (!user.isAdmin) {
       logout();
       toast.warning('You are not allowed');
+      router.push('/admin/login');
     }
-  }, [user, router, logout]);
+  }, [user, isHydrated, router, logout]);
 
-  if (!user) return null;
+  if (!isHydrated || !user || !user.isAdmin) {
+    return <Loading fullScreen text="Verifying admin session..." />;
+  }
 
   return (
     <SocketProvider userId={user.id}>

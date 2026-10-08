@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
-import { CircleStop, Mic, MicOff, Send, SmilePlus } from 'lucide-react';
+import { CircleStop, Mic, MicOff, Send, SmilePlus, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSocket } from '@/context/SocketContext';
 import { useUserStore } from '@/stores/userStore';
@@ -52,6 +52,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false 
     // Audio recording state
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+    const isCancelledRef = useRef(false);
     const [isRecording, setIsRecording] = useState(false);
     const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
     const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
@@ -96,6 +97,7 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false 
 
     const startRecorder = useCallback(async () => {
         try {
+            isCancelledRef.current = false;
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaStreamRef.current = stream;
 
@@ -112,7 +114,9 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false 
 
             recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);
             recorder.onstop = () => {
-                sendVoiceMessage(new Blob(chunks, { type: "audio/webm" }));
+                if (!isCancelledRef.current) {
+                    sendVoiceMessage(new Blob(chunks, { type: "audio/webm" }));
+                }
                 stream.getTracks().forEach((t) => t.stop());
                 audioCtx.close();
                 setAnalyser(null);
@@ -133,9 +137,26 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false 
         }
     }, [sendVoiceMessage]);
 
-    const stopRecording = useCallback(() => {
-        mediaRecorderRef.current?.stop();
-        mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    const cancelRecording = useCallback(() => {
+        isCancelledRef.current = true;
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+        }
+        setIsRecording(false);
+        // toast.info("Voice recording cancelled");
+    }, []);
+
+    const stopAndSendRecording = useCallback(() => {
+        isCancelledRef.current = false;
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+        }
         setIsRecording(false);
     }, []);
 
@@ -308,19 +329,42 @@ const ChatArea: React.FC<ChatProps> = ({ userRole, chatSupport, isModal = false 
                             />
                         )}
                     </div>
-                    <div className="flex gap-x-2 md:gap-x-5 items-center flex-shrink-0">
-                        <div
-                            onClick={!chatSupport.voice ? handleVoiceWarning : isRecording ? stopRecording : startRecorder}
-                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-md transition ${chatSupport.voice ? 'bg-green hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`}
-                        >
-                            {isRecording ? <CircleStop size={20} /> : chatSupport.voice ? <Mic size={20} /> : <MicOff size={20} />}
-                        </div>
-                        <div
-                            onClick={handleSend}
-                            className="bg-primary text-white px-2 md:px-3 py-1.5 md:py-2 rounded-md cursor-pointer"
-                        >
-                            <Send size={20} />
-                        </div>
+                    <div className="flex gap-x-2 md:gap-x-3 items-center shrink-0">
+                        {isRecording ? (
+                            <>
+                                <div
+                                    onClick={cancelRecording}
+                                    title="Cancel Voice Recording"
+                                    className="bg-red-500 hover:bg-red-600 text-white px-2 md:px-3 py-1.5 md:py-2 rounded-md cursor-pointer transition flex items-center gap-1"
+                                >
+                                    <Trash2 size={20} />
+                                    <span className="hidden md:inline text-xs font-medium">Cancel</span>
+                                </div>
+                                <div
+                                    onClick={stopAndSendRecording}
+                                    title="Send Voice Message"
+                                    className="bg-green hover:bg-green-600 text-black font-bold px-2 md:px-3 py-1.5 md:py-2 rounded-md cursor-pointer transition flex items-center gap-1"
+                                >
+                                    <Send size={20} />
+                                    <span className="hidden md:inline text-xs font-semibold">Send</span>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div
+                                    onClick={!chatSupport.voice ? handleVoiceWarning : startRecorder}
+                                    className={`px-2 md:px-3 py-1.5 md:py-2 rounded-md transition ${chatSupport.voice ? 'bg-green hover:bg-green-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`}
+                                >
+                                    {chatSupport.voice ? <Mic size={20} /> : <MicOff size={20} />}
+                                </div>
+                                <div
+                                    onClick={handleSend}
+                                    className="bg-primary text-white px-2 md:px-3 py-1.5 md:py-2 rounded-md cursor-pointer"
+                                >
+                                    <Send size={20} />
+                                </div>
+                            </>
+                        )}
                     </div>
                     {enableEmoji && (
                         <div ref={emojiRef} className="absolute bottom-[130px] right-[20%] z-50">

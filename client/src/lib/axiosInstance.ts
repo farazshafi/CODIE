@@ -72,7 +72,8 @@ API.interceptors.response.use(
                 return API(originalRequest);
             } catch (refreshError) {
                 localStorage.removeItem("user-storage");
-                window.location.href = "/login";
+                const isAdminRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+                window.location.href = isAdminRoute ? "/admin/login" : "/login";
                 return Promise.reject(refreshError);
             }
         }
@@ -81,7 +82,8 @@ API.interceptors.response.use(
             const message = error.response?.data?.message || "";
             if (message.toLowerCase().includes("blocked")) {
                 localStorage.removeItem("user-storage");
-                window.location.href = "/login";
+                const isAdminRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+                window.location.href = isAdminRoute ? "/admin/login" : "/login";
             }
         }
 

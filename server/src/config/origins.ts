@@ -1,3 +1,9 @@
+const DEFAULT_ORIGINS = [
+  "https://codiehub.online",
+  "http://localhost:3000",
+  "http://localhost",
+];
+
 const sanitizeOrigin = (value: string) => value.trim().replace(/\/+$/, "");
 
 const fromCsv = (value?: string) =>
@@ -14,7 +20,7 @@ export const getAllowedOrigins = (): string[] => {
 
   const extraOrigins = fromCsv(process.env.CORS_ORIGINS);
 
-  const all = [primaryClientUrl, ...extraOrigins].filter(Boolean);
+  const all = [...DEFAULT_ORIGINS, primaryClientUrl, ...extraOrigins].filter(Boolean);
   return [...new Set(all)];
 };
 

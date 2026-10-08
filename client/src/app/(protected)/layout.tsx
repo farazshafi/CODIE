@@ -8,7 +8,7 @@ import { useMutationHook } from '@/hooks/useMutationHook';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
     const user = useUserStore((state) => state.user)
@@ -27,12 +27,17 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             router.push("/login")
             return
         }
+        if (user.isAdmin) {
+            toast.error("Admin accounts cannot access user dashboard/features");
+            router.push("/admin/dashboard");
+            return;
+        }
         getUserSubscriptions(user?.id)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
 
-    if (!user) {
-        return <Loading fullScreen text='Redirecting to login page...' />
+    if (!user || user.isAdmin) {
+        return <Loading fullScreen text='Redirecting...' />
     }
 
     return (

@@ -35,6 +35,7 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
   const [remoteCursors, setRemoteCursors] = useState<{ [userId: string]: { line: number, column: number, name: string, color: string } }>({});
   const isEditableRef = useRef(isEditable);
   const isApplyingRemoteEdit = useRef(false);
+  const isInitialLoading = useRef(false);
 
   /** ✅ API mutations */
   const { mutate: getCode } = useMutationHook(getCodeApi, {
@@ -46,7 +47,9 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
       setLastValidCode(initialCode);
 
       if (editorRef.current) {
+        isInitialLoading.current = true;
         editorRef.current.setValue(initialCode);
+        isInitialLoading.current = false;
       }
 
       if (projectData.projectLanguage) {
@@ -141,8 +144,8 @@ export default function EditorPanel({ id: projectId }: { id: string }) {
 
     /** ✅ Handle real-time content changes via code-delta */
     editor.onDidChangeModelContent((e) => {
-      // Ignore programmatic remote changes to prevent loops
-      if (isApplyingRemoteEdit.current) return;
+      // Ignore programmatic remote changes or initial load to prevent loops/duplications
+      if (isApplyingRemoteEdit.current || isInitialLoading.current) return;
 
       const changes = e.changes;
       for (const change of changes) {

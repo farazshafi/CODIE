@@ -121,20 +121,18 @@ const EditorContent = () => {
                 >
                     {/* LEFT SIDE (ConsolePanel) */}
                     <div className="h-full w-full overflow-hidden">
-                        {showSidebar ? (
-                            <Split
-                                direction="vertical"
-                                sizes={[50, 50]}
-                                minSize={100}
-                                gutterSize={4}
-                                className="flex flex-col h-full w-full"
-                            >
-                                <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
-                                <OutputPanel />
-                            </Split>
-                        ) : (
+                        <Split
+                            direction="vertical"
+                            sizes={showSidebar ? [50, 50] : [100, 0]}
+                            minSize={showSidebar ? 100 : 0}
+                            gutterSize={showSidebar ? 4 : 0}
+                            className="flex flex-col h-full w-full"
+                        >
                             <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
-                        )}
+                            <div className={showSidebar ? "h-full w-full" : "hidden"}>
+                                <OutputPanel />
+                            </div>
+                        </Split>
                     </div>
 
                     {/* RIGHT SIDE (Drawer: Video, Chat, or Output) */}

@@ -20,13 +20,7 @@ spec:
             - containerPort: 2000
           securityContext:
             privileged: true
-          volumeMounts:
-            - name: piston-data
-              mountPath: /piston
 
-      volumes:
-        - name: piston-data
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

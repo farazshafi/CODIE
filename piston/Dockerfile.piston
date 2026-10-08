@@ -1,0 +1,35 @@
+FROM ghcr.io/engineer-man/piston:latest
+
+# Pre-install CODIE supported runtimes during docker build & clean up archives
+RUN node -e " \
+    require('fs').mkdirSync('/piston', {recursive:true}); \
+    require('nocamel'); \
+    const Package = require('/piston_api/src/package'); \
+    (async () => { \
+    const packages = [ \
+    { language: 'gcc', version: '10.2.0' }, \
+    { language: 'go', version: '1.16.2' }, \
+    { language: 'java', version: '15.0.2' }, \
+    { language: 'mono', version: '6.12.0' }, \
+    { language: 'node', version: '18.15.0' }, \
+    { language: 'python', version: '3.10.0' }, \
+    { language: 'ruby', version: '3.0.1' }, \
+    { language: 'rust', version: '1.68.2' }, \
+    { language: 'swift', version: '5.3.3' }, \
+    { language: 'typescript', version: '5.0.3' } \
+    ]; \
+    for (const p of packages) { \
+    console.log('Pre-installing package:', p.language, p.version); \
+    const pkg = await Package.get_package(p.language, p.version); \
+    if (pkg) { \
+    await pkg.install(); \
+    console.log('Successfully installed:', p.language, p.version); \
+    } else { \
+    console.error('Package not found:', p.language, p.version); \
+    process.exit(1); \
+    } \
+    } \
+    })(); \
+    " \
+    && find /piston/packages -name "pkg.tar.gz" -type f -delete
+
