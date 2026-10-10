@@ -1,7 +1,7 @@
 import axios from "axios";
 import { HttpError } from "./HttpError";
 
-const MODEL = "models/gemini-2.5-flash";
+const MODEL = "models/gemini-3.8-flash";
 
 export const generateCodeExplanation = async (code: string) => {
   try {
