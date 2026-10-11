@@ -96,7 +96,6 @@ export class AdminController {
             const token = req.headers.authorization?.split(" ")[1]
 
             const decoded = jwt.decode(token)
-            console.log("decoded token data", decoded)
 
             if (!decoded || !decoded.exp) {
                 const response = new ApiResponse(
@@ -108,7 +107,6 @@ export class AdminController {
 
             const expiresAt = decoded.exp
             const ttl = expiresAt - Math.floor(Date.now() / 1000);
-            console.log("checking ttl: is grater than 0", ttl)
             if (ttl > 0) {
                 await redis.setex(`blacklist:${token}`, ttl, "true")
             }

@@ -299,7 +299,6 @@ export class RoomServices implements IRoomService {
     async getRecentContributedProjects(userId: string): Promise<IRecentContributedProject[]> {
         try {
             const projects = await this._roomRepository.getRecentContributedProjects(userId, 3)
-            console.log("Recent contributed projects:", projects);
             return projects;
         } catch (error) {
             logger.error(`Error while getting recent contributed projects ${error}`);

@@ -122,7 +122,6 @@ export class ProjectController {
       const userId = req.user.id
 
       const projects = await this._projectService.getProjectsByUserId(userId)
-      console.log("projects from controller : ", projects)
 
       const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Project")
       res.status(response.statusCode).json(response)
@@ -135,10 +134,8 @@ export class ProjectController {
   getContributedProjects = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.params
-      console.log("chekcing input: ", userId)
 
       const projects = await this._roomService.getContributedProjectsOld(userId)
-      console.log("projects from controller : ", projects)
       const response = new ApiResponse(HttpStatusCode.OK, projects, "succesfully Found Contributed Project")
       res.status(response.statusCode).json(response)
     } catch (error) {

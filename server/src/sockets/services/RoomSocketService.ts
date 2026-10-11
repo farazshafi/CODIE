@@ -40,12 +40,10 @@ export class RoomSocketService implements IRoomSocketService {
         }
 
 
-        console.log("comming herere".bgGreen)
         const currentContributers = room.collaborators.length - 1
         const userSubscriptionId = (await this._userSubscriptionRepository.findOne({ userId: room.owner })).planId.toString()
         const maxContributers = (await this._subscriptionRepository.findById(userSubscriptionId)).maxCollaborators
         if (currentContributers >= maxContributers) {
-            console.log("room is full".bgRed)
             return { error: "Room is full" }
         }
 

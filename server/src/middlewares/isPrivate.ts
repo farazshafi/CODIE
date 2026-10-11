@@ -8,9 +8,6 @@ export const isPrivate = async (req: Request, res: Response, next: NextFunction)
     const paramsId = req.params.userId
     const user = await userService.findUserById(paramsId)
 
-    console.log("userId".blue, userId, " paramsId: ".blue, paramsId)
-    console.log("user: ", user)
-
     if (paramsId !== userId) {
         if (user.isPublic) {
             next()

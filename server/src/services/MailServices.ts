@@ -68,8 +68,6 @@ export class MailService implements IMailService {
                 <p><a href="${process.env.CLIENT_URL}/dashboard">Accept Invitation</a></p>
                 <p>If you did not expect this invitation, you can safely ignore this email.</p>`
             });
-
-            console.log("Invitation sended")
         } catch (error) {
             console.error("Error sending notification email: ", error);
             throw new HttpError(401, "Failed to send collaboration request notification");

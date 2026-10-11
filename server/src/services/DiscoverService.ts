@@ -92,8 +92,6 @@ export class DiscoverService implements IDiscoverService {
                     }
                 }).sort(sortOptions)
 
-            console.log(discoveries)
-
             const filtered = discoveries.filter((d) => {
                 const project = d.projectId as unknown as PopulatedProject;
 

@@ -41,8 +41,6 @@ export class UserSubscriptionRepository extends BaseRepository<IUserSubscription
     }
 
     async getSubscriptionHistory(params: GetSubscriptionHistoryParams): Promise<GetSubscriptionHistoryResult> {
-        console.log("params current page: ".yellow, params.currentPage);
-
         const { year, month, sort, search } = params;
         const limit = Number(params.limit) || 10;
         const currentPage = Number(params.currentPage) || 1;

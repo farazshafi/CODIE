@@ -26,7 +26,6 @@ export class OnlineUserRepository implements IOnlineUserRepository {
 
         if (existingUserId === userId) {
             await redis.hdel(key, socketId);
-            console.log(`Removed user ${userId} from project ${projectId}`);
         }
     }
 

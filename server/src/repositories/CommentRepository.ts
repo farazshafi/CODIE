@@ -22,8 +22,6 @@ export class CommentRepository extends BaseRepository<IComment> implements IComm
 
         const userObjectId = new mongoose.Types.ObjectId(userId);
 
-        console.log("comments ", comment)
-
         if (comment.likes.includes(userObjectId)) {
             await this.model.findByIdAndUpdate(
                 commentId,

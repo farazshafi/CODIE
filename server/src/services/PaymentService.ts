@@ -126,8 +126,6 @@ export class PaymentService implements IPaymentService {
                 filter = { paymentStatus: sort.toLowerCase() }
             }
 
-            console.log("sort and filter", sort, filter)
-
             const payments = await this._paymentRepository
                 .getModel()
                 .find(filter)
@@ -267,7 +265,7 @@ export class PaymentService implements IPaymentService {
                 const repoMonth = params.month;
 
                 const data = await this._paymentRepository.dailySalesReport(year, repoMonth);
-                rows = data.map((r: {day:number, revenue:number}) => ({
+                rows = data.map((r: { day: number, revenue: number }) => ({
                     day: r.day,
                     revenue: r.revenue,
                 }));
@@ -280,7 +278,7 @@ export class PaymentService implements IPaymentService {
                 if (!params.date) {
                     throw new Error("date is required for date view");
                 }
-                const r: {date:string, revenue: number} = await this._paymentRepository.salesReportByDate(params.date);
+                const r: { date: string, revenue: number } = await this._paymentRepository.salesReportByDate(params.date);
                 rows = [{ date: r.date, revenue: r.revenue }];
                 filename += `_${params.date}`;
                 break;

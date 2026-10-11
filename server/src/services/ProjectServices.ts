@@ -35,10 +35,8 @@ export class ProjectService implements IProjectService {
 
             // make sure he wont create project more than (x) given in plan, and store owner plan id
             const userPlanId = await this._userSubscriptionRepository.findOne({ userId: new mongoose.Types.ObjectId(data.userId) })
-            console.log("checking".bgGreen, userPlanId)
 
             const plan = await this._subscriptionRepository.findById(userPlanId.planId.toString())
-            console.log("user plan ", plan)
             const totalProjects = (await this._projectRepository.find({ userId: data.userId })).length
             if (totalProjects >= plan.maxPrivateProjects) {
                 throw new HttpError(400, "You have reached the maximum number of projects, Upgrade your plan.");

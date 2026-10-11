@@ -75,8 +75,6 @@ export class EditorEvents implements IEventHandler {
         client.emit('online-users', onlineUsers);
         client.to(data.projectId).emit('online-users', onlineUsers);
         client.to(data.projectId).emit('user-joined', { message: `${data.userName} Joined` });
-
-        console.log(`User ${data.userName} joined with color ${color}`);
     }
 
     private async _handleLeaveRoom(data: leaveProjectData, client: Socket): Promise<void> {

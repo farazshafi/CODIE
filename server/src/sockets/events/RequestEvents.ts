@@ -130,9 +130,6 @@ export class RequestEvents implements IEventHandler {
                     message: "Contributors list updated",
                     roomId: roomId
                 });
-
-                console.log("after sending contributre update")
-
             }
 
         } catch (err) {
