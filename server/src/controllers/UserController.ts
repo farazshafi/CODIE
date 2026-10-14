@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken"
 import { HttpStatusCode } from "../utils/httpStatusCodes"
 import { ApiResponse } from "../utils/ApiResponse"
 import { getRefreshTokenCookieOptions } from "../utils/authCookie"
+import cloudinary from "../config/cloudinary"
 
 export class UserController {
     constructor(
@@ -515,6 +516,69 @@ export class UserController {
         }
     }
 
+    uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.file) {
+                const response = new ApiResponse(HttpStatusCode.BAD_REQUEST, null, "No file uploaded")
+                res.status(response.statusCode).json(response)
+                return
+            }
 
+            const userId = req.user.id
+
+            const cloudName = process.env.CLOUDINARY_CLOUD_NAME!
+            const apiKey = process.env.CLOUDINARY_API_KEY!
+            const apiSecret = process.env.CLOUDINARY_SECRET!
+
+            // Build signed upload request manually to expose the real Cloudinary error body
+            const timestamp = Math.floor(Date.now() / 1000).toString()
+            const folder = "avatars"
+
+            // SHA-1 signature: sign "folder=avatars&timestamp=<ts>" + api_secret
+            const sigString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+            const signature = crypto.createHash("sha1").update(sigString).digest("hex")
+
+            // Build multipart form
+            const formData = new FormData()
+            const blob = new Blob([new Uint8Array(req.file.buffer)], { type: req.file.mimetype })
+            formData.append("file", blob, req.file.originalname || "avatar")
+            formData.append("api_key", apiKey)
+            formData.append("timestamp", timestamp)
+            formData.append("folder", folder)
+            formData.append("signature", signature)
+
+            const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+
+            const axiosInstance = (await import("axios")).default
+            let cloudinaryResponse: { secure_url: string }
+            try {
+                const res2 = await axiosInstance.post(uploadUrl, formData)
+                cloudinaryResponse = res2.data
+                console.log("[Cloudinary] Upload success:", cloudinaryResponse.secure_url)
+            } catch (axiosErr: unknown) {
+                const e = axiosErr as { response?: { status: number; data: unknown }; message?: string }
+                console.error("[Cloudinary Raw Error] status:", e?.response?.status)
+                console.error("[Cloudinary Raw Error] body:", JSON.stringify(e?.response?.data, null, 2))
+                const errBody = e?.response?.data as { error?: { message?: string } }
+                const msg = errBody?.error?.message ?? e?.message ?? "Upload failed"
+                const response = new ApiResponse(HttpStatusCode.INTERNAL_SERVER_ERROR, null, `Cloudinary: ${msg}`)
+                res.status(response.statusCode).json(response)
+                return
+            }
+
+            const updatedUser = await this._userService.updateAvatarUrl(userId, cloudinaryResponse.secure_url)
+
+            const response = new ApiResponse(
+                HttpStatusCode.OK,
+                { avatar: updatedUser.avatarUrl },
+                "Avatar uploaded successfully"
+            )
+            res.status(response.statusCode).json(response)
+
+        } catch (err) {
+            console.error("[uploadAvatar] Unexpected error:", err)
+            next(err)
+        }
+    }
 
 }

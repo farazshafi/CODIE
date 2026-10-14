@@ -65,6 +65,7 @@ const Header = ({
     const roomId = useEditorStore((state) => state.roomId)
     const ownerId = useEditorStore((state) => state.ownerId)
     const userRole = useEditorStore((state) => state.userRole)
+    const isContributionEnabled = useEditorStore((state) => state.isContributionEnabled)
     const user = useUserStore((state) => state.user)
 
     const params = useParams()
@@ -207,7 +208,7 @@ const Header = ({
             {/* Desktop Tools */}
             <div className="hidden md:flex flex-row items-center gap-x-4">
 
-                {roomId && (
+                {roomId && isContributionEnabled && (
                     <>
                         <AudioHuddleControl onVideoToggle={onVideoToggle} />
                         <div

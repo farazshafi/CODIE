@@ -116,7 +116,7 @@ const EditorContent = () => {
                     direction="horizontal"
                     sizes={[showSidebar ? 65 : 75, showSidebar ? 35 : 25]}
                     minSize={300}
-                    gutterSize={4}
+                    gutterSize={10}
                     className="flex h-full w-full"
                 >
                     {/* LEFT SIDE (ConsolePanel) */}
@@ -125,10 +125,10 @@ const EditorContent = () => {
                             direction="vertical"
                             sizes={showSidebar ? [50, 50] : [100, 0]}
                             minSize={showSidebar ? 100 : 0}
-                            gutterSize={showSidebar ? 4 : 0}
+                            gutterSize={showSidebar ? 10 : 0}
                             className="flex flex-col h-full w-full"
                         >
-                            <ConsolePanel id={id as string} onReset={handleReset} onRun={handleRun} />
+                            <ConsolePanel id={id as string}  onRun={handleRun} />
                             <div className={showSidebar ? "h-full w-full" : "hidden"}>
                                 <OutputPanel />
                             </div>
@@ -172,17 +172,6 @@ const EditorContent = () => {
                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                         </span>
                                     )}
-                                </button>
-
-                                <button
-                                    onClick={() => setActiveSidebarTab("output")}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors border-t border-x ${activeSidebarTab === "output"
-                                        ? "bg-[#0d0e15] border-emerald-500/40 text-emerald-300 font-semibold"
-                                        : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
-                                        }`}
-                                >
-                                    <Terminal className="w-3.5 h-3.5" />
-                                    <span>Output</span>
                                 </button>
                             </div>
                         )}

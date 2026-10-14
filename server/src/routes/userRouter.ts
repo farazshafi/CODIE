@@ -6,6 +6,7 @@ import { userController } from "../container"
 import { authenticate } from "../middlewares/authenticate"
 import { protect } from "../middlewares/protectMiddleware"
 import { isUser } from "../middlewares/isUserMiddleware"
+import upload from "../middlewares/upload"
 
 const router = Router()
 
@@ -25,6 +26,7 @@ router.get("/get_user", authenticate, protect, isUser, userController.getUserDat
 router.get("/get_contributer/:id", authenticate, protect, isUser, userController.getContributerDetails);
 router.put("/update_profile_visibility/", authenticate, protect, isUser, userController.updateProfileVisiblility);
 router.get("/get_profile_visibility/:id", authenticate, protect, isUser, userController.getProfileVisibility);
+router.post("/upload_avatar", authenticate, protect, isUser, upload.single("avatar"), userController.uploadAvatar);
 
 router.get("/", (req, res) => {
     res.send(`Api is running on port ${ENV.PORT}`)

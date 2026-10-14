@@ -146,3 +146,17 @@ export const getProfileVisibilityApi = async (userId: string) => {
         throw err;
     }
 }
+
+export const uploadAvatarApi = async (file: File) => {
+    try {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        const response = await API.post("/upload_avatar", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        return response.data;
+    } catch (err) {
+        console.log("api error", err);
+        throw err;
+    }
+}

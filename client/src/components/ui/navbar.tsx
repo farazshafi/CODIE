@@ -303,8 +303,10 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                                     <Button variant="outline">
                                         {user.name}
                                         <Avatar className="ml-2">
-                                            <AvatarImage src="https://github.com/shadcn.png" />
-                                            <AvatarFallback>US</AvatarFallback>
+                                            <AvatarImage src={user.avatar || ""} />
+                                            <AvatarFallback className="bg-green-700 text-white font-bold">
+                                                {user.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
+                                            </AvatarFallback>
                                         </Avatar>
                                     </Button>
                                 ) : (
@@ -368,8 +370,10 @@ const Navbar = forwardRef((props: NavbarProps, ref) => {
                                     <Button variant="outline" className="w-full">
                                         {user.name}
                                         <Avatar className="ml-2">
-                                            <AvatarImage src="https://github.com/shadcn.png" />
-                                            <AvatarFallback>US</AvatarFallback>
+                                            <AvatarImage src={user.avatar || ""} />
+                                            <AvatarFallback className="bg-green-700 text-white font-bold">
+                                                {user.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
+                                            </AvatarFallback>
                                         </Avatar>
                                     </Button>
                                 ) : (

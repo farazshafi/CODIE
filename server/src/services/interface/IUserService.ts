@@ -26,4 +26,5 @@ export interface IUserService {
     getUsersGraphByYear(year: number): Promise<{ month: string, users: number }[]>;
     getMontlyUserForGraphOverview(year: number): Promise<{ _id: number, count: number }[]>
     getYearlyDataForGraphOverview(): Promise<{ _id: number, count: number }[]>
+    updateAvatarUrl(userId: string, avatarUrl: string): Promise<IUser>
 }

@@ -268,4 +268,8 @@ export class UserService implements IUserService {
         return this._userRepository.getYearlyDataForGraphOverview()
     }
 
+    async updateAvatarUrl(userId: string, avatarUrl: string): Promise<IUser> {
+        return await this._userRepository.findByIdAndUpdate(userId, { avatarUrl })
+    }
+
 }

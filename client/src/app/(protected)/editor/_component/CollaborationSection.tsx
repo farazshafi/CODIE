@@ -29,6 +29,7 @@ const CollaborationSection = () => {
     const user = useUserStore((state) => state.user);
     const setOwnerIdInStore = useEditorStore((state) => state.setOwnerId);
     const ownerId = useEditorStore((state) => state.ownerId);
+    const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled);
     const { socket } = useSocket();
 
     const params = useParams();
@@ -41,6 +42,7 @@ const CollaborationSection = () => {
             if (createdRoomId) {
                 setRoomId(createdRoomId);
             }
+            setContributionEnabled(true);
             toast.success("Enabled collaboration!");
         },
         onError(error) {
@@ -53,9 +55,11 @@ const CollaborationSection = () => {
             setRoomId(res.data.roomId);
             setIsWantToCollab(true);
             setOwnerIdInStore(res.data.owner);
+            setContributionEnabled(true);
         },
         onError() {
             setIsWantToCollab(false);
+            setContributionEnabled(false);
         },
     });
 

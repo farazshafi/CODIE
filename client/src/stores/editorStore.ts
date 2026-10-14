@@ -31,6 +31,14 @@ export const useEditorStore = create<useState>()(
         }),
         {
             name: "editor-store",
+            // Exclude isContributionEnabled from persistence so it always
+            // resets to false on page load, preventing stale state across sessions.
+            partialize: (state) => ({
+                roomId: state.roomId,
+                projectId: state.projectId,
+                userRole: state.userRole,
+                ownerId: state.ownerId,
+            }),
         }
     )
 )
