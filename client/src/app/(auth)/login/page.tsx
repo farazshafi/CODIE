@@ -16,6 +16,8 @@ import { auth, gProvider } from "@/lib/firebaseSetup";
 import Loading from "@/components/Loading";
 import { loginSchema } from "@/lib/validations/userSchema";
 import { getUserSubscriptionApi } from "@/apis/userSubscriptionApi";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 
 interface ApiError extends Error {
@@ -191,6 +193,7 @@ const Page = () => {
 
     return (
         <>
+            <Navbar />
             <div style={{ background: 'linear-gradient(to left bottom, #363940, #000000)' }} className="h-screen w-full px-6 sm:px-10 md:px-20 lg:px-32 py-10 flex items-center justify-center">
                 <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between gap-10">
                     {/* Left Section */}
@@ -260,7 +263,7 @@ const Page = () => {
                                         onClick={() => setShowResetModal(true)}
                                         className="text-sm text-gray-600 inline hover:underline"
                                     >
-                                        Forgot password? <span className="mygreen font-medium">reset</span>
+                                        Forgot password?
                                     </button>
                                 </p>
                             </div>
@@ -281,6 +284,7 @@ const Page = () => {
                     </div>
                 </div >
             </div >
+            <Footer />
             {showResetModal && (
                 <div className="fixed inset-0 bg-black/80 bg-opacity-40 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-96">

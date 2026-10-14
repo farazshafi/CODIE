@@ -1,6 +1,8 @@
 export const dynamic = "force-dynamic";
 import CodeAnimation from '@/components/codeAnimation'
 import FeatureCard from '@/components/featureCard'
+import Footer from '@/components/Footer'
+import Navbar from '@/components/Navbar'
 import Subscription from '@/components/Subscription'
 import PageTransitionWrapper from '@/components/TransitionWrapper'
 import { Button } from '@/components/ui/button'
@@ -31,8 +33,10 @@ const page = async () => {
     <PageTransitionWrapper>
       <div className="min-h-screen bg-primary text-white overflow-x-hidden">
 
+        <Navbar />
+
         {/* Hero Section */}
-        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="w-full pt-12 lg:pt-16 pb-20 lg:pb-28">
+        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="w-full pt-20 lg:pt-16 pb-20 lg:pb-28">
           <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
             <div className="w-full lg:w-1/2 max-w-xl lg:max-w-none">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-bold mb-6 tracking-tight leading-tight">
@@ -57,7 +61,7 @@ const page = async () => {
         </section>
 
         {/* Live Teaching & Use-Case Showcase */}
-        <section className="py-16 bg-black/60 border-y border-white/5">
+        <section id="solutions" className="py-16 bg-black/60 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-xs uppercase tracking-widest text-green-400 font-semibold mb-3">
@@ -115,7 +119,7 @@ const page = async () => {
         </section>
 
         {/* Core Features section */}
-        <section style={{ background: 'linear-gradient(to bottom, #000000, #1f2125)' }} className="py-24 bg-black/80 backdrop-blur-sm">
+        <section id="features" style={{ background: 'linear-gradient(to bottom, #000000, #1f2125)' }} className="py-24 bg-black/80 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold text-center mb-4 bg-clip-text mygreen">
               Powerful Features Built for Collaboration
@@ -175,14 +179,16 @@ const page = async () => {
         </section>
 
         {/* Pricing Section */}
-        {hasPlans ? (
-          <Subscription plan={subscriptions} />
-        ) : (
-          <div className="text-center text-white py-10">
-            <h2 className="text-2xl">No subscription plans available.</h2>
-            <p className="text-gray-400 mt-2">Please try again later.</p>
-          </div>
-        )}
+        <div id="pricing">
+          {hasPlans ? (
+            <Subscription plan={subscriptions} />
+          ) : (
+            <div className="text-center text-white py-10">
+              <h2 className="text-2xl">No subscription plans available.</h2>
+              <p className="text-gray-400 mt-2">Please try again later.</p>
+            </div>
+          )}
+        </div>
 
         {/* CTA Section */}
         <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="py-24 border-t border-white/5">
@@ -203,6 +209,8 @@ const page = async () => {
             </Button>
           </div>
         </section>
+
+        <Footer />
 
       </div>
     </PageTransitionWrapper>

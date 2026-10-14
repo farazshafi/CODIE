@@ -1,4 +1,3 @@
-// src/container.ts
 import { AdminController } from './controllers/AdminController';
 import { DiscoverController } from './controllers/DiscoverController';
 import { InvitationController } from './controllers/InvitationController';
