@@ -1,31 +1,20 @@
-import axios from "axios";
+import { GoogleGenAI } from "@google/genai";
 import { HttpError } from "./HttpError";
 
-const MODEL = "models/gemini-3.8-flash";
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 export const generateCodeExplanation = async (code: string) => {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent`;
+    const response = await ai.interactions.create({
+      model: "gemini-3.8-flash",
+      input: `Explain this code in simple English:\n\n${code}`,
+    });
 
-    const response = await axios.post(
-      url,
-      {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `Explain this code in simple English:\n\n${code}` }],
-          },
-        ],
-      },
-      {
-        params: { key: process.env.GEMINI_API_KEY },
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    return response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    return response.output_text;
   } catch (err) {
-    console.error("Error calling Gemini API:", err.response?.data || err.message);
+    console.error("Gemini API error:", err);
     throw new HttpError(500, "Error generating code explanation");
   }
 };

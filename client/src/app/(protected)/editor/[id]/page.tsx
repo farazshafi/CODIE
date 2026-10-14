@@ -23,6 +23,8 @@ const EditorContent = () => {
 
     const { id } = useParams()
     const setProjectId = useEditorStore((state) => state.setProjectId)
+    const setRoomId = useEditorStore((state) => state.setRoomId)
+    const setContributionEnabled = useEditorStore((state) => state.setContributionEnabled)
     const userRole = useEditorStore((state) => state.userRole)
     const { runCode } = useCodeEditorStore()
     const [chatSupport, setChatSupport] = useState({
@@ -64,6 +66,8 @@ const EditorContent = () => {
                 userName: user.name
             })
             setProjectId(null)
+            setRoomId(null)
+            setContributionEnabled(false)
             localStorage.removeItem("editor-store")
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,7 +132,7 @@ const EditorContent = () => {
                             gutterSize={showSidebar ? 10 : 0}
                             className="flex flex-col h-full w-full"
                         >
-                            <ConsolePanel id={id as string}  onRun={handleRun} />
+                            <ConsolePanel id={id as string} onRun={handleRun} />
                             <div className={showSidebar ? "h-full w-full" : "hidden"}>
                                 <OutputPanel />
                             </div>

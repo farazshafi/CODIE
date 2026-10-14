@@ -139,7 +139,7 @@ const Header = ({
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="flex items-center gap-2 md:hidden">
+            {/* <div className="flex items-center gap-2 md:hidden">
                 <Link href="/dashboard">
                     <Button size="icon" variant="ghost" className="bg-tertiary/50">
                         <LogOut className="w-5 h-5 text-red-400" />
@@ -151,10 +151,10 @@ const Header = ({
                 >
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
-            </div>
+            </div> */}
 
             {/* Mobile Dropdown */}
-            {isOpen && (
+            {/* {isOpen && (
                 <div className="absolute top-[65px] left-0 w-full bg-[#0a0a0c] border-b border-white/10 flex flex-col p-4 z-50 md:hidden space-y-2 shadow-2xl animate-in slide-in-from-top duration-200">
                     <MobileMenuItem
                         icon={
@@ -203,7 +203,7 @@ const Header = ({
                         }}
                     />
                 </div>
-            )}
+            )} */}
 
             {/* Desktop Tools */}
             <div className="hidden md:flex flex-row items-center gap-x-4">

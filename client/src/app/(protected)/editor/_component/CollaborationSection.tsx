@@ -60,6 +60,7 @@ const CollaborationSection = () => {
         onError() {
             setIsWantToCollab(false);
             setContributionEnabled(false);
+            setRoomId(null);
         },
     });
 
