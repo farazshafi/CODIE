@@ -134,3 +134,14 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+.env.backup
+certbot/
+docker-compose.yml.bak
+nginx.conf.backup
+nginx.conf.save
+
+.env.backup
+certbot/
+docker-compose.yml.bak
+nginx.conf.backup
+nginx.conf.save
