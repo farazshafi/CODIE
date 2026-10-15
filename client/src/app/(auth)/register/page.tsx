@@ -210,37 +210,63 @@ const Page = () => {
 
             {/* Signup Form */}
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <Input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="py-4 border-b border-gray-300"
-              />
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="py-4 border-b border-gray-300"
-              />
-              <div className="flex flex-row gap-x-3 items-center">
+              <div className="space-y-1">
+                {username && (
+                  <label htmlFor="username" className="text-xs text-gray-500">
+                    Name
+                  </label>
+                )}
+
                 <Input
-                  type={isPasswordHidden ? "password" : "text"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="Name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="py-4 border-b border-gray-300"
                 />
-                {isPasswordHidden ? (
-                  <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
-                    <Eye />
-                  </div>
-                ) : (
-                  <div onClick={handlePassHidden} className="bg-black p-2 text-white rounded-md">
-                    <EyeOff />
-                  </div>
+              </div>
+
+              <div className="space-y-1">
+                {email && (
+                  <label htmlFor="email" className="text-xs text-gray-500">
+                    Email
+                  </label>
                 )}
+
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="py-4 border-b border-gray-300"
+                />
+              </div>
+              <div className="space-y-1">
+                {password && (
+                  <label htmlFor="password" className="text-xs text-gray-500">
+                    Password
+                  </label>
+                )}
+
+                <div className="flex flex-row gap-x-3 items-center">
+                  <Input
+                    id="password"
+                    type={isPasswordHidden ? "password" : "text"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="py-4 border-b border-gray-300"
+                  />
+
+                  <div
+                    onClick={handlePassHidden}
+                    className="bg-black p-2 text-white rounded-md cursor-pointer"
+                  >
+                    {isPasswordHidden ? <Eye /> : <EyeOff />}
+                  </div>
+                </div>
               </div>
 
               <Button
