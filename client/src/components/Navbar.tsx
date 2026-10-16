@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 
-// ─── Nav links ────────────────────────────────────────────────────────────────
 // Anchor links scroll within the landing page; About/Docs navigate to pages.
 const navLinks = [
     { label: "Features", href: "/#features" },
@@ -16,7 +15,6 @@ const navLinks = [
     { label: "Docs", href: "/docs" },
 ];
 
-// ─── Navbar ───────────────────────────────────────────────────────────────────
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);

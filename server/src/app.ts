@@ -45,6 +45,7 @@ if (!allowedOrigins.length) {
   console.warn("No CORS origins configured. Set CLIENT_URL and/or CORS_ORIGINS.");
 }
 
+// Health check
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
