@@ -117,6 +117,7 @@ const page = async () => {
             </div>
           </div>
         </section>
+        
 
         {/* Core Features section */}
         <section id="features" style={{ background: 'linear-gradient(to bottom, #000000, #1f2125)' }} className="py-24 bg-black/80 backdrop-blur-sm">
