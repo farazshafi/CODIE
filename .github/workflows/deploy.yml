@@ -8,7 +8,6 @@ on:
       - "client/**"
       - "server/**"
       - ".github/workflows/deploy.yml"
-
   workflow_dispatch:
 
 permissions:
@@ -56,7 +55,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up Docker Buildx
@@ -95,7 +93,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up Docker Buildx
@@ -131,20 +128,36 @@ jobs:
         env:
           FRONTEND_CHANGED: ${{ needs.changes.outputs.frontend }}
           BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
-          IMAGE_TAG: ${{ github.sha }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: FRONTEND_CHANGED,BACKEND_CHANGED,IMAGE_TAG,AWS_REGION,AWS_ACCOUNT_ID
+          envs: FRONTEND_CHANGED,BACKEND_CHANGED,AWS_REGION,AWS_ACCOUNT_ID
           script: |
             set -eu
             cd ~/CODIE/server
 
-            echo "Deployment workflow connected."
-            echo "Frontend changed: $FRONTEND_CHANGED"
-            echo "Backend changed: $BACKEND_CHANGED"
-            echo "Image tag: $IMAGE_TAG"
-            echo "The actual deployment will be enabled after the Compose configuration is prepared."
+            REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+            echo "Logging in to ECR..."
+            aws ecr get-login-password --region "$AWS_REGION" | sudo docker login --username AWS --password-stdin "$REGISTRY"
+
+            echo "Deploying latest images for changed services..."
+
+            if [ "$FRONTEND_CHANGED" = "true" ]; then
+              echo "Pulling and deploying frontend..."
+              sudo docker compose pull frontend
+              sudo docker compose up -d --no-deps frontend
+            fi
+
+            if [ "$BACKEND_CHANGED" = "true" ]; then
+              echo "Pulling and deploying backend services..."
+              sudo docker compose pull app worker scheduler
+              sudo docker compose up -d --no-deps app worker scheduler
+            fi
+
+            echo "Checking service status..."
+            sudo docker compose ps
+            echo "Deployment commands completed."
