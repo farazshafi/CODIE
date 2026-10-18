@@ -36,8 +36,14 @@ const page = async () => {
         <Navbar />
 
         {/* Hero Section */}
-        <section style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }} className="w-full pt-20 lg:pt-16 pb-20 lg:pb-28">
-          <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
+        <section
+          style={{ background: 'linear-gradient(to bottom, #1f2125, #000000)' }}
+          className="relative w-full min-h-screen flex flex-col items-center md:items-start md:justify-center overflow-hidden pt-20 pb-10 md:pb-16"
+        >
+          <div className="w-full md:contents">
+            <CodeAnimation />
+          </div>
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 mt-6 md:mt-0">
             <div className="w-full lg:w-1/2 max-w-xl lg:max-w-none">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl font-bold mb-6 tracking-tight leading-tight">
                 Collaborative Code Editor & Live Teaching Platform
@@ -53,9 +59,6 @@ const page = async () => {
                   <Link href="/register">Start Coding Free <ArrowRight className="ml-2 w-5 h-5" /></Link>
                 </Button>
               </div>
-            </div>
-            <div className="w-full lg:w-1/2 max-w-xl lg:max-w-none mt-6 lg:mt-0">
-              <CodeAnimation />
             </div>
           </div>
         </section>
