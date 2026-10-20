@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     template: "%s | CODIE",
   },
   description: "CODIE - Realtime Collaborative Code Editor with Audio/Video Huddle, AI assistant, and live compilation.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
